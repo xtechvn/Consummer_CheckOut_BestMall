@@ -1,0 +1,217 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Best Mall Email</title>
+</head>
+
+<body style="margin:0; padding:0; background-color:#f2f2f2;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"
+           style="background-color:#f2f2f2; padding:20px 0; font-family:Arial, sans-serif;line-height: 1.4;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" border="0"
+                       style="background-color:#ffffff; border:1px solid #dddddd; max-width:600px; width:100%;">
+                    <tr>
+                        <td style="padding:30px 20px 10px; text-align:center;">
+                            <h1 style="font-size:22px; margin:0; color:#002b5b;">
+                                Xin chào
+                                {clientname}
+                            </h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:0 20px 30px; text-align:center;">
+                            <h2 style="font-size:20px; margin:0; color:#002b5b;">
+                                Cảm ơn
+                                bạn đã ủng hộ Best Mall!
+                            </h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border-top:1px solid #E3EBF3;">
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="text-align:center;">
+                                <tr>
+                                    <td width="33.33%" style="padding:15px 5px; border-right:1px solid #E3EBF3;">
+                                        <div style="font-size:15px; color:#002b5b; font-weight:600;  margin-bottom:5px;">
+                                            Mã khách hàng
+                                        </div>
+                                        <div style="font-size:16px; color:#9c27b0; ">
+                                            {clientcode}
+                                        </div>
+                                    </td>
+                                    <td width="33.33%" style="padding:15px 5px; border-right:1px solid #E3EBF3;">
+                                        <div style="font-size:15px; color:#002b5b; font-weight:600;  margin-bottom:5px;">
+                                            Mã đơn hàng
+                                        </div>
+                                        <div style="font-size:16px; color:#9c27b0; ">
+                                            {orderno}
+                                        </div>
+                                    </td>
+                                    <td width="33.33%" style="padding:15px 5px;">
+                                        <div style="font-size:15px; color:#002b5b; font-weight:600;  margin-bottom:5px;">
+                                            Ngày đặt hàng
+                                        </div>
+                                        <div style="font-size:16px; color:#9c27b0; ">
+                                            {created_date}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:0 20px 10px; text-align:center; border-top:1px solid #E3EBF3;">
+                            <p>
+                                Best Mall sẽ xử lý đơn hàng của bạn ngay lập tức, chúng tôi sẽ gửi email cho bạn để cập
+                                nhật trạng thái đơn hàng
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <!-- Timeline Table with Line -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding:10px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <table width="600" cellpadding="0" cellspacing="0" border="0"
+                                               style="width:100%; max-width:600px; text-align:center;">
+                                            <tr>
+                                                <td colspan="3">
+                                                    <img src="https://static-image.adavigo.com/uploads/images/email/email-order-confirm.png" width="85%" alt="" />
+                                                </td>
+                                            </tr>
+                                            <!-- Step Icons -->
+                                            <tr>
+                                                <!-- Step 1 -->
+                                                <td width="33.33%" style="vertical-align:top;">
+
+                                                    <div style="font-size:14px; font-weight:bold; color:#002b5b; font-family:Arial, sans-serif;">
+                                                        Đơn hàng đã đặt
+                                                    </div>
+                                                    <div style="font-size:13px; color:#789;">{created_date}</div>
+                                                </td>
+
+                                                <!-- Step 2 -->
+                                                <td width="33.33%" style="vertical-align:top;">
+                                                    <div style="font-size:14px; font-weight:bold; color:#002b5b; font-family:Arial, sans-serif;">
+                                                        Đang giao hàng
+                                                    </div>
+                                                    <div style="font-size:13px; color:#789; display:none;">{created_date}</div>
+                                                </td>
+
+                                                <!-- Step 3 -->
+                                                <td width="33.33%" style="vertical-align:top;">
+                                                    <div style="font-size:14px; font-weight:bold; color:#002b5b; font-family:Arial, sans-serif;">
+                                                        Đã nhận được hàng
+                                                    </div>
+                                                    <div style="font-size: 13px; color: #789; display: none;">{created_date}</div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <!-- Order Details -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                                   style="max-width:600px; margin:0 auto; font-family:Arial, sans-serif; background:#fff; ">
+                                <tr>
+                                    <td colspan="2" align="center"
+                                        style="padding:20px 0 10px 0; font-size:16px; font-weight:600; color:#002b5b;">
+                                        Chi tiết đơn hàng
+                                    </td>
+                                </tr>
+
+                                <!-- Product Row -->
+                                <tr>
+                                    <td colspan="2" style="padding:15px 20px 10px;border-top:1px solid #e5e5e5;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                           {products}
+                                        </table>
+                                    </td>
+                                </tr>
+
+                                <!-- Customer + Payment Info -->
+                                <tr>
+                                    <td colspan="2" style="padding:10px 20px; border-top:1px solid #e5e5e5;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <!-- Customer Info -->
+                                                <td valign="top" style="width:50%;">
+                                                    <div style="font-size:14px; font-weight:bold; color:#002b5b; padding-bottom:6px;">
+                                                        {receiver_name}
+                                                    </div>
+                                                    <div style="font-size:13px; color:#555;">
+                                                        <strong>Địa chỉ:</strong>
+                                                        {address}
+                                                    </div>
+                                                    <div style="font-size:13px; color:#555;">
+                                                        <strong>
+                                                            Điện
+                                                            thoại:
+                                                        </strong> <span style="color:#004ba0; font-weight:bold;">{phone}</span>
+                                                    </div>
+                                                </td>
+
+                                                <!-- Payment Info -->
+                                                <td valign="top" style="width:50%;">
+                                                    <table cellpadding="0" cellspacing="4" border="0"
+                                                           style="font-size:13px; color:#002b5b; width:100%;">
+                                                        <tr>
+                                                            <td align="right" style="padding-bottom:2px;">
+                                                                Hình thức
+                                                                thanh toán:
+                                                            </td>
+                                                            <td align="right" style="font-weight:bold;">COD</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="right">Tiền hàng:</td>
+                                                            <td align="right">{amount} đ</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="right" style="display:none;">Phí vận chuyển:</td>
+                                                            <td align="right" style="display:none;">0 đ</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="right" style="">Giảm giá:</td>
+                                                            <td align="right" style="color: #f22; ">{total_discount}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="right" style="font-weight:bold;">Tổng tiền:</td>
+                                                            <td align="right"
+                                                                style="color:#f22; font-size:16px; font-weight:bold;">
+                                                                {total_amount} đ
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+
+                                <!-- Hotline / Support -->
+                                <tr>
+                                    <td colspan="2" align="center"
+                                        style="background:#f3f7fc; padding:20px 15px; font-size:13px; color:#002b5b;">
+                                        Quý khách có thể phản hồi trực tiếp ở email này hoặc liên hệ với chúng tôi qua
+                                        hotline: <strong style="color:#004ba0;">0932.888.666</strong>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
