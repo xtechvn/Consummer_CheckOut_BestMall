@@ -53,6 +53,9 @@ try
                 log_service.InsertLogTelegramDirect("Received: "+body);
 
                  var message = Encoding.UTF8.GetString(body);
+
+                  Console.WriteLine("[APP CHECKOUT] message: " + message);
+                
                 try
                 {
                     var request = JsonConvert.DeserializeObject<CheckoutQueueModel>(message);
