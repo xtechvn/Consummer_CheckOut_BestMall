@@ -18,6 +18,8 @@ service_collection.AddSingleton<ILoggingService, LoggingService>();
 var service_provider = service_collection.BuildServiceProvider();
 var main_service = service_provider.GetService<IMainServices>();
 var log_service = service_provider.GetService<ILoggingService>();
+log_service.InsertLogTelegramDirect("[APP CHECKOUT] Start at: " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
+
 try
 {
     var host = ConfigurationManager.AppSettings["QUEUE_HOST"];
