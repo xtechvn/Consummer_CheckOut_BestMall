@@ -43,7 +43,9 @@ try
                                             arguments: null);
 
         channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
-        Console.WriteLine("Service Waiting: " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
+        Console.WriteLine("[APP CHECKOUT] Service Waiting: " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
+        log_service.InsertLogTelegramDirect("[APP CHECKOUT] Service Waiting: " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
+
         var consumer = new EventingBasicConsumer(channel);
         consumer.Received += async (sender, ea) =>
         {
