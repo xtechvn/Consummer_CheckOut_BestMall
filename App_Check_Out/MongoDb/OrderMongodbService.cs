@@ -1,5 +1,6 @@
-﻿using MongoDB.Driver;
-using APP_CHECKOUT.Models.Orders;
+﻿using APP_CHECKOUT.Models.Orders;
+using MongoDB.Driver;
+using Nest;
 using System.Configuration;
 
 namespace APP_CHECKOUT.MongoDb
@@ -53,8 +54,8 @@ namespace APP_CHECKOUT.MongoDb
             }
             catch (Exception ex)
             {
-                //string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                //LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                Console.WriteLine("rderMongodbService - FindById[" + id + "][" + ex.ToString() + "]");
+
             }
             return null;
 
@@ -72,8 +73,7 @@ namespace APP_CHECKOUT.MongoDb
             }
             catch (Exception ex)
             {
-                //string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                //LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                Console.WriteLine("rderMongodbService - Update[" + model._id + "][" + ex.ToString() + "]");
             }
             return null;
 
