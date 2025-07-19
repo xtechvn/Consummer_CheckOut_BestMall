@@ -18,13 +18,11 @@ service_collection.AddSingleton<ILoggingService, LoggingService>();
 var service_provider = service_collection.BuildServiceProvider();
 var main_service = service_provider.GetService<IMainServices>();
 var log_service = service_provider.GetService<ILoggingService>();
+//log_service.InsertLogTelegramDirect("[APP CHECKOUT] Start at: " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
+
 try
 {
-    var host = ConfigurationManager.AppSettings["QUEUE_HOST"];
-     host = ConfigurationManager.AppSettings["QUEUE_PORT"];
-     host = ConfigurationManager.AppSettings["QUEUE_USERNAME"];
-     host = ConfigurationManager.AppSettings["QUEUE_PASSWORD"];
-     host = ConfigurationManager.AppSettings["QUEUE_V_HOST"];
+
     var factory = new ConnectionFactory()
     {
         HostName = ConfigurationManager.AppSettings["QUEUE_HOST"],
@@ -43,22 +41,29 @@ try
                                             arguments: null);
 
         channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
-        Console.WriteLine("Service Waiting: " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
+        Console.WriteLine("[APP CHECKOUT] Service : " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
+        //log_service.InsertLogTelegramDirect("[APP CHECKOUT] Service Waiting: " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
+
         var consumer = new EventingBasicConsumer(channel);
         consumer.Received += async (sender, ea) =>
         {
             try
             {
                 var body = ea.Body.ToArray();
-                //log_service.InsertLogTelegramDirect("Received: "+body);
+                log_service.InsertLogTelegramDirect("Received: "+body);
 
                  var message = Encoding.UTF8.GetString(body);
+
+                  Console.WriteLine("[APP CHECKOUT] message: " + message);
+                
                 try
                 {
                     var request = JsonConvert.DeserializeObject<CheckoutQueueModel>(message);
                     await main_service.Excute(request);
                 }
-                catch { }
+                 catch (Exception ex)
+                     Console.WriteLine("error ->[APP CHECKOUT] message: " + ex.ToString();
+                }
                 channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
             }
             catch (Exception ex)
