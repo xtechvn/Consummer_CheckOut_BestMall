@@ -61,7 +61,9 @@ try
                     var request = JsonConvert.DeserializeObject<CheckoutQueueModel>(message);
                     await main_service.Excute(request);
                 }
-                catch { }
+                 catch (Exception ex)
+                     Console.WriteLine("error ->[APP CHECKOUT] message: " + ex.ToString();
+                }
                 channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
             }
             catch (Exception ex)
