@@ -1,27 +1,21 @@
-﻿using APP.READ_MESSAGES.Libraries;
-using APP_CHECKOUT.DAL;
+﻿using APP_CHECKOUT.DAL;
 using APP_CHECKOUT.Helpers;
 using APP_CHECKOUT.Interfaces;
-using APP_CHECKOUT.MongoDb;
-using Entities.Models;
-using APP_CHECKOUT.Models.Models.Queue;
-using APP_CHECKOUT.Utilities.constants;
 using APP_CHECKOUT.Models.Location;
-using Utilities.Contants;
-using DAL;
-using APP_CHECKOUT.RabitMQ;
-using System.Configuration;
-using Caching.Elasticsearch;
-using Newtonsoft.Json;
+using APP_CHECKOUT.Models.Models.Queue;
 using APP_CHECKOUT.Models.Orders;
-using System.Net;
-using ADAVIGO_FRONTEND.Models.Flights.TrackingVoucher;
-using APP_CHECKOUT.Constants;
-using System.Text;
-using Nest;
-using System.Net.Http;
+using APP_CHECKOUT.MongoDb;
+using APP_CHECKOUT.RabitMQ;
+using APP_CHECKOUT.Utilities.constants;
+using APP_CHECKOUT.Utilities.Lib;
+using Caching.Elasticsearch;
 using Caching.Elasticsearch.FlashSale;
+using DAL;
+using Entities.Models;
 using HuloToys_Service.Controllers.Product.Bussiness;
+using Newtonsoft.Json;
+using System.Configuration;
+using Utilities.Contants;
 
 namespace APP_CHECKOUT.Repositories
 {
@@ -113,6 +107,8 @@ namespace APP_CHECKOUT.Repositories
                 if (order == null || order.carts == null || order.carts.Count <= 0)
                 {
                     Console.WriteLine("CreateOrder Get orderDetailMongoDbModel.FindById - NULL [" + order_detail_id+"]");
+                    LogHelper.InsertLogTelegram("CreateOrder Get orderDetailMongoDbModel.FindById - NULL [" + order_detail_id + "]");
+
                     return null;
                 }
                 Order order_summit = new Order();
@@ -121,6 +117,7 @@ namespace APP_CHECKOUT.Repositories
                 //double total_profit = 0;
                 //double total_amount = 0;
                 float total_weight = 0;
+
                 foreach (var cart in order.carts)
                 {
                     if (cart == null || cart.product == null) continue; 
@@ -143,7 +140,7 @@ namespace APP_CHECKOUT.Repositories
                         amount_product = (double)cart.product.amount_after_flashsale;
 
                     }
-                    details.Add(new OrderDetail()
+                    var order_detail = new OrderDetail()
                     {
                         CreatedDate = time,
                         Discount = cart.product.discount,
@@ -163,8 +160,11 @@ namespace APP_CHECKOUT.Repositories
                         UpdatedDate = time,
                         UserCreate = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                         UserUpdated = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
-                        ParentProductId=parent_product_id
-                    });
+                        ParentProductId = parent_product_id
+                    };
+                    details.Add(order_detail);
+                    LogHelper.InsertLogTelegram("CreateOrder Get orderDetailMongoDbModel.FindById - NULL [" + JsonConvert.SerializeObject(order_detail) + "]");
+
                     //total_price += (cart.product.price * cart.quanity);
                     //total_profit += (cart.product.profit * cart.quanity);
                     //total_amount += (amount_product * cart.quanity);
@@ -340,6 +340,7 @@ namespace APP_CHECKOUT.Repositories
                 //order.total_discount = total_discount;
                 #endregion
 
+                LogHelper.InsertLogTelegram("CreateOrder CreateOrder: [" + JsonConvert.SerializeObject(order_summit) + "]");
 
                 var order_id = await orderDAL.CreateOrder(order_summit);
                 Console.WriteLine("CreateOrder orderDAL.CreateOrder : [" + order_id + "]");
