@@ -50,7 +50,7 @@ try
             try
             {
                 var body = ea.Body.ToArray();
-                //log_service.InsertLogTelegramDirect("Received: "+body);
+                log_service.InsertLogTelegramDirect("Received: "+body);
 
                  var message = Encoding.UTF8.GetString(body);
                 try
