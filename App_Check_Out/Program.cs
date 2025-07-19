@@ -1,4 +1,4 @@
-﻿using APP.READ_MESSAGES.Libraries;
+using APP.READ_MESSAGES.Libraries;
 using APP_CHECKOUT.Interfaces;
 using APP_CHECKOUT.Repositories;
 using APP_CHECKOUT.Models.Models.Queue;
@@ -41,29 +41,22 @@ try
                                             arguments: null);
 
         channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
-        Console.WriteLine("[APP CHECKOUT] Service : " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
-        //log_service.InsertLogTelegramDirect("[APP CHECKOUT] Service Waiting: " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
+        Console.WriteLine("[APP CHECKOUT] Service : " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));        
 
         var consumer = new EventingBasicConsumer(channel);
         consumer.Received += async (sender, ea) =>
         {
             try
             {
-                var body = ea.Body.ToArray();
-                log_service.InsertLogTelegramDirect("Received: "+body);
-
-                 var message = Encoding.UTF8.GetString(body);
-
-                  Console.WriteLine("[APP CHECKOUT] message: " + message);
+                var body = ea.Body.ToArray();               
                 
-                try
-                {
-                    var request = JsonConvert.DeserializeObject<CheckoutQueueModel>(message);
-                    await main_service.Excute(request);
-                }
-                 catch (Exception ex)
-                     Console.WriteLine("error ->[APP CHECKOUT] message: " + ex.ToString();
-                }
+
+                var message = Encoding.UTF8.GetString(body);
+                Console.WriteLine("[APP CHECKOUT] message: " + message);               
+               
+                var request = JsonConvert.DeserializeObject<CheckoutQueueModel>(message);
+                await main_service.Excute(request);                
+                
                 channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
             }
             catch (Exception ex)
