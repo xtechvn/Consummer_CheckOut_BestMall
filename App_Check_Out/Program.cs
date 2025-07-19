@@ -22,11 +22,7 @@ log_service.InsertLogTelegramDirect("[APP CHECKOUT] Start at: " + DateTime.Now.T
 
 try
 {
-    var host = ConfigurationManager.AppSettings["QUEUE_HOST"];
-     host = ConfigurationManager.AppSettings["QUEUE_PORT"];
-     host = ConfigurationManager.AppSettings["QUEUE_USERNAME"];
-     host = ConfigurationManager.AppSettings["QUEUE_PASSWORD"];
-     host = ConfigurationManager.AppSettings["QUEUE_V_HOST"];
+
     var factory = new ConnectionFactory()
     {
         HostName = ConfigurationManager.AppSettings["QUEUE_HOST"],
