@@ -195,7 +195,7 @@ namespace APP_CHECKOUT.Repositories
                     Amount =order.total_amount,
                     ClientId = (long)account_client.ClientId,
                     CreatedDate = DateTime.Now,
-                    Discount = 0,
+                    Discount = order.total_discount,
                     IsDelete = 0,
                     Note = "",
                     OrderId = 0,
@@ -218,7 +218,7 @@ namespace APP_CHECKOUT.Repositories
                     Phone = order.phone,
                     ShippingFee = order.shipping_fee,
                     CarrierId = order.delivery_detail.carrier_id,
-                    ShippingCode = "",
+                    ShippingCode = order.delivery_detail.shipping_service_code,
                     ShippingType = order.delivery_detail.shipping_type,
                     ShippingStatus = 0,
                     PackageWeight = total_weight,
@@ -430,44 +430,44 @@ namespace APP_CHECKOUT.Repositories
             }
             return wards;
         }
-        private async Task<TrackingVoucherResponse> ApplyVoucher(TrackingVoucherRequest input)
-        {
-            TrackingVoucherResponse result = new TrackingVoucherResponse();
-            try
-            {
-                HttpClient _HttpClient = new HttpClient(new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = (message, certificate2, arg3, arg4) => true
-                })
-                {
-                    BaseAddress = new Uri(ConfigurationManager.AppSettings["API_Domain"])
-                };
-                string url = ConfigurationManager.AppSettings["API_Get_Voucher"];
-                //HttpClient client = new HttpClient();
+        //private async Task<TrackingVoucherResponse> ApplyVoucher(TrackingVoucherRequest input)
+        //{
+        //    TrackingVoucherResponse result = new TrackingVoucherResponse();
+        //    try
+        //    {
+        //        HttpClient _HttpClient = new HttpClient(new HttpClientHandler
+        //        {
+        //            ServerCertificateCustomValidationCallback = (message, certificate2, arg3, arg4) => true
+        //        })
+        //        {
+        //            BaseAddress = new Uri(ConfigurationManager.AppSettings["API_Domain"])
+        //        };
+        //        string url = ConfigurationManager.AppSettings["API_Get_Voucher"];
+        //        //HttpClient client = new HttpClient();
 
-                //var token = CommonHelpers.Encode(JsonConvert.SerializeObject(input), ConfigurationManager.AppSettings["key_private"]);
-                //var content_2 = new FormUrlEncodedContent(new[]
-                //{
-                //       new KeyValuePair<string, string>("token", token),
-                //});
-               // var content = new StringContent(JsonConvert.SerializeObject(input), Encoding.UTF8, "application/json");
-                string token = CommonHelpers.Encode(JsonConvert.SerializeObject(input), ConfigurationManager.AppSettings["key_private"]);
-                var request_message = new HttpRequestMessage(HttpMethod.Post, url);
-                //request_message.Headers.Add("Authorization", "Bearer " + TOKEN);
-                var content = new StringContent("{\"token\":\"" + token + "\"}", Encoding.UTF8, "application/json");
-                request_message.Content = content;
-                var response = await _HttpClient.SendAsync(request_message);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    result = JsonConvert.DeserializeObject<TrackingVoucherResponse>(response.Content.ReadAsStringAsync().Result);
+        //        //var token = CommonHelpers.Encode(JsonConvert.SerializeObject(input), ConfigurationManager.AppSettings["key_private"]);
+        //        //var content_2 = new FormUrlEncodedContent(new[]
+        //        //{
+        //        //       new KeyValuePair<string, string>("token", token),
+        //        //});
+        //       // var content = new StringContent(JsonConvert.SerializeObject(input), Encoding.UTF8, "application/json");
+        //        string token = CommonHelpers.Encode(JsonConvert.SerializeObject(input), ConfigurationManager.AppSettings["key_private"]);
+        //        var request_message = new HttpRequestMessage(HttpMethod.Post, url);
+        //        //request_message.Headers.Add("Authorization", "Bearer " + TOKEN);
+        //        var content = new StringContent("{\"token\":\"" + token + "\"}", Encoding.UTF8, "application/json");
+        //        request_message.Content = content;
+        //        var response = await _HttpClient.SendAsync(request_message);
+        //        if (response.StatusCode == HttpStatusCode.OK)
+        //        {
+        //            result = JsonConvert.DeserializeObject<TrackingVoucherResponse>(response.Content.ReadAsStringAsync().Result);
 
-                }
-            }
-            catch (Exception ex)
-            {
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
 
-            }
-            return result;
-        }
+        //    }
+        //    return result;
+        //}
     }
 }
