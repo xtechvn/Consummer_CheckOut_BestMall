@@ -163,7 +163,7 @@ namespace APP_CHECKOUT.Repositories
                         ParentProductId = parent_product_id
                     };
                     details.Add(order_detail);
-                    LogHelper.InsertLogTelegram("CreateOrder Get orderDetailMongoDbModel.FindById - NULL [" + JsonConvert.SerializeObject(order_detail) + "]");
+                    LogHelper.InsertLogTelegram("CreateOrder OrderDetail [" + JsonConvert.SerializeObject(order_detail) + "]");
 
                     //total_price += (cart.product.price * cart.quanity);
                     //total_profit += (cart.product.profit * cart.quanity);
