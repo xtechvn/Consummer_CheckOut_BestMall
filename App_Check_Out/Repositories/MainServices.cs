@@ -138,7 +138,7 @@ namespace APP_CHECKOUT.Repositories
                     if (cart.product.flash_sale_todate >= DateTime.Now && cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
                     {
                         amount_product = (double)cart.product.amount_after_flashsale;
-
+                        cart.product.profit = amount_product - cart.product.price;
                     }
                     var order_detail = new OrderDetail()
                     {
@@ -146,16 +146,16 @@ namespace APP_CHECKOUT.Repositories
                         Discount = cart.product.discount,
                         OrderDetailId = 0,
                         OrderId = 0,
-                        Price = cart.product.price,
-                        Profit = cart.product.profit,
+                        Price = cart.total_price / cart.quanity,
+                        Profit = cart.total_profit / cart.quanity,
                         Quantity = cart.quanity,
-                        Amount = amount_product,
+                        Amount = cart.total_amount / cart.quanity,
                         ProductCode = cart.product.code,
                         ProductId = cart.product._id,
                         ProductLink = ConfigurationManager.AppSettings["Setting_Domain"] + "/san-pham/" + name_url + "--" + cart.product._id,
-                        TotalPrice = cart.product.price * cart.quanity,
-                        TotalProfit = cart.product.profit * cart.quanity,
-                        TotalAmount = amount_product * cart.quanity,
+                        TotalPrice = cart.total_price,
+                        TotalProfit = cart.total_profit,
+                        TotalAmount = cart.total_amount,
                         TotalDiscount = cart.product.discount * cart.quanity,
                         UpdatedDate = time,
                         UserCreate = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
