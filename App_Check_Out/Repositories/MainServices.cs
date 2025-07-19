@@ -1,27 +1,29 @@
-﻿using APP.READ_MESSAGES.Libraries;
+﻿using ADAVIGO_FRONTEND.Models.Flights.TrackingVoucher;
+using APP.READ_MESSAGES.Libraries;
+using APP_CHECKOUT.Constants;
 using APP_CHECKOUT.DAL;
 using APP_CHECKOUT.Helpers;
 using APP_CHECKOUT.Interfaces;
-using APP_CHECKOUT.MongoDb;
-using Entities.Models;
-using APP_CHECKOUT.Models.Models.Queue;
-using APP_CHECKOUT.Utilities.constants;
+using APP_CHECKOUT.Model.Orders;
 using APP_CHECKOUT.Models.Location;
-using Utilities.Contants;
-using DAL;
-using APP_CHECKOUT.RabitMQ;
-using System.Configuration;
-using Caching.Elasticsearch;
-using Newtonsoft.Json;
+using APP_CHECKOUT.Models.Models.Queue;
 using APP_CHECKOUT.Models.Orders;
-using System.Net;
-using ADAVIGO_FRONTEND.Models.Flights.TrackingVoucher;
-using APP_CHECKOUT.Constants;
-using System.Text;
-using Nest;
-using System.Net.Http;
+using APP_CHECKOUT.MongoDb;
+using APP_CHECKOUT.RabitMQ;
+using APP_CHECKOUT.Utilities.constants;
+using Caching.Elasticsearch;
 using Caching.Elasticsearch.FlashSale;
+using DAL;
+using Entities.Models;
 using HuloToys_Service.Controllers.Product.Bussiness;
+using HuloToys_Service.Controllers.Shipping.Business;
+using Nest;
+using Newtonsoft.Json;
+using System.Configuration;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using Utilities.Contants;
 
 namespace APP_CHECKOUT.Repositories
 {
@@ -42,7 +44,8 @@ namespace APP_CHECKOUT.Repositories
         private readonly FlashSaleESRepository flashSaleESRepository;
         private readonly FlashSaleProductESRepository flashSaleProductESRepository;
         private readonly ProductDetailService productDetailService;
-
+        private readonly ViettelPostService _viettelPostService;
+        private readonly SupplierESRepository _supplierESRepository;
         public MainServices( ILoggingService loggingService) {
 
             logging_service=loggingService;
@@ -56,6 +59,7 @@ namespace APP_CHECKOUT.Repositories
             addressClientESService = new AddressClientESService(ConfigurationManager.AppSettings["Elastic_Host"]);
             flashSaleESRepository = new FlashSaleESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
             flashSaleProductESRepository = new FlashSaleProductESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
+            _supplierESRepository = new SupplierESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
             nhanhVnService = new NhanhVnService(logging_service);
             workQueueClient = new WorkQueueClient(loggingService);
             emailService = new EmailService(clientESService, accountClientESService, locationDAL);
@@ -117,9 +121,13 @@ namespace APP_CHECKOUT.Repositories
                 double total_profit = 0;
                 double total_amount = 0;
                 float total_weight = 0;
+                var list_supplier = new List<int>();
+                var list_cart = new List<CartItemMongoDbModel>();
+
                 foreach (var cart in order.carts)
                 {
-                    if (cart == null || cart.product == null) continue; 
+                    if (cart == null || cart.product == null) continue;
+                    list_cart.Add(cart);
                     string name_url = CommonHelpers.RemoveUnicode(cart.product.name);
                     name_url = CommonHelpers.RemoveSpecialCharacters(name_url);
                     name_url = name_url.Replace(" ", "-").Trim();
@@ -175,7 +183,10 @@ namespace APP_CHECKOUT.Repositories
                     cart.total_amount = amount_product * cart.quanity;
                     cart.total_discount = cart.product.discount * cart.quanity;
                     total_weight += ((cart.product.weight == null ? 0 : (float)cart.product.weight) * cart.quanity / 1000);
-
+                    if (!list_supplier.Contains(cart.product.supplier_id))
+                    {
+                        list_supplier.Add(cart.product.supplier_id);
+                    }
                 }
                 var account_client = accountClientESService.GetById(order.account_client_id);
                 //logging_service.InsertLogTelegramDirect(" accountClientESService.GetById("+ order.account_client_id + ") : "+ (account_client == null ? "NULL" : JsonConvert.SerializeObject(account_client)));
@@ -228,17 +239,17 @@ namespace APP_CHECKOUT.Repositories
                 {
                     if (address_client.ProvinceId.Trim() != "" && provinces != null && provinces.Count > 0)
                     {
-                        var province = provinces.FirstOrDefault(x => x.ProvinceId == address_client.ProvinceId);
+                        var province = provinces.FirstOrDefault(x => x.Id == Convert.ToInt32(address_client.ProvinceId));
                         order_summit.ProvinceId = province != null ? province.Id : null;
                     }
                     if (address_client.DistrictId.Trim() != "" && districts != null && districts.Count > 0)
                     {
-                        var district = districts.FirstOrDefault(x => x.DistrictId == address_client.DistrictId);
+                        var district = districts.FirstOrDefault(x => x.Id == Convert.ToInt32(address_client.DistrictId));
                         order_summit.DistrictId = district != null ? district.Id : null;
                     }
                     if (address_client.WardId.Trim() != "" && wards != null && wards.Count > 0)
                     {
-                        var ward = wards.FirstOrDefault(x => x.WardId == address_client.WardId);
+                        var ward = wards.FirstOrDefault(x => x.Id == Convert.ToInt32(address_client.WardId));
                         order_summit.WardId = ward != null ? ward.Id : null;
                     }
                     order_summit.ReceiverName = address_client.ReceiverName;
@@ -247,11 +258,11 @@ namespace APP_CHECKOUT.Repositories
                 }
                 else
                 {
-                    var province = provinces.FirstOrDefault(x => x.ProvinceId == order.provinceid);
+                    var province = provinces.FirstOrDefault(x => x.Id == Convert.ToInt32(order.provinceid));
                     order_summit.ProvinceId = province != null ? province.Id : null;
-                    var district = districts.FirstOrDefault(x => x.DistrictId == order.districtid);
+                    var district = districts.FirstOrDefault(x => x.Id == Convert.ToInt32(order.districtid));
                     order_summit.DistrictId = district != null ? district.Id : null;
-                    var ward = wards.FirstOrDefault(x => x.WardId == order.wardid);
+                    var ward = wards.FirstOrDefault(x => x.Id == Convert.ToInt32(order.wardid));
                     order_summit.WardId = ward != null ? ward.Id : null;
                     order_summit.ReceiverName = order.receivername;
                     order_summit.Phone = order.phone;
@@ -332,6 +343,73 @@ namespace APP_CHECKOUT.Repositories
 
                 }
                 order.total_discount = total_discount;
+                //-- Shipping fee
+                //---- ViettelPost
+                if (order.delivery_detail != null && order.delivery_detail.carrier_id > 0)
+                {
+                    switch (order.delivery_detail.carrier_id)
+                    {
+                        case 1: { } break;
+                        case 2: { } break;
+                        case 3:
+                            {
+                                if (order.delivery_detail.shipping_service_code != null && order.delivery_detail.shipping_service_code.Trim() != "")
+                                {
+                                    foreach (var supplier in list_supplier)
+                                    {
+                                        var cart_belong_to_supplier = list_cart.Where(x => x.product.supplier_id == supplier);
+                                        var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
+                                        int package_weight = 0;
+                                        int package_width = 0;
+                                        int package_height = 0;
+                                        int package_depth = 0;
+                                        double amount = 0;
+                                        foreach (var c in cart_belong_to_supplier)
+                                        {
+                                            var selected = list_cart.First(x => x._id == c._id);
+                                            package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
+                                            package_width += Convert.ToInt32(((c.product.package_width <= 0 ? 0 : c.product.package_width) * selected.quanity));
+                                            package_height += Convert.ToInt32(((c.product.package_height <= 0 ? 0 : c.product.package_height) * selected.quanity));
+                                            package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
+                                            amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
+                                        }
+                                        var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
+                                        {
+                                            MoneyCollection = 0,
+                                            ProductHeight = package_height,
+                                            ProductLength = package_depth,
+                                            ProductPrice = Convert.ToInt64(amount),
+                                            ProductType = "HH",
+                                            ProductWeight = package_weight,
+                                            ProductWidth = package_width,
+                                            SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
+                                            SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
+                                            ReceiverDistrict = Convert.ToInt32(order.districtid),
+                                            ReceiverProvince = Convert.ToInt32(order.provinceid),
+                                            Type = 1
+                                        });
+                                        if (response_item != null && response_item.Count > 0)
+                                        {
+                                            var match_service = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == order.delivery_detail.shipping_service_code.Trim().ToUpper());
+                                            order.shipping_fee += (match_service == null || match_service.Count() <= 0) ? 0 : (match_service.Sum(x => x.GiaCuoc));
+
+                                        }
+                                    }
+                                }
+
+                            }
+                            break;
+                        default:
+                            {
+
+                            }
+                            break;
+                    }
+                    order_summit.ShippingCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code;
+                    order_summit.ShippingFee = order.shipping_fee;
+                }
+
+               
                 var order_id = await orderDAL.CreateOrder(order_summit);
                 // Console.WriteLine("Created Order - " + order.order_no+": "+ order_id);
                 logging_service.InsertLogTelegramDirect("Order Created - " + order.order_no + " - " + total_amount);

@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Configuration;
 using StackExchange.Redis;
 
-namespace Caching.RedisWorker
+namespace APP_CHECKOUT
 {
     /// <summary>
     /// Create By: CuongLv
@@ -15,10 +15,10 @@ namespace Caching.RedisWorker
         // private readonly int _db_index;        
 
         private ConnectionMultiplexer _redis;
-        public RedisConn(IConfiguration config)
+        public RedisConn()
         {
-            _redisHost = config["Redis:Host"];
-            _redisPort = Convert.ToInt32(config["Redis:Port"]);
+            _redisHost = ConfigurationManager.AppSettings["Redis_Host"];
+            _redisPort = Convert.ToInt32(ConfigurationManager.AppSettings["Redis_Port"]);
             // _db_index = Convert.ToInt32(config["Redis:Database:db_product"]);            
         }
 
