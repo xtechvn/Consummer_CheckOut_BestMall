@@ -223,6 +223,7 @@ namespace APP_CHECKOUT.Repositories
                     ShippingStatus = 0,
                     PackageWeight = total_weight,
                     
+                    
 
                 };
                 List<Province> provinces = GetProvince();
