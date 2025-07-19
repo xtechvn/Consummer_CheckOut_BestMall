@@ -48,15 +48,17 @@ try
         {
             try
             {
-                var body = ea.Body.ToArray();               
-                
-
+                var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                Console.WriteLine("[APP CHECKOUT] message: " + message);               
-               
-                var request = JsonConvert.DeserializeObject<CheckoutQueueModel>(message);
-                await main_service.Excute(request);                
-                
+
+                Console.WriteLine("[APP CHECKOUT] message: " + message);
+
+                try
+                {
+                    var request = JsonConvert.DeserializeObject<CheckoutQueueModel>(message);
+                    await main_service.Excute(request);
+                }
+                catch { }
                 channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
             }
             catch (Exception ex)
