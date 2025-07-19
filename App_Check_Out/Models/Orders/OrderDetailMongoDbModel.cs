@@ -11,8 +11,6 @@ namespace APP_CHECKOUT.Models.Orders
         public DateTime created_date { get; set; }
 
     }
-
-
     public class OrderDetailMongoDbModel
     {
         [BsonElement("_id")]
@@ -51,7 +49,6 @@ namespace APP_CHECKOUT.Models.Orders
         public long address_id { get; set; }
         public double? shipping_fee { get; set; } = 0;
         public ShippingFeeRequestModel delivery_detail { get; set; }
-        public int? flashsale_badge_type { get; set; }
 
     }
 }
