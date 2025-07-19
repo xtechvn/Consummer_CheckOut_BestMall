@@ -74,18 +74,18 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                 if (responseObject != null && responseObject.data != null && responseObject.data.token != null)
                 {
                     token_temporary = responseObject.data.token;
-                    LogHelper.InsertLogTelegram("GetTemporaryToken - ViettelPostService: Token= [" + token_temporary + "] [" + DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + "]");
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] GetTemporaryToken - ViettelPostService: Token= [" + token_temporary + "] [" + DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + "]");
                     _redisService.Set("ViettelPostToken", responseObject.data.token,DateTime.Now.AddSeconds(exprire_time), Convert.ToInt32(ConfigurationManager.AppSettings["Redis_Database_db_common"]));
                     return true;
                 }
                 else
                 {
-                    LogHelper.InsertLogTelegram("GetTemporaryToken - ViettelPostService: Token not found on API [" + (DOMAIN + API_LOGIN) + "] [" + json_content + "]");
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] GetTemporaryToken - ViettelPostService: Token not found on API [" + (DOMAIN + API_LOGIN) + "] [" + json_content + "]");
                 }
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("GetTemporaryToken - ViettelPostService: error [" + (DOMAIN + API_LOGIN) + "] :" + ex.ToString());
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] GetTemporaryToken - ViettelPostService: error [" + (DOMAIN + API_LOGIN) + "] :" + ex.ToString());
             }
             return false;
         }
@@ -120,12 +120,12 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                 }
                 else
                 {
-                    LogHelper.InsertLogTelegram("GetOwnerConnectToken - ViettelPostService: Token not found on API [" + (DOMAIN + API_OWNERCONNECT) + "] [" + json_content + "]");
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] GetOwnerConnectToken - ViettelPostService: Token not found on API [" + (DOMAIN + API_OWNERCONNECT) + "] [" + json_content + "]");
                 }
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("GetOwnerConnectToken - ViettelPostService: error [" + (DOMAIN + API_OWNERCONNECT) + "] :" + ex.ToString());
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] GetOwnerConnectToken - ViettelPostService: error [" + (DOMAIN + API_OWNERCONNECT) + "] :" + ex.ToString());
             }
             return false;
         }
@@ -153,18 +153,18 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             }
             catch (HttpRequestException e)
             {
-                LogHelper.InsertLogTelegram("GetOwnerConnectToken - GetShippingMethods: HttpCall error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.StatusCode + "][" + e.Message + "]");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] GetShippingMethods - ViettelPostService : HttpCall error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.StatusCode + "][" + e.Message + "]");
 
                 return null;
             }
             catch (JsonException e)
             {
-                LogHelper.InsertLogTelegram("GetOwnerConnectToken - GetShippingMethods: JSON parse error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.Message + "]");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] GetShippingMethods - ViettelPostService: JSON parse error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.Message + "]");
                 return null;
             }
             catch (Exception e)
             {
-                LogHelper.InsertLogTelegram("GetOwnerConnectToken - GetShippingMethods: error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.Message + "]");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] GetShippingMethods - ViettelPostService: error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.Message + "]");
                 return null; 
             }
         }
@@ -190,18 +190,18 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             }
             catch (HttpRequestException e)
             {
-                LogHelper.InsertLogTelegram("GetOwnerConnectToken - CalculateShippingPrice: HttpCall error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.StatusCode + "][" + e.Message + "]");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] CalculateShippingPrice - ViettelPostService: HttpCall error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.StatusCode + "][" + e.Message + "]");
 
                 return null;
             }
             catch (JsonException e)
             {
-                LogHelper.InsertLogTelegram("GetOwnerConnectToken - CalculateShippingPrice: JSON parse error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.Message + "]");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] CalculateShippingPrice - ViettelPostService: JSON parse error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.Message + "]");
                 return null;
             }
             catch (Exception e)
             {
-                LogHelper.InsertLogTelegram("GetOwnerConnectToken - CalculateShippingPrice: error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.Message + "]");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] CalculateShippingPrice - ViettelPostService: error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.Message + "]");
                 return null;
             }
         }
