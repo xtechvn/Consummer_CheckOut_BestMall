@@ -117,9 +117,9 @@ namespace APP_CHECKOUT.Repositories
                 }
                 Order order_summit = new Order();
                 List<OrderDetail> details = new List<OrderDetail>();
-                double total_price = 0;
-                double total_profit = 0;
-                double total_amount = 0;
+                //double total_price = 0;
+                //double total_profit = 0;
+                //double total_amount = 0;
                 float total_weight = 0;
                 foreach (var cart in order.carts)
                 {
@@ -165,19 +165,19 @@ namespace APP_CHECKOUT.Repositories
                         UserUpdated = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                         ParentProductId=parent_product_id
                     });
-                    total_price += (cart.product.price * cart.quanity);
-                    total_profit += (cart.product.profit * cart.quanity);
-                    total_amount += (amount_product * cart.quanity);
+                    //total_price += (cart.product.price * cart.quanity);
+                    //total_profit += (cart.product.profit * cart.quanity);
+                    //total_amount += (amount_product * cart.quanity);
+
+                    ////cart.total_price = cart.product.price * cart.quanity;
+                    ////cart.total_discount = cart.product.discount * cart.quanity;
+                    ////cart.total_profit = cart.product.profit * cart.quanity;
+                    ////cart.total_amount = amount_product * cart.quanity;
 
                     //cart.total_price = cart.product.price * cart.quanity;
-                    //cart.total_discount = cart.product.discount * cart.quanity;
                     //cart.total_profit = cart.product.profit * cart.quanity;
                     //cart.total_amount = amount_product * cart.quanity;
-
-                    cart.total_price = cart.product.price * cart.quanity;
-                    cart.total_profit = cart.product.profit * cart.quanity;
-                    cart.total_amount = amount_product * cart.quanity;
-                    cart.total_discount = cart.product.discount * cart.quanity;
+                    //cart.total_discount = cart.product.discount * cart.quanity;
                     total_weight += ((cart.product.weight == null ? 0 : (float)cart.product.weight) * cart.quanity / 1000);
 
                 }
@@ -192,7 +192,7 @@ namespace APP_CHECKOUT.Repositories
 
                 order_summit = new Order()
                 {
-                    Amount = total_amount + order.shipping_fee,
+                    Amount =order.total_amount,
                     ClientId = (long)account_client.ClientId,
                     CreatedDate = DateTime.Now,
                     Discount = 0,
@@ -202,8 +202,8 @@ namespace APP_CHECKOUT.Repositories
                     OrderNo = order.order_no,
                     PaymentStatus = 0,
                     PaymentType = Convert.ToInt16(order.payment_type),
-                    Price = total_price,
-                    Profit = total_profit,
+                    Price = order.total_price,
+                    Profit = order.total_profit,
                     OrderStatus = 0,
                     UpdateLast = time,
                     UserGroupIds = "",
@@ -262,80 +262,84 @@ namespace APP_CHECKOUT.Repositories
                     order_summit.Address = order.address;
                 }
                 //--apply voucher:
-                double total_discount = 0;
-                if (order.voucher_code != null && order.voucher_code.Trim() != "")
-                {
-                    var input = new TrackingVoucherRequest
-                    {
-                        total_order_amount_before = (double)order_summit.Amount,
-                        user_id = Convert.ToInt64(order.account_client_id),
-                        voucher_name = order.voucher_code,
-                        token = CommonHelpers.Encode("{\"user_name\":\"" + account_client.UserName + "\"}", ConfigurationManager.AppSettings["key_private"])
-                    };
-                    var voucher_apply = await ApplyVoucher(input);
-                    if (voucher_apply != null && voucher_apply.status == 0)
-                    {
-                        //    switch (voucher_apply.rule_type)
-                        //    {
-                        //        case (int)VoucherRuleType.ALL_PRODUCT:
-                        //            {
+                #region Old version:
+                //double total_discount = 0;
+                //if (order.voucher_code != null && order.voucher_code.Trim() != "")
+                //{
+                //    var input = new TrackingVoucherRequest
+                //    {
+                //        total_order_amount_before = (double)order_summit.Amount,
+                //        user_id = Convert.ToInt64(order.account_client_id),
+                //        voucher_name = order.voucher_code,
+                //        token = CommonHelpers.Encode("{\"user_name\":\"" + account_client.UserName + "\"}", ConfigurationManager.AppSettings["key_private"])
+                //    };
+                //    var voucher_apply = await ApplyVoucher(input);
+                //    if (voucher_apply != null && voucher_apply.status == 0)
+                //    {
+                //        //    switch (voucher_apply.rule_type)
+                //        //    {
+                //        //        case (int)VoucherRuleType.ALL_PRODUCT:
+                //        //            {
 
-                        //            }break;
-                        //        case (int)VoucherRuleType.SPECIFIC_PRODUCT:
-                        //            {
+                //        //            }break;
+                //        //        case (int)VoucherRuleType.SPECIFIC_PRODUCT:
+                //        //            {
 
-                        //            }
-                        //            break;
-                        //        default:
-                        //            {
-                        //                double percent = Convert.ToDouble(voucher_apply.value);
-                        //                switch (voucher_apply.type)
-                        //                {
-                        //                    case "percent":
-                        //                        //Tinh số tiền giảm theo %
-                        //                        total_discount += ((double)order_summit.Amount * Convert.ToDouble(percent / 100));
-                        //                        break;
-                        //                    case "vnd":
-                        //                        total_discount += percent; //Math.Min(Convert.ToDouble(voucher.LimitTotalDiscount), total_fee_not_luxury) ;
-                        //                        break;
+                //        //            }
+                //        //            break;
+                //        //        default:
+                //        //            {
+                //        //                double percent = Convert.ToDouble(voucher_apply.value);
+                //        //                switch (voucher_apply.type)
+                //        //                {
+                //        //                    case "percent":
+                //        //                        //Tinh số tiền giảm theo %
+                //        //                        total_discount += ((double)order_summit.Amount * Convert.ToDouble(percent / 100));
+                //        //                        break;
+                //        //                    case "vnd":
+                //        //                        total_discount += percent; //Math.Min(Convert.ToDouble(voucher.LimitTotalDiscount), total_fee_not_luxury) ;
+                //        //                        break;
 
-                        //                    default: break;
+                //        //                    default: break;
 
-                        //                }
-                        //                voucher_apply.discount = total_discount;
-                        //                voucher_apply.total_order_amount_after = voucher_apply.total_order_amount_before - total_discount;
-                        //                order_summit.VoucherId = voucher_apply.voucher_id;
-                        //                order_summit.Discount = voucher_apply.discount;
-                        //                order_summit.Amount = voucher_apply.total_order_amount_after;
-                        //                order_summit.Profit -= order_summit.Discount;
-                        //            }break;
+                //        //                }
+                //        //                voucher_apply.discount = total_discount;
+                //        //                voucher_apply.total_order_amount_after = voucher_apply.total_order_amount_before - total_discount;
+                //        //                order_summit.VoucherId = voucher_apply.voucher_id;
+                //        //                order_summit.Discount = voucher_apply.discount;
+                //        //                order_summit.Amount = voucher_apply.total_order_amount_after;
+                //        //                order_summit.Profit -= order_summit.Discount;
+                //        //            }break;
 
-                        //    }
+                //        //    }
 
-                        //}
-                        double percent = Convert.ToDouble(voucher_apply.value);
-                        switch (voucher_apply.type)
-                        {
-                            case "percent":
-                                total_discount += ((double)order_summit.Amount * Convert.ToDouble(percent / 100));
-                                break;
-                            case "vnd":
-                                total_discount += percent;
-                                break;
+                //        //}
+                //        double percent = Convert.ToDouble(voucher_apply.value);
+                //        switch (voucher_apply.type)
+                //        {
+                //            case "percent":
+                //                total_discount += ((double)order_summit.Amount * Convert.ToDouble(percent / 100));
+                //                break;
+                //            case "vnd":
+                //                total_discount += percent;
+                //                break;
 
-                            default: break;
+                //            default: break;
 
-                        }
-                        voucher_apply.discount = total_discount;
-                        voucher_apply.total_order_amount_after = voucher_apply.total_order_amount_before - total_discount;
-                        order_summit.VoucherId = voucher_apply.voucher_id;
-                        order_summit.Discount = voucher_apply.discount;
-                        order_summit.Amount = voucher_apply.total_order_amount_after;
-                        order_summit.Profit -= order_summit.Discount;
-                    }
+                //        }
+                //        voucher_apply.discount = total_discount;
+                //        voucher_apply.total_order_amount_after = voucher_apply.total_order_amount_before - total_discount;
+                //        order_summit.VoucherId = voucher_apply.voucher_id;
+                //        order_summit.Discount = voucher_apply.discount;
+                //        order_summit.Amount = voucher_apply.total_order_amount_after;
+                //        order_summit.Profit -= order_summit.Discount;
+                //    }
 
-                }
-                order.total_discount = total_discount;
+                //}
+                //order.total_discount = total_discount;
+                #endregion
+
+
                 var order_id = await orderDAL.CreateOrder(order_summit);
                 Console.WriteLine("CreateOrder orderDAL.CreateOrder : [" + order_id + "]");
                // logging_service.InsertLogTelegramDirect("Order Created - " + order.order_no + " - " + total_amount);
@@ -350,15 +354,15 @@ namespace APP_CHECKOUT.Repositories
                         await orderDetailDAL.CreateOrderDetail(detail);
                         Console.WriteLine("Created OrderDetail - " + detail.OrderId + ": " + detail.OrderDetailId);
                        // logging_service.InsertLogTelegramDirect("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
-                        order.total_price = total_price;
-                        order.total_profit=total_profit;
+                        //order.total_price = total_price;
+                        //order.total_profit=total_profit;
                     }
-                    order.total_amount = (double)order_summit.Amount;
-                    order.total_profit = (double)order_summit.Profit;
-                    order.total_discount = (double)order_summit.Discount;
+                    //order.total_amount = (double)order_summit.Amount;
+                    //order.total_profit = (double)order_summit.Profit;
+                    //order.total_discount = (double)order_summit.Discount;
 
-                    //await nhanhVnService.PostToNhanhVN(order_summit,order, client, address_client);
-                    await orderDetailMongoDbModel.Update(order);
+                    ////await nhanhVnService.PostToNhanhVN(order_summit,order, client, address_client);
+                    //await orderDetailMongoDbModel.Update(order);
 
                 }
                 var extend_order = JsonConvert.DeserializeObject<OrderDetailMongoDbModelExtend>(JsonConvert.SerializeObject(order));
