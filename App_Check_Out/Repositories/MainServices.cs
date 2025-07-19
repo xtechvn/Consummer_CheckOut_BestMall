@@ -77,6 +77,8 @@ namespace APP_CHECKOUT.Repositories
                             {
                                 emailService.SendOrderConfirmationEmail(data.email, data);
                                   Console.WriteLine("[APP CHECKOUT] CREATE_ORDER: Success " + data._id); 
+                            }else{
+                                Console.WriteLine("[APP CHECKOUT] CREATE_ORDER: That bai"); 
                             }
                         }break;
                     case (int)CheckoutEventID.UPDATE_ORDER:
