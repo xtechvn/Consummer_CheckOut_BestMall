@@ -17,7 +17,7 @@ service_collection.AddSingleton<IMainServices, MainServices>();
 //service_collection.AddSingleton<ILoggingService, LoggingService>();
 var service_provider = service_collection.BuildServiceProvider();
 var main_service = service_provider.GetService<IMainServices>();
-//var log_service = service_provider.GetService<ILoggingService>();
+var log_service = service_provider.GetService<ILoggingService>();
 
 
 try
@@ -41,7 +41,8 @@ try
                                             arguments: null);
 
         channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
-        Console.WriteLine("[APP CHECKOUT] on ready : " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));        
+        Console.WriteLine("[APP CHECKOUT] Service : " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
+        //log_service.InsertLogTelegramDirect("[APP CHECKOUT] Service Waiting: " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
 
         var consumer = new EventingBasicConsumer(channel);
         consumer.Received += async (sender, ea) =>
@@ -58,8 +59,8 @@ try
                     var request = JsonConvert.DeserializeObject<CheckoutQueueModel>(message);
                     await main_service.Excute(request);
                 }
-                 catch (Exception ex)
-                     Console.WriteLine("error ->[APP CHECKOUT] message: " + ex.ToString();
+                 catch (Exception ex) { 
+                     Console.WriteLine("error ->[APP CHECKOUT] message: " + ex.ToString());
                 }
                 channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
             }
