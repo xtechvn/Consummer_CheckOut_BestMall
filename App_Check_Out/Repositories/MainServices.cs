@@ -27,7 +27,7 @@ namespace APP_CHECKOUT.Repositories
 {
     public class MainServices: IMainServices
     {
-        private readonly ILoggingService logging_service;
+       // private readonly ILoggingService logging_service;
         private readonly OrderMongodbService orderDetailMongoDbModel;
         private readonly ProductDetailMongoAccess productDetailMongoAccess;
         private readonly OrderDAL orderDAL;
@@ -43,9 +43,9 @@ namespace APP_CHECKOUT.Repositories
         private readonly FlashSaleProductESRepository flashSaleProductESRepository;
         private readonly ProductDetailService productDetailService;
 
-        public MainServices( ILoggingService loggingService) {
+        public MainServices( /*ILoggingService loggingService*/) {
 
-            logging_service=loggingService;
+            //logging_service=loggingService;
             orderDetailMongoDbModel = new OrderMongodbService();
             productDetailMongoAccess = new ProductDetailMongoAccess();
             orderDAL = new OrderDAL(ConfigurationManager.AppSettings["ConnectionString"]);
@@ -56,8 +56,8 @@ namespace APP_CHECKOUT.Repositories
             addressClientESService = new AddressClientESService(ConfigurationManager.AppSettings["Elastic_Host"]);
             flashSaleESRepository = new FlashSaleESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
             flashSaleProductESRepository = new FlashSaleProductESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
-            nhanhVnService = new NhanhVnService(logging_service);
-            workQueueClient = new WorkQueueClient(loggingService);
+            //nhanhVnService = new NhanhVnService(logging_service);
+            workQueueClient = new WorkQueueClient();
             emailService = new EmailService(clientESService, accountClientESService, locationDAL);
             productDetailService=new ProductDetailService(clientESService,flashSaleESRepository,flashSaleProductESRepository,productDetailMongoAccess);
         }
@@ -101,7 +101,7 @@ namespace APP_CHECKOUT.Repositories
             catch (Exception ex) {
                 string err = "MainServices: " + ex.ToString();
                 Console.WriteLine(err);
-                logging_service.InsertLogTelegramDirect(err);
+                //logging_service.InsertLogTelegramDirect(err);
             }
         }
         private async Task<OrderDetailMongoDbModelExtend> CreateOrder(string order_detail_id)
@@ -112,6 +112,7 @@ namespace APP_CHECKOUT.Repositories
                 var order = await orderDetailMongoDbModel.FindById(order_detail_id);
                 if (order == null || order.carts == null || order.carts.Count <= 0)
                 {
+                    Console.WriteLine("CreateOrder Get orderDetailMongoDbModel.FindById - NULL [" + order_detail_id+"]");
                     return null;
                 }
                 Order order_summit = new Order();
@@ -336,8 +337,8 @@ namespace APP_CHECKOUT.Repositories
                 }
                 order.total_discount = total_discount;
                 var order_id = await orderDAL.CreateOrder(order_summit);
-                // Console.WriteLine("Created Order - " + order.order_no+": "+ order_id);
-                logging_service.InsertLogTelegramDirect("Order Created - " + order.order_no + " - " + total_amount);
+                Console.WriteLine("CreateOrder orderDAL.CreateOrder : [" + order_id + "]");
+               // logging_service.InsertLogTelegramDirect("Order Created - " + order.order_no + " - " + total_amount);
                 workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
                 if (order_id > 0)
                 {
@@ -348,7 +349,7 @@ namespace APP_CHECKOUT.Repositories
                         detail.OrderId = order_id;
                         await orderDetailDAL.CreateOrderDetail(detail);
                         Console.WriteLine("Created OrderDetail - " + detail.OrderId + ": " + detail.OrderDetailId);
-                        logging_service.InsertLogTelegramDirect("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
+                       // logging_service.InsertLogTelegramDirect("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
                         order.total_price = total_price;
                         order.total_profit=total_profit;
                     }
@@ -372,7 +373,7 @@ namespace APP_CHECKOUT.Repositories
             {
                 string err = "CreateOrder with ["+ order_detail_id+"] error: " + ex.ToString();
                 Console.WriteLine(err);
-                logging_service.InsertLogTelegramDirect(err);
+                //logging_service.InsertLogTelegramDirect(err);
 
             }
             return null;

@@ -11,9 +11,9 @@ namespace APP_CHECKOUT.RabitMQ
     {
         private readonly QueueSettingViewModel queue_setting;
         private readonly ConnectionFactory factory;
-        private readonly ILoggingService logging_service;
+       // private readonly ILoggingService logging_service;
 
-        public WorkQueueClient( ILoggingService _logging_service)
+        public WorkQueueClient(/* ILoggingService _logging_service*/)
         {
             queue_setting = new QueueSettingViewModel()
             {
@@ -31,7 +31,7 @@ namespace APP_CHECKOUT.RabitMQ
                 VirtualHost = queue_setting.v_host,
                 Port = Protocols.DefaultProtocol.DefaultPort
             };
-            logging_service=_logging_service;
+            //logging_service=_logging_service;
         }
         public bool SyncES(long id, string store_procedure, string index_es, short project_id)
         {
@@ -48,7 +48,7 @@ namespace APP_CHECKOUT.RabitMQ
                 var _data_push = JsonConvert.SerializeObject(j_param);
                 // Push message vào queue
                 var response_queue = InsertQueueSyncES(_data_push);
-                logging_service.InsertLogTelegramDirect("WorkQueueClient - SyncES [ " + ConfigurationManager.AppSettings["QUEUE_V_HOST_SYNC"] + "/" + ConfigurationManager.AppSettings["QUEUE_SYNC_ES"] + "] -> [" + id + "][" + store_procedure + "] [" + index_es + "][" + project_id + "]: " + response_queue.ToString());
+                Console.WriteLine("WorkQueueClient - SyncES [ " + ConfigurationManager.AppSettings["QUEUE_V_HOST_SYNC"] + "/" + ConfigurationManager.AppSettings["QUEUE_SYNC_ES"] + "] -> [" + id + "][" + store_procedure + "] [" + index_es + "][" + project_id + "]: " + response_queue.ToString());
 
                 return true;
             }
@@ -128,7 +128,7 @@ namespace APP_CHECKOUT.RabitMQ
                 }
                 catch (Exception ex)
                 {
-                    logging_service.InsertLogTelegramDirect("WorkQueueClient - InsertQueueSimple[" + message + "][" + queueName + "]: " + ex.ToString());
+                    Console.WriteLine("WorkQueueClient - InsertQueueSimple[" + message + "][" + queueName + "]: " + ex.ToString());
 
                     return false;
                 }

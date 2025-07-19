@@ -14,10 +14,10 @@ using MongoDB.Driver.Core.Events;
 
 ServiceCollection service_collection = new ServiceCollection();
 service_collection.AddSingleton<IMainServices, MainServices>();
-service_collection.AddSingleton<ILoggingService, LoggingService>();
+//service_collection.AddSingleton<ILoggingService, LoggingService>();
 var service_provider = service_collection.BuildServiceProvider();
 var main_service = service_provider.GetService<IMainServices>();
-var log_service = service_provider.GetService<ILoggingService>();
+//var log_service = service_provider.GetService<ILoggingService>();
 
 
 try
@@ -63,7 +63,6 @@ try
             {
                 string err = "Program: " + ex.ToString();
                 Console.WriteLine(err);
-                log_service.InsertLogTelegramDirect(err);
 
             }
         };
@@ -78,5 +77,4 @@ catch (Exception ex)
 {
     string err = "Main: " + ex.ToString();
     Console.WriteLine(err);
-    log_service.InsertLogTelegramDirect(err);
 }
