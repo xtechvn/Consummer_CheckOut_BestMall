@@ -9,7 +9,7 @@ namespace APP_CHECKOUT.Interfaces
 {
     public interface IMainServices
     {
-        public Task Excute(CheckoutQueueModel request);
+         public Task Excute(CheckoutQueueModel request);
 
     }
 }
