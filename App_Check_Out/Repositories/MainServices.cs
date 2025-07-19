@@ -163,7 +163,7 @@ namespace APP_CHECKOUT.Repositories
                         ParentProductId = parent_product_id
                     };
                     details.Add(order_detail);
-                    LogHelper.InsertLogTelegram("CreateOrder OrderDetail [" + JsonConvert.SerializeObject(order_detail) + "]");
+                    //LogHelper.InsertLogTelegram("CreateOrder OrderDetail [" + JsonConvert.SerializeObject(order_detail) + "]");
 
                     //total_price += (cart.product.price * cart.quanity);
                     //total_profit += (cart.product.profit * cart.quanity);
@@ -178,7 +178,7 @@ namespace APP_CHECKOUT.Repositories
                     //cart.total_profit = cart.product.profit * cart.quanity;
                     //cart.total_amount = amount_product * cart.quanity;
                     //cart.total_discount = cart.product.discount * cart.quanity;
-                    total_weight += ((cart.product.weight == null ? 0 : (float)cart.product.weight) * cart.quanity / 1000);
+                    total_weight += ((cart.product.weight == null ? 0 : (float)cart.product.weight) * cart.quanity);
 
                 }
                 var account_client = accountClientESService.GetById(order.account_client_id);
