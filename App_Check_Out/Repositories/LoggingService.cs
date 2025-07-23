@@ -2,7 +2,7 @@
 using System.Configuration;
 using Telegram.Bot;
 
-namespace APP.READ_MESSAGES.Libraries
+namespace APP_CHECKOUT.Libraries
 {
     public  class LoggingService : ILoggingService
     {

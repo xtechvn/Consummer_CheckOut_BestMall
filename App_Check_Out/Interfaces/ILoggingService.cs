@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Telegram.Bot;
 
-namespace APP.READ_MESSAGES.Libraries
+namespace APP_CHECKOUT.Libraries
 {
     public  interface ILoggingService
     {
