@@ -65,6 +65,7 @@ namespace APP_CHECKOUT.Repositories
             workQueueClient = new WorkQueueClient();
             emailService = new EmailService(clientESService, accountClientESService, locationDAL);
             productDetailService=new ProductDetailService(clientESService,flashSaleESRepository,flashSaleProductESRepository,productDetailMongoAccess);
+            _viettelPostService = new ViettelPostService();
         }
         public async Task Excute(CheckoutQueueModel request)
         {
@@ -362,7 +363,6 @@ namespace APP_CHECKOUT.Repositories
                                 List<VTPOrderRequestModel> model = new List<VTPOrderRequestModel>();
                                 if (order.delivery_detail.shipping_service_code != null && order.delivery_detail.shipping_service_code.Trim() != "")
                                 {
-                                    logging_service.InsertLogTelegramDirect("CreateOrder : list_supplier "+ list_supplier.Count);
 
                                     foreach (var supplier in list_supplier)
                                     {
@@ -386,6 +386,7 @@ namespace APP_CHECKOUT.Repositories
                                             amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
                                             total_quanity += selected.quanity;
                                         }
+
                                         var request_shipping = new VTPGetPriceAllRequest()
                                         {
                                             MoneyCollection = 0,
@@ -401,10 +402,8 @@ namespace APP_CHECKOUT.Repositories
                                             ReceiverProvince = Convert.ToInt32(order.provinceid),
                                             Type = 1
                                         };
-                                        logging_service.InsertLogTelegramDirect("CreateOrder :request_shipping " + (request_shipping == null ? "NULL" : JsonConvert.SerializeObject(request_shipping)));
 
                                         var response_item = await _viettelPostService.GetShippingMethods(request_shipping);
-                                        logging_service.InsertLogTelegramDirect("CreateOrder : response_item " + (response_item == null ? "NULL" : response_item.Count));
 
                                         if (response_item != null && response_item.Count > 0)
                                         {
@@ -412,7 +411,6 @@ namespace APP_CHECKOUT.Repositories
                                             order.shipping_fee += (match_service == null || match_service.Count() <= 0) ? 0 : (match_service.Sum(x => x.GiaCuoc));
                                         }
                                         string package_name = string.Join(",", cart_belong_to_supplier.Select(x => x.product.name));
-                                        logging_service.InsertLogTelegramDirect("CreateOrder : package_name " + (package_name == null ? "NULL" : package_name));
 
                                         VTPOrderRequestModel item = new VTPOrderRequestModel()
                                         {
@@ -490,7 +488,6 @@ namespace APP_CHECKOUT.Repositories
                         logging_service.InsertLogTelegramDirect("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
                         order.total_price = total_price;
                         order.total_profit=total_profit;
-                        logging_service.InsertLogTelegramDirect("CreateOrder : CreateOrderDetail");
 
                     }
                     order.total_amount = (double)order_summit.Amount;
