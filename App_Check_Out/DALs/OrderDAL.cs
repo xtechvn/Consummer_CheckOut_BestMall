@@ -48,6 +48,8 @@ namespace APP_CHECKOUT.DAL
                      new SqlParameter("@ShippingCode", request.ShippingCode),  
                      new SqlParameter("@PackageWeight", request.PackageWeight),
                      new SqlParameter("@ShippingStatus", request.ShippingStatus),
+                     new SqlParameter("@ShippingTypeCode", request.ShippingTypeCode),
+                     new SqlParameter("@ShippingToken", request.ShippingToken),
 
                 };
                 request.OrderId = _DbWorker.ExecuteNonQuery(SPName.CREATE_ORDER, objParam);

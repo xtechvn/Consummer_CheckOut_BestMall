@@ -71,5 +71,7 @@ public partial class Order
     public int? ShippingStatus { get; set; }
 
     public double? PackageWeight { get; set; }
+    public string ShippingTypeCode { get; set; }
 
+    public string ShippingToken { get; set; }
 }
