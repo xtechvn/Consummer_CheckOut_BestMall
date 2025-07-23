@@ -386,11 +386,7 @@ namespace APP_CHECKOUT.Repositories
                                             amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
                                             total_quanity += selected.quanity;
                                         }
-                                        logging_service.InsertLogTelegramDirect("CreateOrder : detail_supplier.provinceid " + (order.provinceid == null ?"NULL" : order.provinceid));
-                                        logging_service.InsertLogTelegramDirect("CreateOrder : detail_supplier.districtid " + (order.districtid == null ?"NULL" : order.districtid));
-                                        logging_service.InsertLogTelegramDirect("CreateOrder : detail_supplier.wardid " + (order.wardid == null ?"NULL" : order.wardid));
-
-                                        var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
+                                        var request_shipping = new VTPGetPriceAllRequest()
                                         {
                                             MoneyCollection = 0,
                                             ProductHeight = package_height,
@@ -404,7 +400,10 @@ namespace APP_CHECKOUT.Repositories
                                             ReceiverDistrict = Convert.ToInt32(order.districtid),
                                             ReceiverProvince = Convert.ToInt32(order.provinceid),
                                             Type = 1
-                                        });
+                                        };
+                                        logging_service.InsertLogTelegramDirect("CreateOrder :request_shipping " + (request_shipping == null ? "NULL" : JsonConvert.SerializeObject(request_shipping)));
+
+                                        var response_item = await _viettelPostService.GetShippingMethods(request_shipping);
                                         logging_service.InsertLogTelegramDirect("CreateOrder : response_item " + (response_item == null ? "NULL" : response_item.Count));
 
                                         if (response_item != null && response_item.Count > 0)
