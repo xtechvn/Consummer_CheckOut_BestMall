@@ -218,7 +218,25 @@ namespace APP_CHECKOUT.Repositories
                         }
                         break;
                 }
-                htmlContent = htmlContent.Replace("{payment_type}", payment_type);
+                string shipping_type = "Nhận hàng tại BestMall";
+                switch (order.delivery_detail.carrier_id)
+                {
+                    default:
+                        {
+                        }
+                        break;
+                    case 2:
+                        {
+                            shipping_type = "Ninja Van";
+                        }
+                        break;
+                    case 3:
+                        {
+                            shipping_type = "Viettel Post";
+                        }
+                        break;
+                }
+                htmlContent = htmlContent.Replace("{shipping_type}", shipping_type);
 
                 return htmlContent;
             }
@@ -452,6 +470,12 @@ namespace APP_CHECKOUT.Repositories
                                                                 thanh toán:
                                                             </td>
                                                             <td align=""right"" style=""font-weight:bold;"">{payment_type}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align=""right"" style=""padding-bottom:2px;"">
+                                                                Vận chuyển:
+                                                            </td>
+                                                            <td align=""right"" style=""font-weight:bold;"">{shipping_type}</td>
                                                         </tr>
                                                         <tr>
                                                             <td align=""right"">Tiền hàng:</td>
