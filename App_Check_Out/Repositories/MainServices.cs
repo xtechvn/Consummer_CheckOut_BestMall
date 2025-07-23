@@ -386,8 +386,9 @@ namespace APP_CHECKOUT.Repositories
                                             amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
                                             total_quanity += selected.quanity;
                                         }
-                                        logging_service.InsertLogTelegramDirect("CreateOrder : package_weight " + (package_weight));
-                                        logging_service.InsertLogTelegramDirect("CreateOrder : detail_supplier.provinceid " + (detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid));
+                                        logging_service.InsertLogTelegramDirect("CreateOrder : detail_supplier.provinceid " + (order.provinceid == null ?"NULL" : order.provinceid));
+                                        logging_service.InsertLogTelegramDirect("CreateOrder : detail_supplier.districtid " + (order.districtid == null ?"NULL" : order.districtid));
+                                        logging_service.InsertLogTelegramDirect("CreateOrder : detail_supplier.wardid " + (order.wardid == null ?"NULL" : order.wardid));
 
                                         var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
                                         {
