@@ -58,5 +58,8 @@ namespace Entities.ViewModels.ElasticSearch
         public int? districtid { get; set; }
 
         public int? wardid { get; set; }
+        public string bannermain { get; set; }
+
+        public string bannersub { get; set; }
     }
 }
