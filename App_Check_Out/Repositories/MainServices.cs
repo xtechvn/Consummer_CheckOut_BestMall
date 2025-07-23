@@ -124,11 +124,14 @@ namespace APP_CHECKOUT.Repositories
                 float total_weight = 0;
                 var list_supplier = new List<int>();
                 var list_cart = new List<CartItemMongoDbModel>();
+                logging_service.InsertLogTelegramDirect("CreateOrder : variable");
 
                 foreach (var cart in order.carts)
                 {
                     if (cart == null || cart.product == null) continue;
                     list_cart.Add(cart);
+                    logging_service.InsertLogTelegramDirect("CreateOrder : listcart");
+
                     string name_url = CommonHelpers.RemoveUnicode(cart.product.name);
                     name_url = CommonHelpers.RemoveSpecialCharacters(name_url);
                     name_url = name_url.Replace(" ", "-").Trim();
@@ -148,6 +151,8 @@ namespace APP_CHECKOUT.Repositories
                         amount_product = (double)cart.product.amount_after_flashsale;
 
                     }
+                    logging_service.InsertLogTelegramDirect("CreateOrder : amount_product");
+
                     details.Add(new OrderDetail()
                     {
                         CreatedDate = time,
@@ -188,15 +193,17 @@ namespace APP_CHECKOUT.Repositories
                     {
                         list_supplier.Add(cart.product.supplier_id);
                     }
+                    logging_service.InsertLogTelegramDirect("CreateOrder : details");
+
                 }
                 var account_client = accountClientESService.GetById(order.account_client_id);
-                //logging_service.InsertLogTelegramDirect(" accountClientESService.GetById("+ order.account_client_id + ") : "+ (account_client == null ? "NULL" : JsonConvert.SerializeObject(account_client)));
+                logging_service.InsertLogTelegramDirect("CreateOrder : account_client");
 
                 var client = clientESService.GetById((long)account_client.ClientId);
-               // logging_service.InsertLogTelegramDirect(" clientESService.GetById(" + (long)account_client.ClientId + ") : " + (client == null ? "NULL" : JsonConvert.SerializeObject(client)));
+                logging_service.InsertLogTelegramDirect("CreateOrder : client");
 
                 AddressClientESModel address_client = addressClientESService.GetById(order.address_id, client.Id);
-               // logging_service.InsertLogTelegramDirect(" addressClientESService.GetById(" + order.address_id + "," + client.Id + ") : " + (address_client == null ? "NULL" : JsonConvert.SerializeObject(address_client)));
+                logging_service.InsertLogTelegramDirect("CreateOrder : address_client");
 
                 order_summit = new Order()
                 {
@@ -233,9 +240,13 @@ namespace APP_CHECKOUT.Repositories
                     
 
                 };
+                logging_service.InsertLogTelegramDirect("CreateOrder : order_summit");
+
                 List<Province> provinces = GetProvince();
                 List<District> districts = GetDistrict();
                 List<Ward> wards = GetWards();
+                logging_service.InsertLogTelegramDirect("CreateOrder : provinces");
+
                 if (address_client != null && address_client.ProvinceId != null && address_client.DistrictId != null && address_client.WardId != null)
                 {
                     if (address_client.ProvinceId.Trim() != "" && provinces != null && provinces.Count > 0)
@@ -343,6 +354,8 @@ namespace APP_CHECKOUT.Repositories
                     }
 
                 }
+                logging_service.InsertLogTelegramDirect("CreateOrder : voucher_apply");
+
                 order.total_discount = total_discount;
                 //-- Shipping fee
                 if (order.delivery_detail != null && order.delivery_detail.carrier_id > 0)
@@ -355,6 +368,8 @@ namespace APP_CHECKOUT.Repositories
                         //---- ViettelPost
                         case 3:
                             {
+                                logging_service.InsertLogTelegramDirect("CreateOrder : carrier_id ViettelPost");
+
                                 List<VTPOrderRequestModel> model = new List<VTPOrderRequestModel>();
                                 if (order.delivery_detail.shipping_service_code != null && order.delivery_detail.shipping_service_code.Trim() != "")
                                 {
@@ -458,8 +473,9 @@ namespace APP_CHECKOUT.Repositories
                     order_summit.ShippingFee = order.shipping_fee;
                    
                 }
+                logging_service.InsertLogTelegramDirect("CreateOrder : CreateOrder");
 
-               
+
                 var order_id = await orderDAL.CreateOrder(order_summit);
                 logging_service.InsertLogTelegramDirect("Order Created - " + order.order_no + " - " + total_amount);
                 workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
@@ -475,6 +491,8 @@ namespace APP_CHECKOUT.Repositories
                         logging_service.InsertLogTelegramDirect("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
                         order.total_price = total_price;
                         order.total_profit=total_profit;
+                        logging_service.InsertLogTelegramDirect("CreateOrder : CreateOrderDetail");
+
                     }
                     order.total_amount = (double)order_summit.Amount;
                     order.total_profit = (double)order_summit.Profit;
@@ -489,6 +507,8 @@ namespace APP_CHECKOUT.Repositories
                 {
                     extend_order.email = client.Email;
                 }
+                logging_service.InsertLogTelegramDirect("CreateOrder : extend_order");
+
                 extend_order.created_date = time;
                 return extend_order;
             }
