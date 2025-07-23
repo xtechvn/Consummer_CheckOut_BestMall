@@ -96,7 +96,7 @@ namespace APP_CHECKOUT.Repositories
                 {
                     htmlContent = File.ReadAllText(templatePath);
                 }
-                catch (FileNotFoundException ex)
+                catch (Exception ex)
                 {
                     //Console.WriteLine($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
                    // _loggingService.InsertLogTelegramDirect($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
