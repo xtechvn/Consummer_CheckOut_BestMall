@@ -368,7 +368,6 @@ namespace APP_CHECKOUT.Repositories
                                     {
                                         var cart_belong_to_supplier = list_cart.Where(x => x.product.supplier_id == supplier);
                                         var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
-                                        logging_service.InsertLogTelegramDirect("CreateOrder : detail_supplier " + (detail_supplier == null ? "NULL" : detail_supplier.fullname));
 
                                         int package_weight = 0;
                                         int package_width = 0;
@@ -376,7 +375,6 @@ namespace APP_CHECKOUT.Repositories
                                         int package_depth = 0;
                                         int total_quanity = 0;
                                         double amount = 0;
-                                        logging_service.InsertLogTelegramDirect("CreateOrder : cart_belong_to_supplier " + (cart_belong_to_supplier == null ? "NULL" : cart_belong_to_supplier.Count()));
 
                                         foreach (var c in cart_belong_to_supplier)
                                         {
@@ -403,12 +401,16 @@ namespace APP_CHECKOUT.Repositories
                                             ReceiverProvince = Convert.ToInt32(order.provinceid),
                                             Type = 1
                                         });
+                                        logging_service.InsertLogTelegramDirect("CreateOrder : response_item " + (response_item == null ? "NULL" : response_item.Count));
+
                                         if (response_item != null && response_item.Count > 0)
                                         {
                                             var match_service = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == order.delivery_detail.shipping_service_code.Trim().ToUpper());
                                             order.shipping_fee += (match_service == null || match_service.Count() <= 0) ? 0 : (match_service.Sum(x => x.GiaCuoc));
                                         }
                                         string package_name = string.Join(",", cart_belong_to_supplier.Select(x => x.product.name));
+                                        logging_service.InsertLogTelegramDirect("CreateOrder : package_name " + (package_name == null ? "NULL" : package_name));
+
                                         VTPOrderRequestModel item = new VTPOrderRequestModel()
                                         {
                                             ORDER_NUMBER=order_summit.OrderNo,
