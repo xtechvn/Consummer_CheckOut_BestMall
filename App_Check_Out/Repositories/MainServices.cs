@@ -386,6 +386,9 @@ namespace APP_CHECKOUT.Repositories
                                             amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
                                             total_quanity += selected.quanity;
                                         }
+                                        logging_service.InsertLogTelegramDirect("CreateOrder : package_weight " + (package_weight));
+                                        logging_service.InsertLogTelegramDirect("CreateOrder : detail_supplier.provinceid " + (detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid));
+
                                         var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
                                         {
                                             MoneyCollection = 0,
@@ -396,7 +399,7 @@ namespace APP_CHECKOUT.Repositories
                                             ProductWeight = package_weight,
                                             ProductWidth = package_width,
                                             SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
-                                            SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
+                                            SenderProvince = detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
                                             ReceiverDistrict = Convert.ToInt32(order.districtid),
                                             ReceiverProvince = Convert.ToInt32(order.provinceid),
                                             Type = 1
