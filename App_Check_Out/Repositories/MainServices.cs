@@ -62,7 +62,7 @@ namespace APP_CHECKOUT.Repositories
             flashSaleProductESRepository = new FlashSaleProductESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
             _supplierESRepository = new SupplierESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
             nhanhVnService = new NhanhVnService(logging_service);
-            workQueueClient = new WorkQueueClient(loggingService);
+            workQueueClient = new WorkQueueClient();
             emailService = new EmailService(clientESService, accountClientESService, locationDAL);
             productDetailService=new ProductDetailService(clientESService,flashSaleESRepository,flashSaleProductESRepository,productDetailMongoAccess);
         }
