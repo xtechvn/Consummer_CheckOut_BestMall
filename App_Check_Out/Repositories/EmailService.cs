@@ -91,15 +91,23 @@ namespace APP_CHECKOUT.Repositories
             {
                 string templatePath = Environment.CurrentDirectory + EmailTemplatePath;
                 _loggingService.InsertLogTelegramDirect("ReadEmailTemplateAndPopulate - templatePath: " +(templatePath==null?"NULL": templatePath));
-
-                string htmlContent = File.ReadAllText(templatePath);
-                _loggingService.InsertLogTelegramDirect("ReadEmailTemplateAndPopulate - htmlContent: " + (htmlContent == null ? "NULL" : htmlContent));
+                string htmlContent = "";
+                try
+                {
+                    htmlContent = File.ReadAllText(templatePath);
+                }
+                catch (FileNotFoundException ex)
+                {
+                    //Console.WriteLine($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
+                   // _loggingService.InsertLogTelegramDirect($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
+                   // return null;
+                }
 
                 if (htmlContent == null || htmlContent.Trim()=="") {
                     htmlContent = GetTemplateInFunction();
                 
                 }
-                _loggingService.InsertLogTelegramDirect("ReadEmailTemplateAndPopulate - htmlContent fixed: " + (htmlContent == null ? "NULL" : htmlContent));
+               // _loggingService.InsertLogTelegramDirect("ReadEmailTemplateAndPopulate - htmlContent fixed: " + (htmlContent == null ? "NULL" : htmlContent));
 
                 var account_client = accountClientESService.GetById(order.account_client_id);
                 var client = clientESService.GetById((long)account_client.ClientId);
@@ -178,13 +186,7 @@ namespace APP_CHECKOUT.Repositories
 
                 return htmlContent;
             }
-            catch (FileNotFoundException ex)
-            {
-                Console.WriteLine($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
-                _loggingService.InsertLogTelegramDirect($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
-
-                return null;
-            }
+            
             catch (Exception ex)
             {
                 Console.WriteLine($"Lỗi khi đọc hoặc xử lý template email: {ex.Message}");
