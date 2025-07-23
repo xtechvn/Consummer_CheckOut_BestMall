@@ -63,7 +63,7 @@ namespace APP_CHECKOUT.Repositories
             _supplierESRepository = new SupplierESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
             nhanhVnService = new NhanhVnService(logging_service);
             workQueueClient = new WorkQueueClient();
-            emailService = new EmailService(clientESService, accountClientESService, locationDAL);
+            emailService = new EmailService(clientESService, accountClientESService, locationDAL,loggingService);
             productDetailService=new ProductDetailService(clientESService,flashSaleESRepository,flashSaleProductESRepository,productDetailMongoAccess);
             _viettelPostService = new ViettelPostService();
         }
@@ -503,7 +503,6 @@ namespace APP_CHECKOUT.Repositories
                 {
                     extend_order.email = client.Email;
                 }
-                logging_service.InsertLogTelegramDirect("CreateOrder : extend_order");
 
                 extend_order.created_date = time;
                 return extend_order;

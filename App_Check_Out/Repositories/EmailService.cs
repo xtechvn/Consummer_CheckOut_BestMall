@@ -1,4 +1,5 @@
-﻿using APP_CHECKOUT.Model.Orders;
+﻿using APP_CHECKOUT.Libraries;
+using APP_CHECKOUT.Model.Orders;
 using APP_CHECKOUT.Models.Location;
 using APP_CHECKOUT.Models.Orders;
 using Caching.Elasticsearch;
@@ -7,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Net;
+using System.Net.Http;
 using System.Net.Mail;
 using System.Text;
 
@@ -25,8 +27,9 @@ namespace APP_CHECKOUT.Repositories
         private readonly ClientESService clientESService;
         private readonly AccountClientESService accountClientESService;
         private readonly LocationDAL locationDAL;
+        private readonly ILoggingService _loggingService;
 
-        public EmailService(ClientESService _clientESService, AccountClientESService _accountClientESService, LocationDAL _locationDAL)
+        public EmailService(ClientESService _clientESService, AccountClientESService _accountClientESService, LocationDAL _locationDAL, ILoggingService loggingService)
         {
             _host = ConfigurationManager.AppSettings["Email_HOST"];
             _port = int.Parse(ConfigurationManager.AppSettings["Email_PORT"]);
@@ -38,7 +41,7 @@ namespace APP_CHECKOUT.Repositories
             clientESService = _clientESService;
             accountClientESService = _accountClientESService;
             locationDAL = _locationDAL;
-
+            _loggingService = loggingService;
         }
 
         public bool SendOrderConfirmationEmail(string recipientEmail, OrderDetailMongoDbModelExtend order)
@@ -87,11 +90,17 @@ namespace APP_CHECKOUT.Repositories
             try
             {
                 string templatePath = Environment.CurrentDirectory + EmailTemplatePath;
+                _loggingService.InsertLogTelegramDirect("ReadEmailTemplateAndPopulate - templatePath: " +(templatePath==null?"NULL": templatePath));
+
                 string htmlContent = File.ReadAllText(templatePath);
+                _loggingService.InsertLogTelegramDirect("ReadEmailTemplateAndPopulate - htmlContent: " + (htmlContent == null ? "NULL" : htmlContent));
+
                 if (htmlContent == null || htmlContent.Trim()=="") {
                     htmlContent = GetTemplateInFunction();
                 
                 }
+                _loggingService.InsertLogTelegramDirect("ReadEmailTemplateAndPopulate - htmlContent fixed: " + (htmlContent == null ? "NULL" : htmlContent));
+
                 var account_client = accountClientESService.GetById(order.account_client_id);
                 var client = clientESService.GetById((long)account_client.ClientId);
 
@@ -169,14 +178,17 @@ namespace APP_CHECKOUT.Repositories
 
                 return htmlContent;
             }
-            catch (FileNotFoundException)
+            catch (FileNotFoundException ex)
             {
                 Console.WriteLine($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
+                _loggingService.InsertLogTelegramDirect($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
+
                 return null;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Lỗi khi đọc hoặc xử lý template email: {ex.Message}");
+                _loggingService.InsertLogTelegramDirect($"Lỗi khi đọc hoặc xử lý template email: {ex.Message}");
                 return null;
             }
         }
