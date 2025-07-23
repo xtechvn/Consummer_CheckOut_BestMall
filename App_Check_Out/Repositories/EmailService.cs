@@ -135,7 +135,8 @@ namespace APP_CHECKOUT.Repositories
                 }
                 htmlContent = htmlContent.Replace("{address}", full_address);
                 htmlContent = htmlContent.Replace("{phone}", order.phone);
-                htmlContent = htmlContent.Replace("{amount}", order.total_amount.ToString("N0"));
+                htmlContent = htmlContent.Replace("{amount}", (order.total_amount-(order.shipping_fee==null?0: (double)order.shipping_fee)).ToString("N0"));
+                htmlContent = htmlContent.Replace("{shipping_fee}", (order.shipping_fee == null ? 0 : (double)order.shipping_fee).ToString("N0"));
                 htmlContent = htmlContent.Replace("{total_amount}", order.total_amount.ToString("N0"));
                 string template = @"
                                             <tr>
@@ -183,6 +184,35 @@ namespace APP_CHECKOUT.Repositories
                 }
                 htmlContent = htmlContent.Replace("{products}", product_html);
                 htmlContent = htmlContent.Replace("{total_discount}", (order.total_discount==null?"":"- "+((double)order.total_discount).ToString("N0")+" đ"));
+                string payment_type = "COD";
+                switch (order.payment_type)
+                {
+                    default:
+                        {
+                        }
+                        break;
+                    case 2:
+                        {
+                            payment_type = "Chuyển khoản ngân hàng";
+                        }
+                        break;
+                    case 3:
+                        {
+                            payment_type = "Thẻ VISA/Master Card";
+                        }
+                        break;
+                    case 4:
+                        {
+                            payment_type = "Thanh toán QR/PAY";
+                        }
+                        break;
+                    case 5:
+                        {
+                            payment_type = "Thanh toán tại văn phòng";
+                        }
+                        break;
+                }
+                htmlContent = htmlContent.Replace("{payment_type}", payment_type);
 
                 return htmlContent;
             }
@@ -415,15 +445,15 @@ namespace APP_CHECKOUT.Repositories
                                                                 Hình thức
                                                                 thanh toán:
                                                             </td>
-                                                            <td align=""right"" style=""font-weight:bold;"">COD</td>
+                                                            <td align=""right"" style=""font-weight:bold;"">{payment_type}</td>
                                                         </tr>
                                                         <tr>
                                                             <td align=""right"">Tiền hàng:</td>
                                                             <td align=""right"">{amount} đ</td>
                                                         </tr>
                                                         <tr>
-                                                            <td align=""right"" style=""display:none;"">Phí vận chuyển:</td>
-                                                            <td align=""right"" style=""display:none;"">0 đ</td>
+                                                            <td align=""right"" style="""">Phí vận chuyển:</td>
+                                                            <td align=""right"" style="""">{shipping_fee} đ</td>
                                                         </tr>
                                                         <tr>
                                                             <td align=""right"" style="""">Giảm giá:</td>
