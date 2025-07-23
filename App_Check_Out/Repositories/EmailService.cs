@@ -124,8 +124,14 @@ namespace APP_CHECKOUT.Repositories
                 string full_address = "{address}, {wardid}, {district}, {province}";
                 if (order != null && order.provinceid != null && order.districtid != null && order.wardid != null)
                 {
-                    var province = provinces.FirstOrDefault(x => x.ProvinceId == order.provinceid);
-                    var district = districts.FirstOrDefault(x => x.DistrictId == order.districtid);
+                    Province province=null;
+                    District district = null;
+                    try
+                    {
+                         province = provinces == null?null: provinces.FirstOrDefault(x => x.Id == Convert.ToInt32(order.provinceid));
+                         district = districts == null ? null : districts.FirstOrDefault(x => x.Id == Convert.ToInt32(order.provinceid));
+                    }
+                    catch { }
                     var ward = wards.FirstOrDefault(x => x.WardId == order.wardid);
                     full_address = order.address + ", " + (ward == null ? "" : ward.Name) + ", " + (district == null ? "" : district.Name) + ", " + (province == null ? "" : province.Name);
                 }
