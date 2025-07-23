@@ -1,6 +1,7 @@
 ﻿using Entities.ViewModels.ElasticSearch;
 using Microsoft.Extensions.Configuration;
 using Nest;
+using System.Configuration;
 
 namespace Caching.Elasticsearch.FlashSale
 {
@@ -8,11 +9,10 @@ namespace Caching.Elasticsearch.FlashSale
     public class SupplierESRepository
     {
         public string index = "hulotoys_sp_getsupplier";
-        private static IConfiguration configuration;
         private readonly ElasticClient _client;
-        public SupplierESRepository(string Host)
+        public SupplierESRepository(string host)
         {
-            var settings = new ConnectionSettings(new Uri(configuration["DataBaseConfig:Elastic:Host"]))
+            var settings = new ConnectionSettings(new Uri(host))
                .DefaultIndex(index);
             _client = new ElasticClient(settings);
         }

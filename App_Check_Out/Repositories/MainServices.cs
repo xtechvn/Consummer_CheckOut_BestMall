@@ -8,6 +8,7 @@ using APP_CHECKOUT.Model.Orders;
 using APP_CHECKOUT.Models.Location;
 using APP_CHECKOUT.Models.Models.Queue;
 using APP_CHECKOUT.Models.Orders;
+using APP_CHECKOUT.Models.ViettelPost;
 using APP_CHECKOUT.MongoDb;
 using APP_CHECKOUT.RabitMQ;
 using APP_CHECKOUT.Utilities.constants;
@@ -344,15 +345,17 @@ namespace APP_CHECKOUT.Repositories
                 }
                 order.total_discount = total_discount;
                 //-- Shipping fee
-                //---- ViettelPost
                 if (order.delivery_detail != null && order.delivery_detail.carrier_id > 0)
                 {
                     switch (order.delivery_detail.carrier_id)
                     {
+
                         case 1: { } break;
                         case 2: { } break;
+                        //---- ViettelPost
                         case 3:
                             {
+                                List<VTPOrderRequestModel> model = new List<VTPOrderRequestModel>();
                                 if (order.delivery_detail.shipping_service_code != null && order.delivery_detail.shipping_service_code.Trim() != "")
                                 {
                                     foreach (var supplier in list_supplier)
@@ -363,6 +366,7 @@ namespace APP_CHECKOUT.Repositories
                                         int package_width = 0;
                                         int package_height = 0;
                                         int package_depth = 0;
+                                        int total_quanity = 0;
                                         double amount = 0;
                                         foreach (var c in cart_belong_to_supplier)
                                         {
@@ -372,6 +376,7 @@ namespace APP_CHECKOUT.Repositories
                                             package_height += Convert.ToInt32(((c.product.package_height <= 0 ? 0 : c.product.package_height) * selected.quanity));
                                             package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
                                             amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
+                                            total_quanity += selected.quanity;
                                         }
                                         var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
                                         {
@@ -392,11 +397,55 @@ namespace APP_CHECKOUT.Repositories
                                         {
                                             var match_service = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == order.delivery_detail.shipping_service_code.Trim().ToUpper());
                                             order.shipping_fee += (match_service == null || match_service.Count() <= 0) ? 0 : (match_service.Sum(x => x.GiaCuoc));
-
                                         }
+                                        string package_name = string.Join(",", cart_belong_to_supplier.Select(x => x.product.name));
+                                        VTPOrderRequestModel item = new VTPOrderRequestModel()
+                                        {
+                                            ORDER_NUMBER=order_summit.OrderNo,
+                                            CHECK_UNIQUE=false,
+                                            CUS_ID=0,
+                                            DELIVERY_DATE=DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"),
+                                            EXTRA_MONEY=0,
+                                            GROUPADDRESS_ID=0,
+                                            LIST_ITEM=new List<VTPOrderRequestListItem>(),
+                                            MONEY_COLLECTION=0,
+                                            ORDER_NOTE="Cho xem hàng, không cho thử",
+                                            ORDER_PAYMENT =1,
+                                            ORDER_SERVICE= order.delivery_detail.shipping_service_code,
+                                            ORDER_SERVICE_ADD="",
+                                            ORDER_VOUCHER="",
+                                            PRODUCT_DESCRIPTION ="Trong đơn chứa tổng cộng "+ total_quanity + " sản phẩm",
+                                             PRODUCT_HEIGHT= package_height,
+                                             PRODUCT_LENGTH=package_width,
+                                             PRODUCT_NAME = package_name,
+                                             PRODUCT_PRICE= Convert.ToInt32(amount),
+                                             PRODUCT_QUANTITY= total_quanity,
+                                             PRODUCT_TYPE="HH",
+                                             PRODUCT_WEIGHT=package_weight,
+                                             PRODUCT_WIDTH=package_width,
+                                             RECEIVER_ADDRESS= order.address,
+                                             RECEIVER_DISTRICT=Convert.ToInt32(order.districtid),
+                                             RECEIVER_EMAIL="",
+                                             RECEIVER_FULLNAME=order.receivername,
+                                             RECEIVER_LATITUDE=0,
+                                             RECEIVER_LONGITUDE=0,
+                                             RECEIVER_PHONE=order.phone,
+                                             RECEIVER_PROVINCE= Convert.ToInt32(order.provinceid),
+                                             RECEIVER_WARD = Convert.ToInt32(order.wardid),
+                                             SENDER_ADDRESS=detail_supplier.address,
+                                             SENDER_DISTRICT= detail_supplier.districtid==null?0:(int)detail_supplier.districtid,
+                                             SENDER_EMAIL= "",
+                                             SENDER_FULLNAME= detail_supplier.fullname,
+                                             SENDER_LATITUDE=0,
+                                             SENDER_LONGITUDE=0,
+                                             SENDER_PHONE=detail_supplier.phone,
+                                             SENDER_PROVINCE= detail_supplier.provinceid == null ? 0 : (int)detail_supplier.provinceid,
+                                            SENDER_WARD = detail_supplier.wardid==null?0:(int)detail_supplier.wardid,
+                                        };
+                                        model.Add(item);
                                     }
                                 }
-
+                                order_summit.ShippingToken = JsonConvert.SerializeObject(model);
                             }
                             break;
                         default:
@@ -405,13 +454,13 @@ namespace APP_CHECKOUT.Repositories
                             }
                             break;
                     }
-                    order_summit.ShippingCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code;
+                    order_summit.ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code;
                     order_summit.ShippingFee = order.shipping_fee;
+                   
                 }
 
                
                 var order_id = await orderDAL.CreateOrder(order_summit);
-                // Console.WriteLine("Created Order - " + order.order_no+": "+ order_id);
                 logging_service.InsertLogTelegramDirect("Order Created - " + order.order_no + " - " + total_amount);
                 workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
                 if (order_id > 0)
@@ -539,5 +588,6 @@ namespace APP_CHECKOUT.Repositories
             }
             return result;
         }
+       
     }
 }
