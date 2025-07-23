@@ -408,7 +408,7 @@ namespace APP_CHECKOUT.Repositories
                                         if (response_item != null && response_item.Count > 0)
                                         {
                                             var match_service = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == order.delivery_detail.shipping_service_code.Trim().ToUpper());
-                                            order.shipping_fee += (match_service == null || match_service.Count() <= 0) ? 0 : (match_service.Sum(x => x.GiaCuoc));
+                                           // order.shipping_fee += (match_service == null || match_service.Count() <= 0) ? 0 : (match_service.Sum(x => x.GiaCuoc));
                                         }
                                         string package_name = string.Join(",", cart_belong_to_supplier.Select(x => x.product.name));
 
