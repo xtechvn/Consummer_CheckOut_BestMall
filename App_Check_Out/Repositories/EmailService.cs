@@ -1,4 +1,4 @@
-﻿using APP_CHECKOUT.Model.Orders;
+using APP_CHECKOUT.Model.Orders;
 using APP_CHECKOUT.Models.Location;
 using APP_CHECKOUT.Models.Orders;
 using Caching.Elasticsearch;
@@ -25,8 +25,9 @@ namespace APP_CHECKOUT.Repositories
         private readonly ClientESService clientESService;
         private readonly AccountClientESService accountClientESService;
         private readonly LocationDAL locationDAL;
-
-        public EmailService(ClientESService _clientESService, AccountClientESService _accountClientESService, LocationDAL _locationDAL)
+        private readonly ILoggingService _loggingService;
+        private readonly string static_url = "https://static-image.adavigo.com";
+        public EmailService(ClientESService _clientESService, AccountClientESService _accountClientESService, LocationDAL _locationDAL, ILoggingService loggingService)
         {
             _host = ConfigurationManager.AppSettings["Email_HOST"];
             _port = int.Parse(ConfigurationManager.AppSettings["Email_PORT"]);
@@ -156,8 +157,15 @@ namespace APP_CHECKOUT.Repositories
                         amount_product = (double)cart.product.amount_after_flashsale;
 
                     }
-                    product_html += template.Replace("{image}", cart.product.avatar)
-                        .Replace("{image}", cart.product.avatar)
+                    var url_fixed = cart.product.avatar;
+                    if (!url_fixed.Contains(static_url)
+                    && !url_fixed.Contains("base64")
+                    && !url_fixed.Contains("data:video"))
+                    {
+                        url_fixed = static_url + cart.product.avatar;
+                    }
+                    product_html += template
+                        .Replace("{image}", url_fixed)
                         .Replace("{name}", cart.product.name)
                         .Replace("{quanity}", cart.quanity.ToString("N0"))
                         .Replace("{amount}", (amount_product * cart.quanity).ToString("N0"))
@@ -166,6 +174,55 @@ namespace APP_CHECKOUT.Repositories
                 }
                 htmlContent = htmlContent.Replace("{products}", product_html);
                 htmlContent = htmlContent.Replace("{total_discount}", (order.total_discount==null?"":"- "+((double)order.total_discount).ToString("N0")+" đ"));
+                string payment_type = "COD";
+                switch (order.payment_type)
+                {
+                    default:
+                        {
+                        }
+                        break;
+                    case 2:
+                        {
+                            payment_type = "Chuyển khoản ngân hàng";
+                        }
+                        break;
+                    case 3:
+                        {
+                            payment_type = "Thẻ VISA/Master Card";
+                        }
+                        break;
+                    case 4:
+                        {
+                            payment_type = "Thanh toán QR/PAY";
+                        }
+                        break;
+                    case 5:
+                        {
+                            payment_type = "Thanh toán tại văn phòng";
+                        }
+                        break;
+                }
+                htmlContent = htmlContent.Replace("{payment_type}", payment_type);
+
+                string shipping_type = "Nhận hàng tại BestMall";
+                switch (order.delivery_detail.carrier_id)
+                {
+                    default:
+                        {
+                        }
+                        break;
+                    case 2:
+                        {
+                            shipping_type = "Ninja Van";
+                        }
+                        break;
+                    case 3:
+                        {
+                            shipping_type = "Viettel Post";
+                        }
+                        break;
+                }
+                htmlContent = htmlContent.Replace("{shipping_type}", shipping_type);
 
                 return htmlContent;
             }
