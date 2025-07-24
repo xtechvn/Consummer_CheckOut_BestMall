@@ -28,7 +28,7 @@ namespace APP_CHECKOUT.Repositories
         private readonly AccountClientESService accountClientESService;
         private readonly LocationDAL locationDAL;
         private readonly ILoggingService _loggingService;
-
+        private readonly string static_url = "https://static-image.adavigo.com";
         public EmailService(ClientESService _clientESService, AccountClientESService _accountClientESService, LocationDAL _locationDAL, ILoggingService loggingService)
         {
             _host = ConfigurationManager.AppSettings["Email_HOST"];
@@ -180,8 +180,15 @@ namespace APP_CHECKOUT.Repositories
                         amount_product = (double)cart.product.amount_after_flashsale;
 
                     }
-                    product_html += template.Replace("{image}", cart.product.avatar)
-                        .Replace("{image}", cart.product.avatar)
+                    var url_fixed = cart.product.avatar;
+                    if (!url_fixed.Contains(static_url)
+                    && !url_fixed.Contains("base64")
+                    && !url_fixed.Contains("data:video"))
+                    {
+                        url_fixed = static_url + cart.product.avatar;
+                    }
+                    product_html += template
+                        .Replace("{image}", url_fixed)
                         .Replace("{name}", cart.product.name)
                         .Replace("{quanity}", cart.quanity.ToString("N0"))
                         .Replace("{amount}", (amount_product * cart.quanity).ToString("N0"))
@@ -218,6 +225,8 @@ namespace APP_CHECKOUT.Repositories
                         }
                         break;
                 }
+                htmlContent = htmlContent.Replace("{payment_type}", payment_type);
+
                 string shipping_type = "Nhận hàng tại BestMall";
                 switch (order.delivery_detail.carrier_id)
                 {
