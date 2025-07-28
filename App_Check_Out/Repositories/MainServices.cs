@@ -47,6 +47,7 @@ namespace APP_CHECKOUT.Repositories
         private readonly ProductDetailService productDetailService;
         private readonly ViettelPostService _viettelPostService;
         private readonly SupplierESRepository _supplierESRepository;
+        private readonly ProductDetailMongoAccess _productDetailMongoAccess;
         public MainServices( ILoggingService loggingService) {
 
             logging_service=loggingService;
@@ -63,8 +64,10 @@ namespace APP_CHECKOUT.Repositories
             _supplierESRepository = new SupplierESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
             nhanhVnService = new NhanhVnService(logging_service);
             workQueueClient = new WorkQueueClient(loggingService);
-            emailService = new EmailService(clientESService, accountClientESService, locationDAL);
+            emailService = new EmailService(clientESService, accountClientESService, locationDAL, loggingService);
             productDetailService=new ProductDetailService(clientESService,flashSaleESRepository,flashSaleProductESRepository,productDetailMongoAccess);
+            _viettelPostService = new ViettelPostService();
+            _productDetailMongoAccess = new ProductDetailMongoAccess();
         }
         public async Task Excute(CheckoutQueueModel request)
         {
@@ -510,6 +513,10 @@ namespace APP_CHECKOUT.Repositories
                 logging_service.InsertLogTelegramDirect("CreateOrder : extend_order");
 
                 extend_order.created_date = time;
+                foreach (var detail in details) {
+                    await _productDetailMongoAccess.UpdateQuantityOfStock(detail.ProductId, (int)detail.Quantity);
+                
+                }
                 return extend_order;
             }
             catch (Exception ex)

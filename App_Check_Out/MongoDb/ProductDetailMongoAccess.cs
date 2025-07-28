@@ -477,7 +477,43 @@ namespace APP_CHECKOUT.MongoDb
                 return new List<ProductMongoDbModel>();
             }
         }
+        public async Task<bool> UpdateQuantityOfStock(string id,int quantity=1)
+        {
+            try
+            {
+                var filter = Builders<ProductMongoDbModel>.Filter.Eq(x => x._id, id);
+                var update = Builders<ProductMongoDbModel>.Update.Inc(x => x.quanity_of_stock,(quantity* - 1)).Inc(x => x.total_sold, quantity);
+                var currentProduct = await _productDetailCollection.Find(filter).FirstOrDefaultAsync();
+                if(currentProduct == null || currentProduct.quanity_of_stock< quantity)
+                {
+                    update = Builders<ProductMongoDbModel>.Update.Set(x => x.quanity_of_stock, 0).Inc(x => x.total_sold, quantity);
+                }
+                // Cập nhật số lượng của sản phẩm hiện tại
+                await _productDetailCollection.UpdateOneAsync(filter, update);
 
+                // Kiểm tra xem sản phẩm có tồn tại và có parent_product_id không
+                if (currentProduct != null && !string.IsNullOrEmpty(currentProduct.parent_product_id))
+                {
+                    var parentFilter = Builders<ProductMongoDbModel>.Filter.Eq(x => x._id, currentProduct.parent_product_id);
+                    var currentParent = await _productDetailCollection.Find(parentFilter).FirstOrDefaultAsync();
+                    var parentUpdate = Builders<ProductMongoDbModel>.Update.Inc(x => x.quanity_of_stock, (quantity * -1)).Inc(x => x.total_sold, quantity);
+                    if (currentParent == null || currentParent.quanity_of_stock < quantity)
+                    {
+                        parentUpdate = Builders<ProductMongoDbModel>.Update.Set(x => x.quanity_of_stock, 0).Inc(x => x.total_sold, quantity);
+                    }
+
+                    // Cập nhật số lượng của sản phẩm cha
+                    await _productDetailCollection.UpdateOneAsync(parentFilter, parentUpdate);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                
+
+                return false;
+            }
+        }
 
     }
 }
