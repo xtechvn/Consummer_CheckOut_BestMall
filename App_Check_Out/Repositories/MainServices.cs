@@ -513,9 +513,16 @@ namespace APP_CHECKOUT.Repositories
                 logging_service.InsertLogTelegramDirect("CreateOrder : extend_order");
 
                 extend_order.created_date = time;
-                foreach (var detail in details) {
-                    await _productDetailMongoAccess.UpdateQuantityOfStock(detail.ProductId, (int)detail.Quantity);
-                
+                try{
+                    foreach (var detail in details)
+                    {
+                        await _productDetailMongoAccess.UpdateQuantityOfStock(detail.ProductId, (int)detail.Quantity);
+
+                    }
+                }
+                catch
+                {
+
                 }
                 return extend_order;
             }
