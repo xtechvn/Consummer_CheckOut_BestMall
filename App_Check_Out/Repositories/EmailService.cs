@@ -4,6 +4,7 @@ using APP_CHECKOUT.Models.Location;
 using APP_CHECKOUT.Models.Orders;
 using Caching.Elasticsearch;
 using DAL;
+using HuloToys_Service.Utilities.lib;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -115,7 +116,7 @@ namespace APP_CHECKOUT.Repositories
                 htmlContent = htmlContent.Replace("{clientname}", client.ClientName);
                 htmlContent = htmlContent.Replace("{clientcode}", client.ClientCode);
                 htmlContent = htmlContent.Replace("{orderno}", order.order_no);
-                htmlContent = htmlContent.Replace("{created_date}", order.created_date.ToString("dd/MM/yyyy hh:mm"));
+                htmlContent = htmlContent.Replace("{created_date}", StringHelper.GetCurrentTimeInUtcPlus7(order.created_date).ToString("dd/MM/yyyy HH:mm:ss"));
                 htmlContent = htmlContent.Replace("{receiver_name}", order.receivername);
                 htmlContent = htmlContent.Replace("{receiver_name}", order.receivername);
                 List<Province> provinces = GetProvince();
@@ -175,7 +176,7 @@ namespace APP_CHECKOUT.Repositories
                 {
 
                     var amount_product = cart.product.amount;
-                    if (cart.product.flash_sale_todate >= DateTime.Now && cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
+                    if (cart.product.flash_sale_todate >= StringHelper.GetCurrentTimeInUtcPlus7(order.created_date) && cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
                     {
                         amount_product = (double)cart.product.amount_after_flashsale;
 

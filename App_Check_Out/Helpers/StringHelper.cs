@@ -74,5 +74,41 @@ namespace HuloToys_Service.Utilities.lib
             }
             return text;
         }
+        public static DateTime GetCurrentTimeInUtcPlus7(DateTime time)
+        {
+            // 1. Lấy DateTime.Now và chuyển đổi sang UTC
+            DateTime utcNow = time.ToUniversalTime();
+
+            // 2. Xác định múi giờ UTC+7
+            TimeZoneInfo utcPlus7Zone;
+            try
+            {
+                // Thử ID múi giờ phổ biến cho Windows
+                utcPlus7Zone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                // Nếu không tìm thấy (ví dụ: trên Linux), thử các ID IANA
+                try
+                {
+                    // Sử dụng "Asia/Ho_Chi_Minh" hoặc "Asia/Bangkok" tùy thuộc vào địa điểm cụ thể bạn muốn.
+                    // "Asia/Ho_Chi_Minh" là múi giờ của Việt Nam.
+                    utcPlus7Zone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+                }
+                catch (TimeZoneNotFoundException)
+                {
+                    // Trường hợp xấu nhất không tìm thấy múi giờ nào, chúng ta nên có một fallback hợp lý.
+                    // Hoặc throw exception để báo lỗi rõ ràng.
+                    // Ở đây, chúng ta sẽ throw exception vì không thể xác định được múi giờ mong muốn.
+                    throw new InvalidOperationException("Không thể tìm thấy múi giờ UTC+7 (SE Asia Standard Time hoặc Asia/Ho_Chi_Minh/Asia/Bangkok) trên hệ thống này.");
+                }
+            }
+
+            // 3. Chuyển đổi từ UTC sang múi giờ UTC+7
+            DateTime utcPlus7Time = TimeZoneInfo.ConvertTimeFromUtc(utcNow, utcPlus7Zone);
+
+            // 4. Định dạng và trả về chuỗi
+            return utcPlus7Time;
+        }
     }
 }
