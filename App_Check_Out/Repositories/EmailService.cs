@@ -248,8 +248,9 @@ namespace APP_CHECKOUT.Repositories
                 provinces = locationDAL.GetListProvinces();
 
             }
-            catch
+            catch(Exception ex)
             {
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - GetProvince:" + ex.Message);
 
             }
             return provinces;
@@ -264,9 +265,9 @@ namespace APP_CHECKOUT.Repositories
                 districts = locationDAL.GetListDistrict();
 
             }
-            catch
+            catch (Exception ex)
             {
-
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - GetProvince:" + ex.Message);
             }
             return districts;
         }
@@ -280,9 +281,9 @@ namespace APP_CHECKOUT.Repositories
                 wards = locationDAL.GetListWard();
 
             }
-            catch
+            catch (Exception ex)
             {
-
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - GetProvince:" + ex.Message);
             }
             return wards;
         }
