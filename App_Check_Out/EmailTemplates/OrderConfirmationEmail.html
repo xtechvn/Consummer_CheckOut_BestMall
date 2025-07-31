@@ -79,7 +79,7 @@
                                                style="width:100%; max-width:600px; text-align:center;">
                                             <tr>
                                                 <td colspan="3">
-                                                    <img src="https://static-image.adavigo.com/uploads/images/email/email-order-confirm.png" width="85%" alt="" />
+                                                    <img src="https://static-image.adavigo.com/uploads/images/email/email-order-confirm.png" width="85%" alt=" />
                                                 </td>
                                             </tr>
                                             <!-- Step Icons -->
@@ -171,21 +171,28 @@
                                                             <td align="right" style="font-weight:bold;">{payment_type}</td>
                                                         </tr>
                                                         <tr>
-                                                            <td align="right" style="padding-bottom:2px;">
-                                                                Vận chuyển:
+                                                            <td align="right" style=" padding-bottom:2px;">
+                                                                Hình thức
+                                                                vận chuyển:
                                                             </td>
-                                                            <td align="right" style="font-weight:bold;">{shipping_type}</td>
+                                                            <td align="right" style=" font-weight:bold;">{shipping_type}</td>
                                                         </tr>
                                                         <tr>
                                                             <td align="right">Tiền hàng:</td>
                                                             <td align="right">{amount} đ</td>
                                                         </tr>
                                                         <tr>
-                                                            <td align="right" style="">Phí vận chuyển:</td>
-                                                            <td align="right" style="">{shipping_fee} đ</td>
+                                                            <td align="right" style=" padding-bottom:2px;">
+                                                                Phí vận chuyển:
+                                                            </td>
+                                                            <td align="right" style=" font-weight:bold;">{shipping_fee}</td>
                                                         </tr>
                                                         <tr>
-                                                            <td align="right" style="">Giảm giá:</td>
+                                                            <td align="right" style=" ">Giảm giá:</td>
+                                                            <td align="right" style=" color: #f22; ">{total_discount}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="right" style=">Giảm giá:</td>
                                                             <td align="right" style="color: #f22; ">{total_discount}</td>
                                                         </tr>
                                                         <tr>

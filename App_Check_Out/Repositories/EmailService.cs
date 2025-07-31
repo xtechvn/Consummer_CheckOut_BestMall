@@ -124,7 +124,7 @@ namespace APP_CHECKOUT.Repositories
                 }
                 htmlContent = htmlContent.Replace("{address}", full_address);
                 htmlContent = htmlContent.Replace("{phone}", order.phone);
-                htmlContent = htmlContent.Replace("{amount}", order.total_amount.ToString("N0"));
+                htmlContent = htmlContent.Replace("{amount}", (order.total_amount+(order.total_discount==null?0:(double)order.total_discount)).ToString("N0"));
                 htmlContent = htmlContent.Replace("{total_amount}", order.total_amount.ToString("N0"));
                 string template = @"
                                             <tr>
@@ -228,6 +228,7 @@ namespace APP_CHECKOUT.Repositories
                         break;
                 }
                 htmlContent = htmlContent.Replace("{shipping_type}", shipping_type);
+                htmlContent = htmlContent.Replace("{shipping_fee}", (order.total_discount == null ? 0 : (double)order.total_discount).ToString("N0") + " đ");
 
                 return htmlContent;
             }
@@ -471,12 +472,21 @@ namespace APP_CHECKOUT.Repositories
                                                             <td align=""right"" style=""font-weight:bold;"">COD</td>
                                                         </tr>
                                                         <tr>
+                                                            <td align=""right"" style=""padding-bottom:2px;"">
+                                                                Hình thức
+                                                                vận chuyển:
+                                                            </td>
+                                                            <td align=""right"" style=""font-weight:bold;"">{shipping_type}</td>
+                                                        </tr>
+                                                        <tr>
                                                             <td align=""right"">Tiền hàng:</td>
                                                             <td align=""right"">{amount} đ</td>
                                                         </tr>
-                                                        <tr>
-                                                            <td align=""right"" style=""display:none;"">Phí vận chuyển:</td>
-                                                            <td align=""right"" style=""display:none;"">0 đ</td>
+                                                          <tr>
+                                                            <td align=""right"" style=""padding-bottom:2px;"">
+                                                                Phí vận chuyển:
+                                                            </td>
+                                                            <td align=""right"" style=""font-weight:bold;"">{shipping_fee}</td>
                                                         </tr>
                                                         <tr>
                                                             <td align=""right"" style="""">Giảm giá:</td>
