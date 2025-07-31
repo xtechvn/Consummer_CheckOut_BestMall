@@ -309,6 +309,9 @@ namespace APP_CHECKOUT.Repositories
                 //}
 
                 //order.total_discount = total_discount;
+
+                order_summit.VoucherId = order.voucher_id;
+                order_summit.Discount = order.total_discount;
                 //-- Shipping fee
                 if (order.delivery_detail != null && order.delivery_detail.carrier_id > 0)
                 {
