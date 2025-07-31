@@ -48,7 +48,7 @@ namespace APP_CHECKOUT.Repositories
         private readonly ViettelPostService _viettelPostService;
         private readonly SupplierESRepository _supplierESRepository;
         private readonly ProductDetailMongoAccess _productDetailMongoAccess;
-        public MainServices( ILoggingService loggingService) {
+        public MainServices( ILoggingService loggingService, ViettelPostService viettelPostService) {
 
             logging_service=loggingService;
             orderDetailMongoDbModel = new OrderMongodbService();
@@ -66,7 +66,7 @@ namespace APP_CHECKOUT.Repositories
             workQueueClient = new WorkQueueClient();
             emailService = new EmailService(clientESService, accountClientESService, locationDAL,loggingService);
             productDetailService=new ProductDetailService(clientESService,flashSaleESRepository,flashSaleProductESRepository,productDetailMongoAccess);
-            _viettelPostService = new ViettelPostService();
+            _viettelPostService = viettelPostService;
             _productDetailMongoAccess = new ProductDetailMongoAccess();
         }
         public async Task Excute(CheckoutQueueModel request)
