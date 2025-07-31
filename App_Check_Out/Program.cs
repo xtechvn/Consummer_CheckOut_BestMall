@@ -1,20 +1,24 @@
 ﻿using APP.READ_MESSAGES.Libraries;
+using APP_CHECKOUT;
 using APP_CHECKOUT.Interfaces;
-using APP_CHECKOUT.Repositories;
 using APP_CHECKOUT.Models.Models.Queue;
+using APP_CHECKOUT.Repositories;
+using HuloToys_Service.Controllers.Shipping.Business;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Driver.Core.Events;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Text;
 using System.Configuration;
-using MongoDB.Driver.Core.Events;
+using System.Text;
 
 
 
 ServiceCollection service_collection = new ServiceCollection();
 service_collection.AddSingleton<IMainServices, MainServices>();
 service_collection.AddSingleton<ILoggingService, LoggingService>();
+service_collection.AddSingleton<RedisConn>();
+service_collection.AddSingleton<ViettelPostService>();
 var service_provider = service_collection.BuildServiceProvider();
 var main_service = service_provider.GetService<IMainServices>();
 var log_service = service_provider.GetService<ILoggingService>();
