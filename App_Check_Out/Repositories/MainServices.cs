@@ -362,26 +362,26 @@ namespace APP_CHECKOUT.Repositories
                                             //amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
                                             //total_quanity += selected.quanity;
                                         }
-                                        var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
-                                        {
-                                            MoneyCollection = 0,
-                                            ProductHeight = 0,
-                                            ProductLength = 0,
-                                            ProductPrice = 0,
-                                            ProductType = "HH",
-                                            ProductWeight = package_weight,
-                                            ProductWidth = 0,
-                                            SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
-                                            SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
-                                            ReceiverDistrict = Convert.ToInt32(order.districtid),
-                                            ReceiverProvince = Convert.ToInt32(order.provinceid),
-                                            Type = 1
-                                        });
-                                        if (response_item != null && response_item.Count > 0)
-                                        {
-                                            var match_service = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == order.delivery_detail.shipping_service_code.Trim().ToUpper());
-                                            order.shipping_fee += (match_service == null || match_service.Count() <= 0) ? 0 : (match_service.Sum(x => x.GiaCuoc));
-                                        }
+                                        //var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
+                                        //{
+                                        //    MoneyCollection = 0,
+                                        //    ProductHeight = 0,
+                                        //    ProductLength = 0,
+                                        //    ProductPrice = 0,
+                                        //    ProductType = "HH",
+                                        //    ProductWeight = package_weight,
+                                        //    ProductWidth = 0,
+                                        //    SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
+                                        //    SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
+                                        //    ReceiverDistrict = Convert.ToInt32(order.districtid),
+                                        //    ReceiverProvince = Convert.ToInt32(order.provinceid),
+                                        //    Type = 1
+                                        //});
+                                        //if (response_item != null && response_item.Count > 0)
+                                        //{
+                                        //    var match_service = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == order.delivery_detail.shipping_service_code.Trim().ToUpper());
+                                        //    order.shipping_fee += (match_service == null || match_service.Count() <= 0) ? 0 : (match_service.Sum(x => x.GiaCuoc));
+                                        //}
                                         string package_name = string.Join(",", cart_belong_to_supplier.Select(x => x.product.name));
                                         VTPOrderRequestModel item = new VTPOrderRequestModel()
                                         {
@@ -438,9 +438,9 @@ namespace APP_CHECKOUT.Repositories
                             }
                             break;
                     }
+
                     order_summit.ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code;
                     order_summit.ShippingFee = order.shipping_fee;
-                   
                 }
                 LogHelper.InsertLogTelegram("CreateOrder : CreateOrder");
 
