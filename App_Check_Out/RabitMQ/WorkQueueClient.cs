@@ -1,4 +1,5 @@
-﻿using APP_CHECKOUT.Libraries;
+﻿using APP.READ_MESSAGES.Libraries;
+using APP_CHECKOUT.Utilities.Lib;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Configuration;
@@ -11,9 +12,8 @@ namespace APP_CHECKOUT.RabitMQ
     {
         private readonly QueueSettingViewModel queue_setting;
         private readonly ConnectionFactory factory;
-       // private readonly ILoggingService logging_service;
 
-        public WorkQueueClient(/* ILoggingService _logging_service*/)
+        public WorkQueueClient()
         {
             queue_setting = new QueueSettingViewModel()
             {
@@ -31,7 +31,6 @@ namespace APP_CHECKOUT.RabitMQ
                 VirtualHost = queue_setting.v_host,
                 Port = Protocols.DefaultProtocol.DefaultPort
             };
-            //logging_service=_logging_service;
         }
         public bool SyncES(long id, string store_procedure, string index_es, short project_id)
         {
@@ -48,7 +47,7 @@ namespace APP_CHECKOUT.RabitMQ
                 var _data_push = JsonConvert.SerializeObject(j_param);
                 // Push message vào queue
                 var response_queue = InsertQueueSyncES(_data_push);
-                Console.WriteLine("WorkQueueClient - SyncES [ " + ConfigurationManager.AppSettings["QUEUE_V_HOST_SYNC"] + "/" + ConfigurationManager.AppSettings["QUEUE_SYNC_ES"] + "] -> [" + id + "][" + store_procedure + "] [" + index_es + "][" + project_id + "]: " + response_queue.ToString());
+                LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [ " + ConfigurationManager.AppSettings["QUEUE_V_HOST_SYNC"] + "/" + ConfigurationManager.AppSettings["QUEUE_SYNC_ES"] + "] -> [" + id + "][" + store_procedure + "] [" + index_es + "][" + project_id + "]: " + response_queue.ToString());
 
                 return true;
             }
@@ -128,7 +127,7 @@ namespace APP_CHECKOUT.RabitMQ
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("WorkQueueClient - InsertQueueSimple[" + message + "][" + queueName + "]: " + ex.ToString());
+                    LogHelper.InsertLogTelegram("WorkQueueClient - InsertQueueSimple[" + message + "][" + queueName + "]: " + ex.ToString());
 
                     return false;
                 }

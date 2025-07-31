@@ -36,7 +36,7 @@ namespace Caching.Elasticsearch
                 if (query.IsValid)
                 {
                     var data = query.Documents as List<AddressClientESModel>;
-                    //logging_service.InsertLogTelegramDirect( "GetByClientID - AddressClientESService [" + client_id + "][" + JsonConvert.SerializeObject(result) + "]");
+                    //LogHelper.InsertLogTelegram( "GetByClientID - AddressClientESService [" + client_id + "][" + JsonConvert.SerializeObject(result) + "]");
 
                     return data;
                 }
