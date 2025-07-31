@@ -1,9 +1,9 @@
 ﻿using ADAVIGO_FRONTEND.Models.Flights.TrackingVoucher;
-using APP.READ_MESSAGES.Libraries;
 using APP_CHECKOUT.Constants;
 using APP_CHECKOUT.DAL;
 using APP_CHECKOUT.Helpers;
 using APP_CHECKOUT.Interfaces;
+using APP_CHECKOUT.Libraries;
 using APP_CHECKOUT.Model.Orders;
 using APP_CHECKOUT.Models.Location;
 using APP_CHECKOUT.Models.Models.Queue;
@@ -12,6 +12,7 @@ using APP_CHECKOUT.Models.ViettelPost;
 using APP_CHECKOUT.MongoDb;
 using APP_CHECKOUT.RabitMQ;
 using APP_CHECKOUT.Utilities.constants;
+using APP_CHECKOUT.Utilities.Lib;
 using Caching.Elasticsearch;
 using Caching.Elasticsearch.FlashSale;
 using DAL;
@@ -24,8 +25,8 @@ using System.Configuration;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using Telegram.Bot.Types;
 using Utilities.Contants;
-using APP_CHECKOUT.Utilities.Lib;
 
 namespace APP_CHECKOUT.Repositories
 {
@@ -123,6 +124,8 @@ namespace APP_CHECKOUT.Repositories
                 {
                     return null;
                 }
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById:" + order._id);
+
                 Order order_summit = new Order();
                 List<OrderDetail> details = new List<OrderDetail>();
                 double total_price = 0;
@@ -143,9 +146,8 @@ namespace APP_CHECKOUT.Repositories
                     name_url = CommonHelpers.RemoveSpecialCharacters(name_url);
                     name_url = name_url.Replace(" ", "-").Trim();
                     string parent_product_id = cart.product._id;
-                    //try
-                    //{
-                    //    var product = await productDetailService.GetByID(cart.product._id);
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.carts.product:" + cart.product._id);
+
                     if (cart.product != null && cart.product.parent_product_id != null && cart.product.parent_product_id.Trim() != "")
                     {
                         parent_product_id = cart.product.parent_product_id;
@@ -186,11 +188,7 @@ namespace APP_CHECKOUT.Repositories
                     total_profit += (cart.product.profit * cart.quanity);
                     total_amount += (amount_product * cart.quanity);
 
-                    //cart.total_price = cart.product.price * cart.quanity;
-                    //cart.total_discount = cart.product.discount * cart.quanity;
-                    //cart.total_profit = cart.product.profit * cart.quanity;
-                    //cart.total_amount = amount_product * cart.quanity;
-
+                  
                     cart.total_price = cart.product.price * cart.quanity;
                     cart.total_profit = cart.product.profit * cart.quanity;
                     cart.total_amount = amount_product * cart.quanity;
@@ -207,7 +205,7 @@ namespace APP_CHECKOUT.Repositories
                 logging_service.InsertLogTelegramDirect("CreateOrder : account_client");
 
                 var client = clientESService.GetById((long)account_client.ClientId);
-                logging_service.InsertLogTelegramDirect("CreateOrder : client");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder clientESService.GetById:" + client.Id);
 
                 AddressClientESModel address_client = addressClientESService.GetById(order.address_id, client.Id);
                 logging_service.InsertLogTelegramDirect("CreateOrder : address_client");
@@ -291,6 +289,8 @@ namespace APP_CHECKOUT.Repositories
                 double total_discount = 0;
                 if (order.voucher_code != null && order.voucher_code.Trim() != "")
                 {
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.voucher_code:" + order.voucher_code.Trim());
+
                     var input = new TrackingVoucherRequest
                     {
                         total_order_amount_before = (double)order_summit.Amount,
@@ -301,44 +301,8 @@ namespace APP_CHECKOUT.Repositories
                     var voucher_apply = await ApplyVoucher(input);
                     if (voucher_apply != null && voucher_apply.status == 0)
                     {
-                        //    switch (voucher_apply.rule_type)
-                        //    {
-                        //        case (int)VoucherRuleType.ALL_PRODUCT:
-                        //            {
+                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder ApplyVoucher:" + JsonConvert.SerializeObject(voucher_apply));
 
-                        //            }break;
-                        //        case (int)VoucherRuleType.SPECIFIC_PRODUCT:
-                        //            {
-
-                        //            }
-                        //            break;
-                        //        default:
-                        //            {
-                        //                double percent = Convert.ToDouble(voucher_apply.value);
-                        //                switch (voucher_apply.type)
-                        //                {
-                        //                    case "percent":
-                        //                        //Tinh số tiền giảm theo %
-                        //                        total_discount += ((double)order_summit.Amount * Convert.ToDouble(percent / 100));
-                        //                        break;
-                        //                    case "vnd":
-                        //                        total_discount += percent; //Math.Min(Convert.ToDouble(voucher.LimitTotalDiscount), total_fee_not_luxury) ;
-                        //                        break;
-
-                        //                    default: break;
-
-                        //                }
-                        //                voucher_apply.discount = total_discount;
-                        //                voucher_apply.total_order_amount_after = voucher_apply.total_order_amount_before - total_discount;
-                        //                order_summit.VoucherId = voucher_apply.voucher_id;
-                        //                order_summit.Discount = voucher_apply.discount;
-                        //                order_summit.Amount = voucher_apply.total_order_amount_after;
-                        //                order_summit.Profit -= order_summit.Discount;
-                        //            }break;
-
-                        //    }
-
-                        //}
                         double percent = Convert.ToDouble(voucher_apply.value);
                         switch (voucher_apply.type)
                         {
@@ -353,11 +317,20 @@ namespace APP_CHECKOUT.Repositories
 
                         }
                         voucher_apply.discount = total_discount;
-                        voucher_apply.total_order_amount_after = voucher_apply.total_order_amount_before - total_discount;
+                        //if (voucher_apply.total_order_amount_after > 0)
+                        //{
+                        //    voucher_apply.total_order_amount_after = voucher_apply.total_order_amount_before - total_discount;
+                        //    order_summit.Amount = voucher_apply.total_order_amount_after;
+                        //}
+                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder voucher_apply.discount:" + voucher_apply.discount);
+
                         order_summit.VoucherId = voucher_apply.voucher_id;
                         order_summit.Discount = voucher_apply.discount;
-                        order_summit.Amount = voucher_apply.total_order_amount_after;
                         order_summit.Profit -= order_summit.Discount;
+                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order_summit.Amount before discount:" + order_summit.Amount);
+                        order_summit.Amount -= order_summit.Discount;
+                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order_summit.Amount:" + order_summit.Amount);
+
                     }
 
                 }
