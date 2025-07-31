@@ -64,6 +64,10 @@ namespace Entities.ViewModels.Products
         public int? supplier_status { get; set; }
         public List<ProductMongoDbSpecification>? detail_specification { get; set; }
         public List<string> products_buy_with { get; set; }
+        public float? profit_value { get; set; }
+        public int? profit_value_type { get; set; }
+        public string description_delivery { get; set; }
+        public string description_refund { get; set; }
     }
     public class ProductMongoDbSpecification
     {
