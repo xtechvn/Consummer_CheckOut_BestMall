@@ -1,5 +1,6 @@
 using APP_CHECKOUT.Models.Location;
 using APP_CHECKOUT.Models.Orders;
+using APP_CHECKOUT.Utilities.Lib;
 using Caching.Elasticsearch;
 using DAL;
 using HuloToys_Service.Utilities.lib;
@@ -75,7 +76,7 @@ namespace APP_CHECKOUT.Repositories
             catch (Exception ex)
             {
                 Console.WriteLine($"Error sending email: {ex.Message}");
-                // Log lỗi chi tiết hơn ở đây
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderConfirmationEmail:" + ex.Message);
                 return false;
             }
         }
@@ -225,11 +226,15 @@ namespace APP_CHECKOUT.Repositories
             catch (FileNotFoundException)
             {
                 Console.WriteLine($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderConfirmationEmail: Không tìm thấy file template email tại:" + EmailTemplatePath);
+
                 return null;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Lỗi khi đọc hoặc xử lý template email: {ex.Message}");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderConfirmationEmail:" + ex.Message);
+
                 return null;
             }
         }
