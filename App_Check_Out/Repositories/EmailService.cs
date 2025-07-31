@@ -1,16 +1,11 @@
-using APP.READ_MESSAGES.Libraries;
-using APP_CHECKOUT.Model.Orders;
 using APP_CHECKOUT.Models.Location;
 using APP_CHECKOUT.Models.Orders;
 using Caching.Elasticsearch;
 using DAL;
 using HuloToys_Service.Utilities.lib;
-using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Net;
 using System.Net.Mail;
-using System.Text;
 
 namespace APP_CHECKOUT.Repositories
 {

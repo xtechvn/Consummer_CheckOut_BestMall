@@ -1,5 +1,4 @@
-﻿using APP.READ_MESSAGES.Libraries;
-using APP_CHECKOUT.Utilities.Lib;
+﻿using APP_CHECKOUT.Utilities.Lib;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Configuration;
