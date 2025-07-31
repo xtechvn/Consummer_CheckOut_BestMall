@@ -173,8 +173,7 @@ namespace APP_CHECKOUT.Repositories
                         .Replace("{name}", cart.product.name)
                         .Replace("{quanity}", cart.quanity.ToString("N0"))
                         .Replace("{amount}", (amount_product * cart.quanity).ToString("N0"))
-                        .Replace("{code}", cart.product.code)
-                        ;
+                        .Replace("{code}", cart.product.code);
                 }
                 htmlContent = htmlContent.Replace("{products}", product_html);
                 string payment_type = "COD";

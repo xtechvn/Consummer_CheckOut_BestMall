@@ -163,7 +163,7 @@ namespace APP_CHECKOUT.Repositories
                         ProductLink = ConfigurationManager.AppSettings["Setting_Domain"] + "/san-pham/" + name_url + "--" + cart.product._id,
                         TotalPrice = cart.total_price,
                         TotalProfit = cart.total_profit,
-                        TotalAmount = cart.total_discount,
+                        TotalAmount = cart.total_amount,
                         TotalDiscount = cart.total_discount,
                         UpdatedDate = time,
                         UserCreate = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
