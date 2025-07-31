@@ -229,7 +229,8 @@ namespace APP_CHECKOUT.Repositories
                     ShippingCode = "",
                     ShippingType = order.delivery_detail.shipping_type,
                     ShippingStatus = 0,
-                    PackageWeight = total_weight
+                    PackageWeight = total_weight,
+                    ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code
                 };
                 LogHelper.InsertLogTelegram("CreateOrder : order_summit");
 
@@ -439,8 +440,8 @@ namespace APP_CHECKOUT.Repositories
                             break;
                     }
 
-                    order_summit.ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code;
-                    order_summit.ShippingFee = order.shipping_fee;
+                   // order_summit.ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code;
+                   // order_summit.ShippingFee = order.shipping_fee;
                 }
                 LogHelper.InsertLogTelegram("CreateOrder : CreateOrder");
 
