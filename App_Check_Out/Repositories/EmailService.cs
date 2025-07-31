@@ -85,7 +85,15 @@ namespace APP_CHECKOUT.Repositories
             try
             {
                 string templatePath = Environment.CurrentDirectory + EmailTemplatePath;
-                string htmlContent = File.ReadAllText(templatePath);
+                string htmlContent = "";
+                try
+                {
+                    htmlContent = File.ReadAllText(templatePath);
+                }
+                catch
+                {
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderConfirmationEmail: Không tìm thấy file template email tại:" + EmailTemplatePath);
+                }
                 if (htmlContent == null || htmlContent.Trim()=="") {
                     htmlContent = GetTemplateInFunction();
                 
