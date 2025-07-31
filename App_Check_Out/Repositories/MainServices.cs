@@ -1,9 +1,8 @@
 ﻿using ADAVIGO_FRONTEND.Models.Flights.TrackingVoucher;
-using APP_CHECKOUT.Constants;
+using APP.READ_MESSAGES.Libraries;
 using APP_CHECKOUT.DAL;
 using APP_CHECKOUT.Helpers;
 using APP_CHECKOUT.Interfaces;
-using APP_CHECKOUT.Libraries;
 using APP_CHECKOUT.Model.Orders;
 using APP_CHECKOUT.Models.Location;
 using APP_CHECKOUT.Models.Models.Queue;
@@ -19,13 +18,10 @@ using DAL;
 using Entities.Models;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.Controllers.Shipping.Business;
-using Nest;
 using Newtonsoft.Json;
 using System.Configuration;
 using System.Net;
-using System.Net.Http;
 using System.Text;
-using Telegram.Bot.Types;
 using Utilities.Contants;
 
 namespace APP_CHECKOUT.Repositories
@@ -128,14 +124,13 @@ namespace APP_CHECKOUT.Repositories
 
                 Order order_summit = new Order();
                 List<OrderDetail> details = new List<OrderDetail>();
-                double total_price = 0;
-                double total_profit = 0;
-                double total_amount = 0;
-                float total_weight = 0;
+                //double total_price = 0;
+                //double total_profit = 0;
+                //double total_amount = 0;
+                int total_weight = 0;
                 var list_supplier = new List<int>();
                 var list_cart = new List<CartItemMongoDbModel>();
-                logging_service.InsertLogTelegramDirect("CreateOrder : variable");
-
+                int total_product_quantity = 0;
                 foreach (var cart in order.carts)
                 {
                     if (cart == null || cart.product == null) continue;
@@ -147,13 +142,10 @@ namespace APP_CHECKOUT.Repositories
                     name_url = name_url.Replace(" ", "-").Trim();
                     string parent_product_id = cart.product._id;
                     LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.carts.product:" + cart.product._id);
-
                     if (cart.product != null && cart.product.parent_product_id != null && cart.product.parent_product_id.Trim() != "")
                     {
                         parent_product_id = cart.product.parent_product_id;
                     }
-                    //}
-                    //catch { }
                     var amount_product = cart.product.amount;
                     if (cart.product.flash_sale_todate >= DateTime.Now && cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
                     {
@@ -184,16 +176,16 @@ namespace APP_CHECKOUT.Repositories
                         UserUpdated = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                         ParentProductId=parent_product_id
                     });
-                    total_price += (cart.product.price * cart.quanity);
-                    total_profit += (cart.product.profit * cart.quanity);
-                    total_amount += (amount_product * cart.quanity);
+                    //total_price += (cart.product.price * cart.quanity);
+                    //total_profit += (cart.product.profit * cart.quanity);
+                    //total_amount += (amount_product * cart.quanity);
 
-                  
+                    total_product_quantity+= cart.quanity;
                     cart.total_price = cart.product.price * cart.quanity;
                     cart.total_profit = cart.product.profit * cart.quanity;
                     cart.total_amount = amount_product * cart.quanity;
                     cart.total_discount = cart.product.discount * cart.quanity;
-                    total_weight += ((cart.product.weight == null ? 0 : (float)cart.product.weight) * cart.quanity / 1000);
+                    total_weight += ((cart.product.weight == null ? 0 : (int)cart.product.weight) * cart.quanity / 1000);
                     if (!list_supplier.Contains(cart.product.supplier_id))
                     {
                         list_supplier.Add(cart.product.supplier_id);
@@ -212,7 +204,7 @@ namespace APP_CHECKOUT.Repositories
 
                 order_summit = new Order()
                 {
-                    Amount = total_amount + order.shipping_fee,
+                    Amount = order.total_amount,
                     ClientId = (long)account_client.ClientId,
                     CreatedDate = DateTime.Now,
                     Discount = 0,
@@ -222,8 +214,8 @@ namespace APP_CHECKOUT.Repositories
                     OrderNo = order.order_no,
                     PaymentStatus = 0,
                     PaymentType = Convert.ToInt16(order.payment_type),
-                    Price = total_price,
-                    Profit = total_profit,
+                    Price = order.total_price,
+                    Profit = order.total_profit,
                     OrderStatus = 0,
                     UpdateLast = time,
                     UserGroupIds = "",
@@ -241,9 +233,7 @@ namespace APP_CHECKOUT.Repositories
                     ShippingCode = "",
                     ShippingType = order.delivery_detail.shipping_type,
                     ShippingStatus = 0,
-                    PackageWeight = total_weight,
-                    
-
+                    PackageWeight = total_weight
                 };
                 logging_service.InsertLogTelegramDirect("CreateOrder : order_summit");
 
@@ -286,57 +276,56 @@ namespace APP_CHECKOUT.Repositories
                     order_summit.Address = order.address;
                 }
                 //--apply voucher:
-                double total_discount = 0;
-                if (order.voucher_code != null && order.voucher_code.Trim() != "")
-                {
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.voucher_code:" + order.voucher_code.Trim());
+                //double total_discount = 0;
+                //if (order.voucher_code != null && order.voucher_code.Trim() != "")
+                //{
+                //    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.voucher_code:" + order.voucher_code.Trim());
 
-                    var input = new TrackingVoucherRequest
-                    {
-                        total_order_amount_before = (double)order_summit.Amount,
-                        user_id = Convert.ToInt64(order.account_client_id),
-                        voucher_name = order.voucher_code,
-                        token = CommonHelpers.Encode("{\"user_name\":\"" + account_client.UserName + "\"}", ConfigurationManager.AppSettings["key_private"])
-                    };
-                    var voucher_apply = await ApplyVoucher(input);
-                    if (voucher_apply != null && voucher_apply.status == 0)
-                    {
-                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder ApplyVoucher:" + JsonConvert.SerializeObject(voucher_apply));
+                //    var input = new TrackingVoucherRequest
+                //    {
+                //        total_order_amount_before = (double)order_summit.Amount,
+                //        user_id = Convert.ToInt64(order.account_client_id),
+                //        voucher_name = order.voucher_code,
+                //        token = CommonHelpers.Encode("{\"user_name\":\"" + account_client.UserName + "\"}", ConfigurationManager.AppSettings["key_private"])
+                //    };
+                //    var voucher_apply = await ApplyVoucher(input);
+                //    if (voucher_apply != null && voucher_apply.status == 0)
+                //    {
+                //        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder ApplyVoucher:" + JsonConvert.SerializeObject(voucher_apply));
 
-                        double percent = Convert.ToDouble(voucher_apply.value);
-                        switch (voucher_apply.type)
-                        {
-                            case "percent":
-                                total_discount += ((double)order_summit.Amount * Convert.ToDouble(percent / 100));
-                                break;
-                            case "vnd":
-                                total_discount += percent;
-                                break;
+                //        double percent = Convert.ToDouble(voucher_apply.value);
+                //        switch (voucher_apply.type)
+                //        {
+                //            case "percent":
+                //                total_discount += ((double)order_summit.Amount * Convert.ToDouble(percent / 100));
+                //                break;
+                //            case "vnd":
+                //                total_discount += percent;
+                //                break;
 
-                            default: break;
+                //            default: break;
 
-                        }
-                        voucher_apply.discount = total_discount;
-                        //if (voucher_apply.total_order_amount_after > 0)
-                        //{
-                        //    voucher_apply.total_order_amount_after = voucher_apply.total_order_amount_before - total_discount;
-                        //    order_summit.Amount = voucher_apply.total_order_amount_after;
-                        //}
-                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder voucher_apply.discount:" + voucher_apply.discount);
+                //        }
+                //        voucher_apply.discount = total_discount;
+                //        //if (voucher_apply.total_order_amount_after > 0)
+                //        //{
+                //        //    voucher_apply.total_order_amount_after = voucher_apply.total_order_amount_before - total_discount;
+                //        //    order_summit.Amount = voucher_apply.total_order_amount_after;
+                //        //}
+                //        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder voucher_apply.discount:" + voucher_apply.discount);
 
-                        order_summit.VoucherId = voucher_apply.voucher_id;
-                        order_summit.Discount = voucher_apply.discount;
-                        order_summit.Profit -= order_summit.Discount;
-                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order_summit.Amount before discount:" + order_summit.Amount);
-                        order_summit.Amount -= order_summit.Discount;
-                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order_summit.Amount:" + order_summit.Amount);
+                //        order_summit.VoucherId = voucher_apply.voucher_id;
+                //        order_summit.Discount = voucher_apply.discount;
+                //        order_summit.Profit -= order_summit.Discount;
+                //        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order_summit.Amount before discount:" + order_summit.Amount);
+                //        order_summit.Amount -= order_summit.Discount;
+                //        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order_summit.Amount:" + order_summit.Amount);
 
-                    }
+                //    }
 
-                }
-                logging_service.InsertLogTelegramDirect("CreateOrder : voucher_apply");
+                //}
 
-                order.total_discount = total_discount;
+                //order.total_discount = total_discount;
                 //-- Shipping fee
                 if (order.delivery_detail != null && order.delivery_detail.carrier_id > 0)
                 {
@@ -358,30 +347,31 @@ namespace APP_CHECKOUT.Repositories
                                         var cart_belong_to_supplier = list_cart.Where(x => x.product.supplier_id == supplier);
                                         var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
                                         int package_weight = 0;
-                                        int package_width = 0;
-                                        int package_height = 0;
-                                        int package_depth = 0;
-                                        int total_quanity = 0;
-                                        double amount = 0;
+                                        //int package_width = 0;
+                                        //int package_height = 0;
+                                        //int package_depth = 0;
+                                        //int total_quanity = 0;
+                                        //double amount = 0;
+
                                         foreach (var c in cart_belong_to_supplier)
                                         {
                                             var selected = list_cart.First(x => x._id == c._id);
                                             package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
-                                            package_width += Convert.ToInt32(((c.product.package_width <= 0 ? 0 : c.product.package_width) * selected.quanity));
-                                            package_height += Convert.ToInt32(((c.product.package_height <= 0 ? 0 : c.product.package_height) * selected.quanity));
-                                            package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
-                                            amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
-                                            total_quanity += selected.quanity;
+                                            //package_width += Convert.ToInt32(((c.product.package_width <= 0 ? 0 : c.product.package_width) * selected.quanity));
+                                            //package_height += Convert.ToInt32(((c.product.package_height <= 0 ? 0 : c.product.package_height) * selected.quanity));
+                                            //package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
+                                            //amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
+                                            //total_quanity += selected.quanity;
                                         }
                                         var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
                                         {
                                             MoneyCollection = 0,
-                                            ProductHeight = package_height,
-                                            ProductLength = package_depth,
-                                            ProductPrice = Convert.ToInt64(amount),
+                                            ProductHeight = 0,
+                                            ProductLength = 0,
+                                            ProductPrice = 0,
                                             ProductType = "HH",
                                             ProductWeight = package_weight,
-                                            ProductWidth = package_width,
+                                            ProductWidth = 0,
                                             SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
                                             SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
                                             ReceiverDistrict = Convert.ToInt32(order.districtid),
@@ -409,15 +399,15 @@ namespace APP_CHECKOUT.Repositories
                                             ORDER_SERVICE= order.delivery_detail.shipping_service_code,
                                             ORDER_SERVICE_ADD="",
                                             ORDER_VOUCHER="",
-                                            PRODUCT_DESCRIPTION ="Trong đơn chứa tổng cộng "+ total_quanity + " sản phẩm",
-                                             PRODUCT_HEIGHT= package_height,
-                                             PRODUCT_LENGTH=package_width,
+                                            PRODUCT_DESCRIPTION ="Trong đơn chứa tổng cộng "+ total_product_quantity + " sản phẩm",
+                                             PRODUCT_HEIGHT= 0,
+                                             PRODUCT_LENGTH=0,
                                              PRODUCT_NAME = package_name,
-                                             PRODUCT_PRICE= Convert.ToInt32(amount),
-                                             PRODUCT_QUANTITY= total_quanity,
+                                             PRODUCT_PRICE= Convert.ToInt32(order.total_amount),
+                                             PRODUCT_QUANTITY= total_product_quantity,
                                              PRODUCT_TYPE="HH",
                                              PRODUCT_WEIGHT=package_weight,
-                                             PRODUCT_WIDTH=package_width,
+                                             PRODUCT_WIDTH=0,
                                              RECEIVER_ADDRESS= order.address,
                                              RECEIVER_DISTRICT=Convert.ToInt32(order.districtid),
                                              RECEIVER_EMAIL="",
@@ -457,7 +447,7 @@ namespace APP_CHECKOUT.Repositories
 
 
                 var order_id = await orderDAL.CreateOrder(order_summit);
-                logging_service.InsertLogTelegramDirect("Order Created - " + order.order_no + " - " + total_amount);
+                logging_service.InsertLogTelegramDirect("Order Created - " + order.order_no + " - " + order_summit.Amount);
                 workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
                 if (order_id > 0)
                 {
@@ -469,14 +459,13 @@ namespace APP_CHECKOUT.Repositories
                         await orderDetailDAL.CreateOrderDetail(detail);
                         Console.WriteLine("Created OrderDetail - " + detail.OrderId + ": " + detail.OrderDetailId);
                         logging_service.InsertLogTelegramDirect("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
-                        order.total_price = total_price;
-                        order.total_profit=total_profit;
-                        logging_service.InsertLogTelegramDirect("CreateOrder : CreateOrderDetail");
+                        //order.total_price = total_price;
+                        //order.total_profit=total_profit;
 
                     }
-                    order.total_amount = (double)order_summit.Amount;
-                    order.total_profit = (double)order_summit.Profit;
-                    order.total_discount = (double)order_summit.Discount;
+                    //order.total_amount = (double)order_summit.Amount;
+                    //order.total_profit = (double)order_summit.Profit;
+                    //order.total_discount = (double)order_summit.Discount;
 
                     //await nhanhVnService.PostToNhanhVN(order_summit,order, client, address_client);
                     await orderDetailMongoDbModel.Update(order);
