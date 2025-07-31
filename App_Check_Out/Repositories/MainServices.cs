@@ -161,10 +161,10 @@ namespace APP_CHECKOUT.Repositories
                         ProductCode = cart.product.code,
                         ProductId = cart.product._id,
                         ProductLink = ConfigurationManager.AppSettings["Setting_Domain"] + "/san-pham/" + name_url + "--" + cart.product._id,
-                        TotalPrice = cart.product.price * cart.quanity,
-                        TotalProfit = cart.product.profit * cart.quanity,
-                        TotalAmount = amount_product * cart.quanity,
-                        TotalDiscount = cart.product.discount * cart.quanity,
+                        TotalPrice = cart.total_price,
+                        TotalProfit = cart.total_profit,
+                        TotalAmount = cart.total_discount,
+                        TotalDiscount = cart.total_discount,
                         UpdatedDate = time,
                         UserCreate = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                         UserUpdated = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
@@ -175,11 +175,11 @@ namespace APP_CHECKOUT.Repositories
                     //total_amount += (amount_product * cart.quanity);
 
                     total_product_quantity+= cart.quanity;
-                    cart.total_price = cart.product.price * cart.quanity;
-                    cart.total_profit = cart.product.profit * cart.quanity;
-                    cart.total_amount = amount_product * cart.quanity;
-                    cart.total_discount = cart.product.discount * cart.quanity;
-                    total_weight += ((cart.product.weight == null ? 0 : (int)cart.product.weight) * cart.quanity / 1000);
+                    //cart.total_price = cart.product.price * cart.quanity;
+                    //cart.total_profit = cart.product.profit * cart.quanity;
+                    //cart.total_amount = amount_product * cart.quanity;
+                    //cart.total_discount = cart.product.discount * cart.quanity;
+                    //total_weight += ((cart.product.weight == null ? 0 : (int)cart.product.weight) * cart.quanity / 1000);
                     if (!list_supplier.Contains(cart.product.supplier_id))
                     {
                         list_supplier.Add(cart.product.supplier_id);

@@ -226,7 +226,7 @@ namespace APP_CHECKOUT.Repositories
                         break;
                 }
                 htmlContent = htmlContent.Replace("{shipping_type}", shipping_type);
-                htmlContent = htmlContent.Replace("{amount}", (order.total_amount + (order.total_discount == null ? 0 : (double)order.total_discount)).ToString("N0"));
+                htmlContent = htmlContent.Replace("{amount}", ((double)order.total_price).ToString("N0"));
                 htmlContent = htmlContent.Replace("{shipping_fee}", (order.shipping_fee == null ? 0 : (double)order.shipping_fee).ToString("N0") + " đ");
                 htmlContent = htmlContent.Replace("{total_discount}", (order.total_discount == null ? "" : "- " + ((double)order.total_discount).ToString("N0") + " đ"));
                 htmlContent = htmlContent.Replace("{total_amount}", order.total_amount.ToString("N0"));
