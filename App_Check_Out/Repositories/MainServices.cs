@@ -131,7 +131,6 @@ namespace APP_CHECKOUT.Repositories
                 {
                     if (cart == null || cart.product == null) continue;
                     list_cart.Add(cart);
-                    LogHelper.InsertLogTelegram("CreateOrder : listcart");
 
                     string name_url = CommonHelpers.RemoveUnicode(cart.product.name);
                     name_url = CommonHelpers.RemoveSpecialCharacters(name_url);
