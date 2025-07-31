@@ -25,6 +25,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using Utilities.Contants;
+using APP_CHECKOUT.Utilities.Lib;
 
 namespace APP_CHECKOUT.Repositories
 {
@@ -98,6 +99,7 @@ namespace APP_CHECKOUT.Repositories
                         break;
                    default:
                         {
+                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - excute: fail case: ["+JsonConvert.SerializeObject(request) +"]" );
 
                         }
                         break;
@@ -107,6 +109,8 @@ namespace APP_CHECKOUT.Repositories
                 string err = "MainServices: " + ex.ToString();
                 Console.WriteLine(err);
                 logging_service.InsertLogTelegramDirect(err);
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - err:"+ err);
+
             }
         }
         private async Task<OrderDetailMongoDbModelExtend> CreateOrder(string order_detail_id)
@@ -514,8 +518,12 @@ namespace APP_CHECKOUT.Repositories
 
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    string err = "CreateOrder with [" + order_detail_id + "] error: " + ex.ToString();
+                    Console.WriteLine(err);
+                    logging_service.InsertLogTelegramDirect(err);
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder:" + err);
 
                 }
                 return extend_order;
@@ -525,6 +533,7 @@ namespace APP_CHECKOUT.Repositories
                 string err = "CreateOrder with ["+ order_detail_id+"] error: " + ex.ToString();
                 Console.WriteLine(err);
                 logging_service.InsertLogTelegramDirect(err);
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder:" + err);
 
             }
             return null;

@@ -3,6 +3,7 @@ using APP_CHECKOUT.Interfaces;
 using APP_CHECKOUT.Libraries;
 using APP_CHECKOUT.Models.Models.Queue;
 using APP_CHECKOUT.Repositories;
+using APP_CHECKOUT.Utilities.Lib;
 using HuloToys_Service.Controllers.Shipping.Business;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -71,6 +72,7 @@ try
             {
                 string err = "Program: " + ex.ToString();
                 Console.WriteLine(err);
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MAIN - excute: error:" + err);
 
             }
         };
@@ -85,4 +87,6 @@ catch (Exception ex)
 {
     string err = "Main: " + ex.ToString();
     Console.WriteLine(err);
+    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MAIN: error:" + err);
+
 }
