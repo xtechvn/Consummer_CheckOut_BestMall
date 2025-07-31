@@ -1,18 +1,11 @@
-﻿using APP_CHECKOUT.Libraries;
-using APP_CHECKOUT.Model.Orders;
 using APP_CHECKOUT.Models.Location;
 using APP_CHECKOUT.Models.Orders;
-using APP_CHECKOUT.Utilities.Lib;
 using Caching.Elasticsearch;
 using DAL;
 using HuloToys_Service.Utilities.lib;
-using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Net;
-using System.Net.Http;
 using System.Net.Mail;
-using System.Text;
 
 namespace APP_CHECKOUT.Repositories
 {
@@ -42,6 +35,7 @@ namespace APP_CHECKOUT.Repositories
             clientESService = _clientESService;
             accountClientESService = _accountClientESService;
             locationDAL = _locationDAL;
+
         }
 
         public bool SendOrderConfirmationEmail(string recipientEmail, OrderDetailMongoDbModelExtend order)
@@ -90,25 +84,11 @@ namespace APP_CHECKOUT.Repositories
             try
             {
                 string templatePath = Environment.CurrentDirectory + EmailTemplatePath;
-                LogHelper.InsertLogTelegram("ReadEmailTemplateAndPopulate - templatePath: " +(templatePath==null?"NULL": templatePath));
-                string htmlContent = "";
-                try
-                {
-                    htmlContent = File.ReadAllText(templatePath);
-                }
-                catch (Exception ex)
-                {
-                    //Console.WriteLine($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
-                   // LogHelper.InsertLogTelegram($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
-                   // return null;
-                }
-
+                string htmlContent = File.ReadAllText(templatePath);
                 if (htmlContent == null || htmlContent.Trim()=="") {
                     htmlContent = GetTemplateInFunction();
                 
                 }
-               // LogHelper.InsertLogTelegram("ReadEmailTemplateAndPopulate - htmlContent fixed: " + (htmlContent == null ? "NULL" : htmlContent));
-
                 var account_client = accountClientESService.GetById(order.account_client_id);
                 var client = clientESService.GetById((long)account_client.ClientId);
 
@@ -124,14 +104,8 @@ namespace APP_CHECKOUT.Repositories
                 string full_address = "{address}, {wardid}, {district}, {province}";
                 if (order != null && order.provinceid != null && order.districtid != null && order.wardid != null)
                 {
-                    Province province=null;
-                    District district = null;
-                    try
-                    {
-                         province = provinces == null?null: provinces.FirstOrDefault(x => x.Id == Convert.ToInt32(order.provinceid));
-                         district = districts == null ? null : districts.FirstOrDefault(x => x.Id == Convert.ToInt32(order.provinceid));
-                    }
-                    catch { }
+                    var province = provinces.FirstOrDefault(x => x.ProvinceId == order.provinceid);
+                    var district = districts.FirstOrDefault(x => x.DistrictId == order.districtid);
                     var ward = wards.FirstOrDefault(x => x.WardId == order.wardid);
                     full_address = order.address + ", " + (ward == null ? "" : ward.Name) + ", " + (district == null ? "" : district.Name) + ", " + (province == null ? "" : province.Name);
                 }
@@ -141,8 +115,7 @@ namespace APP_CHECKOUT.Repositories
                 }
                 htmlContent = htmlContent.Replace("{address}", full_address);
                 htmlContent = htmlContent.Replace("{phone}", order.phone);
-                htmlContent = htmlContent.Replace("{amount}", (order.total_amount-(order.shipping_fee==null?0: (double)order.shipping_fee)).ToString("N0"));
-                htmlContent = htmlContent.Replace("{shipping_fee}", (order.shipping_fee == null ? 0 : (double)order.shipping_fee).ToString("N0"));
+                htmlContent = htmlContent.Replace("{amount}", order.total_amount.ToString("N0"));
                 htmlContent = htmlContent.Replace("{total_amount}", order.total_amount.ToString("N0"));
                 string template = @"
                                             <tr>
@@ -249,11 +222,14 @@ namespace APP_CHECKOUT.Repositories
 
                 return htmlContent;
             }
-            
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
+                return null;
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"Lỗi khi đọc hoặc xử lý template email: {ex.Message}");
-                LogHelper.InsertLogTelegram($"Lỗi khi đọc hoặc xử lý template email: {ex.Message}");
                 return null;
             }
         }
@@ -478,21 +454,15 @@ namespace APP_CHECKOUT.Repositories
                                                                 Hình thức
                                                                 thanh toán:
                                                             </td>
-                                                            <td align=""right"" style=""font-weight:bold;"">{payment_type}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td align=""right"" style=""padding-bottom:2px;"">
-                                                                Vận chuyển:
-                                                            </td>
-                                                            <td align=""right"" style=""font-weight:bold;"">{shipping_type}</td>
+                                                            <td align=""right"" style=""font-weight:bold;"">COD</td>
                                                         </tr>
                                                         <tr>
                                                             <td align=""right"">Tiền hàng:</td>
                                                             <td align=""right"">{amount} đ</td>
                                                         </tr>
                                                         <tr>
-                                                            <td align=""right"" style="""">Phí vận chuyển:</td>
-                                                            <td align=""right"" style="""">{shipping_fee} đ</td>
+                                                            <td align=""right"" style=""display:none;"">Phí vận chuyển:</td>
+                                                            <td align=""right"" style=""display:none;"">0 đ</td>
                                                         </tr>
                                                         <tr>
                                                             <td align=""right"" style="""">Giảm giá:</td>

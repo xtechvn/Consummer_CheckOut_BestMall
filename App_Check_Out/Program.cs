@@ -1,6 +1,5 @@
 ﻿using APP_CHECKOUT;
 using APP_CHECKOUT.Interfaces;
-using APP_CHECKOUT.Libraries;
 using APP_CHECKOUT.Models.Models.Queue;
 using APP_CHECKOUT.Repositories;
 using APP_CHECKOUT.Utilities.Lib;
@@ -16,13 +15,11 @@ using System.Text;
 
 ServiceCollection service_collection = new ServiceCollection();
 service_collection.AddSingleton<IMainServices, MainServices>();
-service_collection.AddSingleton<ILoggingService, LoggingService>();
 service_collection.AddSingleton<RedisConn>();
 service_collection.AddSingleton<ViettelPostService>();
 var service_provider = service_collection.BuildServiceProvider();
 var main_service = service_provider.GetService<IMainServices>();
-var log_service = service_provider.GetService<ILoggingService>();
-
+//log_service.InsertLogTelegramDirect("[APP CHECKOUT] Start at: " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
 
 try
 {
@@ -54,10 +51,10 @@ try
             try
             {
                 var body = ea.Body.ToArray();
-                var message = Encoding.UTF8.GetString(body);
+                 var message = Encoding.UTF8.GetString(body);
 
-                Console.WriteLine("[APP CHECKOUT] message: " + message);
-
+                  Console.WriteLine("[APP CHECKOUT] message: " + message);
+                
                 try
                 {
                     var request = JsonConvert.DeserializeObject<CheckoutQueueModel>(message);
