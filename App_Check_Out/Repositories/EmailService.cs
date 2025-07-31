@@ -176,7 +176,7 @@ namespace APP_CHECKOUT.Repositories
                         .Replace("{code}", cart.product.code);
                 }
                 htmlContent = htmlContent.Replace("{products}", product_html);
-                string payment_type = "COD";
+                string payment_type = "Thanh toán khi nhận hàng";
                 switch (order.payment_type)
                 {
                     default:
