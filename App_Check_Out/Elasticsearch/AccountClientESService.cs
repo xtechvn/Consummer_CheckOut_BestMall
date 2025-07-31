@@ -35,7 +35,7 @@ namespace Caching.Elasticsearch
                 if (query.IsValid)
                 {
                     var result = query.Documents as List<AccountESModel>;
-                   // logging_service.InsertLogTelegramDirect( "GetByUsername - AccountClientESService ["+user_name+"]["+ JsonConvert.SerializeObject(result) + "]" );
+                   // LogHelper.InsertLogTelegram( "GetByUsername - AccountClientESService ["+user_name+"]["+ JsonConvert.SerializeObject(result) + "]" );
                     return result.FirstOrDefault();
                 }
             }
@@ -64,7 +64,7 @@ namespace Caching.Elasticsearch
                 if (query.IsValid)
                 {
                     var result = query.Documents as List<AccountESModel>;
-                    //logging_service.InsertLogTelegramDirect( "GetById - AccountClientESService [" + id + "][" + JsonConvert.SerializeObject(result) + "]");
+                    //LogHelper.InsertLogTelegram( "GetById - AccountClientESService [" + id + "][" + JsonConvert.SerializeObject(result) + "]");
                     return result.FirstOrDefault();
                 }
             }

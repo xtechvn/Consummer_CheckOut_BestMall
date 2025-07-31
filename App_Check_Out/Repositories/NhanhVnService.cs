@@ -4,6 +4,7 @@ using APP_CHECKOUT.Helpers;
 using APP_CHECKOUT.Models.Client;
 using APP_CHECKOUT.Models.NhanhVN;
 using APP_CHECKOUT.Models.Orders;
+using APP_CHECKOUT.Utilities.Lib;
 using Caching.Elasticsearch;
 using Entities.Models;
 using Newtonsoft.Json;
@@ -16,12 +17,10 @@ namespace APP_CHECKOUT.Repositories
     public class NhanhVnService
     {
         private readonly LocationESService locationESService;
-        private readonly ILoggingService _logging_service;
 
-        public NhanhVnService( ILoggingService logging_service)
+        public NhanhVnService()
         {
 
-            _logging_service = logging_service;
             locationESService = new LocationESService(ConfigurationManager.AppSettings["Elastic_Host"]);
 
         }
@@ -138,14 +137,15 @@ namespace APP_CHECKOUT.Repositories
                 if (status == 1)
                 {
                     Console.WriteLine(response.Content);
-                    _logging_service.InsertLogTelegramDirect("["+order.order_no+"] -> Nhanh VN OrderCreated: "+jsonData["data"]["orderId"].ToString());
+                    LogHelper.InsertLogTelegram("[" + order.order_no + "] -> Nhanh VN OrderCreated: " + jsonData["data"]["orderId"].ToString());
+
 
                 }
                 else
                 {
                     string err = "PostToNhanhVN with [" + order._id + "] error: " + response.Content;
                     Console.WriteLine(err);
-                    _logging_service.InsertLogTelegramDirect(err);
+                    LogHelper.InsertLogTelegram(err);
                 }
 
 
@@ -209,7 +209,7 @@ namespace APP_CHECKOUT.Repositories
             {
                 string err = "PostToNhanhVN ->GetLocationByType with [" + type+"-"+parent_id + "] error: " + ex.ToString();
                 Console.WriteLine(err);
-                _logging_service.InsertLogTelegramDirect(err);
+                LogHelper.InsertLogTelegram(err);
             }
             return new List<NhanhVNLocationResponseLocation>();
 

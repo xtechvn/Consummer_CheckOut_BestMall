@@ -27,9 +27,8 @@ namespace APP_CHECKOUT.Repositories
         private readonly ClientESService clientESService;
         private readonly AccountClientESService accountClientESService;
         private readonly LocationDAL locationDAL;
-        private readonly ILoggingService _loggingService;
         private readonly string static_url = "https://static-image.adavigo.com";
-        public EmailService(ClientESService _clientESService, AccountClientESService _accountClientESService, LocationDAL _locationDAL, ILoggingService loggingService)
+        public EmailService(ClientESService _clientESService, AccountClientESService _accountClientESService, LocationDAL _locationDAL)
         {
             _host = ConfigurationManager.AppSettings["Email_HOST"];
             _port = int.Parse(ConfigurationManager.AppSettings["Email_PORT"]);

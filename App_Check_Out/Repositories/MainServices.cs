@@ -28,7 +28,6 @@ namespace APP_CHECKOUT.Repositories
 {
     public class MainServices: IMainServices
     {
-        private readonly ILoggingService logging_service;
         private readonly OrderMongodbService orderDetailMongoDbModel;
         private readonly ProductDetailMongoAccess productDetailMongoAccess;
         private readonly OrderDAL orderDAL;
@@ -46,9 +45,8 @@ namespace APP_CHECKOUT.Repositories
         private readonly ViettelPostService _viettelPostService;
         private readonly SupplierESRepository _supplierESRepository;
         private readonly ProductDetailMongoAccess _productDetailMongoAccess;
-        public MainServices( ILoggingService loggingService, ViettelPostService viettelPostService) {
+        public MainServices( ViettelPostService viettelPostService) {
 
-            logging_service=loggingService;
             orderDetailMongoDbModel = new OrderMongodbService();
             productDetailMongoAccess = new ProductDetailMongoAccess();
             orderDAL = new OrderDAL(ConfigurationManager.AppSettings["ConnectionString"]);
@@ -60,9 +58,9 @@ namespace APP_CHECKOUT.Repositories
             flashSaleESRepository = new FlashSaleESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
             flashSaleProductESRepository = new FlashSaleProductESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
             _supplierESRepository = new SupplierESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
-            nhanhVnService = new NhanhVnService(logging_service);
-            workQueueClient = new WorkQueueClient(loggingService);
-            emailService = new EmailService(clientESService, accountClientESService, locationDAL, loggingService);
+            nhanhVnService = new NhanhVnService();
+            workQueueClient = new WorkQueueClient();
+            emailService = new EmailService(clientESService, accountClientESService, locationDAL);
             productDetailService=new ProductDetailService(clientESService,flashSaleESRepository,flashSaleProductESRepository,productDetailMongoAccess);
             _viettelPostService = viettelPostService;
             _productDetailMongoAccess = new ProductDetailMongoAccess();
@@ -105,7 +103,6 @@ namespace APP_CHECKOUT.Repositories
             catch (Exception ex) {
                 string err = "MainServices: " + ex.ToString();
                 Console.WriteLine(err);
-                logging_service.InsertLogTelegramDirect(err);
                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - err:"+ err);
 
             }
@@ -135,7 +132,7 @@ namespace APP_CHECKOUT.Repositories
                 {
                     if (cart == null || cart.product == null) continue;
                     list_cart.Add(cart);
-                    logging_service.InsertLogTelegramDirect("CreateOrder : listcart");
+                    LogHelper.InsertLogTelegram("CreateOrder : listcart");
 
                     string name_url = CommonHelpers.RemoveUnicode(cart.product.name);
                     name_url = CommonHelpers.RemoveSpecialCharacters(name_url);
@@ -152,7 +149,6 @@ namespace APP_CHECKOUT.Repositories
                         amount_product = (double)cart.product.amount_after_flashsale;
 
                     }
-                    logging_service.InsertLogTelegramDirect("CreateOrder : amount_product");
 
                     details.Add(new OrderDetail()
                     {
@@ -190,17 +186,17 @@ namespace APP_CHECKOUT.Repositories
                     {
                         list_supplier.Add(cart.product.supplier_id);
                     }
-                    logging_service.InsertLogTelegramDirect("CreateOrder : details");
+                    LogHelper.InsertLogTelegram("CreateOrder : details");
 
                 }
                 var account_client = accountClientESService.GetById(order.account_client_id);
-                logging_service.InsertLogTelegramDirect("CreateOrder : account_client");
+                LogHelper.InsertLogTelegram("CreateOrder : account_client");
 
                 var client = clientESService.GetById((long)account_client.ClientId);
                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder clientESService.GetById:" + client.Id);
 
                 AddressClientESModel address_client = addressClientESService.GetById(order.address_id, client.Id);
-                logging_service.InsertLogTelegramDirect("CreateOrder : address_client");
+                LogHelper.InsertLogTelegram("CreateOrder : address_client");
 
                 order_summit = new Order()
                 {
@@ -235,12 +231,12 @@ namespace APP_CHECKOUT.Repositories
                     ShippingStatus = 0,
                     PackageWeight = total_weight
                 };
-                logging_service.InsertLogTelegramDirect("CreateOrder : order_summit");
+                LogHelper.InsertLogTelegram("CreateOrder : order_summit");
 
                 List<Province> provinces = GetProvince();
                 List<District> districts = GetDistrict();
                 List<Ward> wards = GetWards();
-                logging_service.InsertLogTelegramDirect("CreateOrder : provinces");
+                LogHelper.InsertLogTelegram("CreateOrder : provinces");
 
                 if (address_client != null && address_client.ProvinceId != null && address_client.DistrictId != null && address_client.WardId != null)
                 {
@@ -337,7 +333,7 @@ namespace APP_CHECKOUT.Repositories
                         //---- ViettelPost
                         case 3:
                             {
-                                logging_service.InsertLogTelegramDirect("CreateOrder : carrier_id ViettelPost");
+                                LogHelper.InsertLogTelegram("CreateOrder : carrier_id ViettelPost");
 
                                 List<VTPOrderRequestModel> model = new List<VTPOrderRequestModel>();
                                 if (order.delivery_detail.shipping_service_code != null && order.delivery_detail.shipping_service_code.Trim() != "")
@@ -443,11 +439,11 @@ namespace APP_CHECKOUT.Repositories
                     order_summit.ShippingFee = order.shipping_fee;
                    
                 }
-                logging_service.InsertLogTelegramDirect("CreateOrder : CreateOrder");
+                LogHelper.InsertLogTelegram("CreateOrder : CreateOrder");
 
 
                 var order_id = await orderDAL.CreateOrder(order_summit);
-                logging_service.InsertLogTelegramDirect("Order Created - " + order.order_no + " - " + order_summit.Amount);
+                LogHelper.InsertLogTelegram("Order Created - " + order.order_no + " - " + order_summit.Amount);
                 workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
                 if (order_id > 0)
                 {
@@ -458,7 +454,7 @@ namespace APP_CHECKOUT.Repositories
                         detail.OrderId = order_id;
                         await orderDetailDAL.CreateOrderDetail(detail);
                         Console.WriteLine("Created OrderDetail - " + detail.OrderId + ": " + detail.OrderDetailId);
-                        logging_service.InsertLogTelegramDirect("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
+                        LogHelper.InsertLogTelegram("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
                         //order.total_price = total_price;
                         //order.total_profit=total_profit;
 
@@ -476,7 +472,7 @@ namespace APP_CHECKOUT.Repositories
                 {
                     extend_order.email = client.Email;
                 }
-                logging_service.InsertLogTelegramDirect("CreateOrder : extend_order");
+                LogHelper.InsertLogTelegram("CreateOrder : extend_order");
 
                 extend_order.created_date = time;
                 try{
@@ -490,7 +486,7 @@ namespace APP_CHECKOUT.Repositories
                 {
                     string err = "CreateOrder with [" + order_detail_id + "] error: " + ex.ToString();
                     Console.WriteLine(err);
-                    logging_service.InsertLogTelegramDirect(err);
+                    LogHelper.InsertLogTelegram(err);
                     LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder:" + err);
 
                 }
@@ -500,7 +496,7 @@ namespace APP_CHECKOUT.Repositories
             {
                 string err = "CreateOrder with ["+ order_detail_id+"] error: " + ex.ToString();
                 Console.WriteLine(err);
-                logging_service.InsertLogTelegramDirect(err);
+                LogHelper.InsertLogTelegram(err);
                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder:" + err);
 
             }
