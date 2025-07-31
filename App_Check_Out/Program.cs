@@ -61,6 +61,8 @@ try
                 try
                 {
                     var request = JsonConvert.DeserializeObject<CheckoutQueueModel>(message);
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MAIN - receiver:" + message);
+
                     await main_service.Excute(request);
                 }
                  catch (Exception ex) { 
