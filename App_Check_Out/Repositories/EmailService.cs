@@ -2,6 +2,7 @@
 using APP_CHECKOUT.Model.Orders;
 using APP_CHECKOUT.Models.Location;
 using APP_CHECKOUT.Models.Orders;
+using APP_CHECKOUT.Utilities.Lib;
 using Caching.Elasticsearch;
 using DAL;
 using HuloToys_Service.Utilities.lib;
@@ -41,7 +42,6 @@ namespace APP_CHECKOUT.Repositories
             clientESService = _clientESService;
             accountClientESService = _accountClientESService;
             locationDAL = _locationDAL;
-            _loggingService = loggingService;
         }
 
         public bool SendOrderConfirmationEmail(string recipientEmail, OrderDetailMongoDbModelExtend order)
@@ -90,7 +90,7 @@ namespace APP_CHECKOUT.Repositories
             try
             {
                 string templatePath = Environment.CurrentDirectory + EmailTemplatePath;
-                _loggingService.InsertLogTelegramDirect("ReadEmailTemplateAndPopulate - templatePath: " +(templatePath==null?"NULL": templatePath));
+                LogHelper.InsertLogTelegram("ReadEmailTemplateAndPopulate - templatePath: " +(templatePath==null?"NULL": templatePath));
                 string htmlContent = "";
                 try
                 {
@@ -99,7 +99,7 @@ namespace APP_CHECKOUT.Repositories
                 catch (Exception ex)
                 {
                     //Console.WriteLine($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
-                   // _loggingService.InsertLogTelegramDirect($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
+                   // LogHelper.InsertLogTelegram($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
                    // return null;
                 }
 
@@ -107,7 +107,7 @@ namespace APP_CHECKOUT.Repositories
                     htmlContent = GetTemplateInFunction();
                 
                 }
-               // _loggingService.InsertLogTelegramDirect("ReadEmailTemplateAndPopulate - htmlContent fixed: " + (htmlContent == null ? "NULL" : htmlContent));
+               // LogHelper.InsertLogTelegram("ReadEmailTemplateAndPopulate - htmlContent fixed: " + (htmlContent == null ? "NULL" : htmlContent));
 
                 var account_client = accountClientESService.GetById(order.account_client_id);
                 var client = clientESService.GetById((long)account_client.ClientId);
@@ -253,7 +253,7 @@ namespace APP_CHECKOUT.Repositories
             catch (Exception ex)
             {
                 Console.WriteLine($"Lỗi khi đọc hoặc xử lý template email: {ex.Message}");
-                _loggingService.InsertLogTelegramDirect($"Lỗi khi đọc hoặc xử lý template email: {ex.Message}");
+                LogHelper.InsertLogTelegram($"Lỗi khi đọc hoặc xử lý template email: {ex.Message}");
                 return null;
             }
         }

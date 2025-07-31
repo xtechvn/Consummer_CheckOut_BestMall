@@ -1,5 +1,4 @@
 ﻿using ADAVIGO_FRONTEND.Models.Flights.TrackingVoucher;
-using APP.READ_MESSAGES.Libraries;
 using APP_CHECKOUT.DAL;
 using APP_CHECKOUT.Helpers;
 using APP_CHECKOUT.Interfaces;
@@ -138,7 +137,6 @@ namespace APP_CHECKOUT.Repositories
                     name_url = CommonHelpers.RemoveSpecialCharacters(name_url);
                     name_url = name_url.Replace(" ", "-").Trim();
                     string parent_product_id = cart.product._id;
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.carts.product:" + cart.product._id);
                     if (cart.product != null && cart.product.parent_product_id != null && cart.product.parent_product_id.Trim() != "")
                     {
                         parent_product_id = cart.product.parent_product_id;
@@ -186,18 +184,11 @@ namespace APP_CHECKOUT.Repositories
                     {
                         list_supplier.Add(cart.product.supplier_id);
                     }
-                    LogHelper.InsertLogTelegram("CreateOrder : details");
 
                 }
                 var account_client = accountClientESService.GetById(order.account_client_id);
-                LogHelper.InsertLogTelegram("CreateOrder : account_client");
-
                 var client = clientESService.GetById((long)account_client.ClientId);
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder clientESService.GetById:" + client.Id);
-
                 AddressClientESModel address_client = addressClientESService.GetById(order.address_id, client.Id);
-                LogHelper.InsertLogTelegram("CreateOrder : address_client");
-
                 order_summit = new Order()
                 {
                     Amount = order.total_amount,
@@ -231,13 +222,9 @@ namespace APP_CHECKOUT.Repositories
                     ShippingStatus = 0,
                     PackageWeight = total_weight
                 };
-                LogHelper.InsertLogTelegram("CreateOrder : order_summit");
-
                 List<Province> provinces = GetProvince();
                 List<District> districts = GetDistrict();
                 List<Ward> wards = GetWards();
-                LogHelper.InsertLogTelegram("CreateOrder : provinces");
-
                 if (address_client != null && address_client.ProvinceId != null && address_client.DistrictId != null && address_client.WardId != null)
                 {
                     if (address_client.ProvinceId.Trim() != "" && provinces != null && provinces.Count > 0)
@@ -333,8 +320,6 @@ namespace APP_CHECKOUT.Repositories
                         //---- ViettelPost
                         case 3:
                             {
-                                LogHelper.InsertLogTelegram("CreateOrder : carrier_id ViettelPost");
-
                                 List<VTPOrderRequestModel> model = new List<VTPOrderRequestModel>();
                                 if (order.delivery_detail.shipping_service_code != null && order.delivery_detail.shipping_service_code.Trim() != "")
                                 {
@@ -439,9 +424,6 @@ namespace APP_CHECKOUT.Repositories
                     order_summit.ShippingFee = order.shipping_fee;
                    
                 }
-                LogHelper.InsertLogTelegram("CreateOrder : CreateOrder");
-
-
                 var order_id = await orderDAL.CreateOrder(order_summit);
                 LogHelper.InsertLogTelegram("Order Created - " + order.order_no + " - " + order_summit.Amount);
                 workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
@@ -472,8 +454,6 @@ namespace APP_CHECKOUT.Repositories
                 {
                     extend_order.email = client.Email;
                 }
-                LogHelper.InsertLogTelegram("CreateOrder : extend_order");
-
                 extend_order.created_date = time;
                 try{
                     foreach (var detail in details)
