@@ -427,6 +427,9 @@ namespace APP_CHECKOUT.Repositories
                    // order_summit.ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code;
                    // order_summit.ShippingFee = order.shipping_fee;
                 }
+                LogHelper.InsertLogTelegram("CreateOrder : CreateOrder");
+
+                order_summit.SupplierId = order.carts.First().product.supplier_id;
                 var order_id = await orderDAL.CreateOrder(order_summit);
                 LogHelper.InsertLogTelegram("Order Created - " + order.order_no + " - " + order_summit.Amount);
                 workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
