@@ -519,7 +519,7 @@ namespace APP_CHECKOUT.Repositories
                                     <td colspan=""2"" align=""center""
                                         style=""background:#f3f7fc; padding:20px 15px; font-size:13px; color:#002b5b;"">
                                         Quý khách có thể phản hồi trực tiếp ở email này hoặc liên hệ với chúng tôi qua
-                                        hotline: <strong style=""color:#004ba0;"">0932.888.666</strong>
+                                        hotline: <strong style=""color:#004ba0;"">0989.471.727</strong>
                                     </td>
                                 </tr>
                             </table>
