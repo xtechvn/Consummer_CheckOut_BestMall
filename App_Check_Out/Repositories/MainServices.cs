@@ -141,24 +141,24 @@ namespace APP_CHECKOUT.Repositories
                     }
                     var product=await productDetailMongoAccess.GetByID(parent_product_id);
                     LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder productDetailMongoAccess.GetByID: price=" + product.price);
-
+                    double amount_per_unit = cart.total_amount / cart.quanity;
                     details.Add(new OrderDetail()
                     {
                         CreatedDate = time,
-                        Discount = cart.product.discount,
+                        Discount = 0,
                         OrderDetailId = 0,
                         OrderId = 0,
                         Price = product.price,
-                        Profit = cart.product.profit,
+                        Profit = product.price - amount_per_unit,
                         Quantity = cart.quanity,
-                        Amount = cart.total_amount/cart.quanity,
+                        Amount = amount_per_unit,
                         ProductCode = cart.product.code,
                         ProductId = cart.product._id,
                         ProductLink = ConfigurationManager.AppSettings["Setting_Domain"] + "/san-pham/" + name_url + "--" + cart.product._id,
                         TotalPrice = product.price* cart.quanity,
-                        TotalProfit = cart.total_profit,
+                        TotalProfit =(product.price - amount_per_unit) * cart.quanity,
                         TotalAmount = cart.total_amount,
-                        TotalDiscount = cart.total_discount,
+                        TotalDiscount = 0,
                         UpdatedDate = time,
                         UserCreate = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                         UserUpdated = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
