@@ -72,6 +72,8 @@ namespace Entities.ViewModels.Products
         public List<string>? attachment_product { get; set; }
         public List<string>? attachment_supply { get; set; }
         public List<string>? attachment_confirm { get; set; }
+        public int? flashsale_badge_type { get; set; }
+
     }
     public class ProductMongoDbSpecification
     {
@@ -81,7 +83,6 @@ namespace Entities.ViewModels.Products
     public class ProductMongoDbModelFEResponse : ProductMongoDbModel
     {
         public int? exists_flashsale_id { get; set; }
-        public int? flashsale_badge_type { get; set; }
         public string exists_flashsale_name { get; set; }
         public double? amount_after_flashsale { get; set; }
         public DateTime? flash_sale_fromdate { get; set; }
