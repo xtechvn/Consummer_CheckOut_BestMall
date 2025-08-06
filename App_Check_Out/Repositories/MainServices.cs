@@ -173,7 +173,7 @@ namespace APP_CHECKOUT.Repositories
                     cart.product.amount= amount_per_unit;
                     order.total_profit += (amount_per_unit - product.price) * cart.quanity;
                     order.total_price += product.price * cart.quanity;
-                    order.total_price += cart.total_amount;
+                    order.total_amount += cart.total_amount;
                     if (!list_supplier.Contains(cart.product.supplier_id))
                     {
                         list_supplier.Add(cart.product.supplier_id);
