@@ -227,7 +227,8 @@ namespace APP_CHECKOUT.Repositories
                     ShippingType = order.delivery_detail.shipping_type,
                     ShippingStatus = 0,
                     PackageWeight = total_weight,
-                    ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code
+                    ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code,
+                    
                 };
                 List<Province> provinces = GetProvince();
                 List<District> districts = GetDistrict();
@@ -325,7 +326,9 @@ namespace APP_CHECKOUT.Repositories
                     switch (order.delivery_detail.carrier_id)
                     {
 
-                        case 1: { } break;
+                        case 1: {
+                            
+                            } break;
                         case 2: { } break;
                         //---- ViettelPost
                         case 3:
@@ -435,6 +438,21 @@ namespace APP_CHECKOUT.Repositories
                    // order_summit.ShippingFee = order.shipping_fee;
                 }
                 order_summit.SupplierId = order.carts.First().product.supplier_id;
+                //--Payment Type:
+                switch (order_summit.PaymentType) {
+                    case 1:
+                        {
+                            order_summit.OrderStatus = 1; // Processing
+
+                        }
+                        break;
+                    default:
+                        {
+
+                        }break;
+                }
+
+
                 var order_id = await orderDAL.CreateOrder(order_summit);
                 LogHelper.InsertLogTelegram("Order Created - " + order.order_no + " - " + order_summit.Amount);
                 workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
