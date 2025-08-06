@@ -15,7 +15,7 @@ namespace APP_CHECKOUT.Utilities.Lib
             try
             {
                 TelegramBotClient alertMsgBot = new TelegramBotClient(token);
-                var rs_push = alertMsgBot.SendTextMessageAsync(group_id, message).Result;
+                var rs_push =  alertMsgBot.SendTextMessageAsync(group_id, message).Result;
             }
             catch (Exception ex)
             {
