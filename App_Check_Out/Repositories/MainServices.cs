@@ -126,6 +126,9 @@ namespace APP_CHECKOUT.Repositories
                 var list_supplier = new List<int>();
                 var list_cart = new List<CartItemMongoDbModel>();
                 int total_product_quantity = 0;
+                order.total_profit += 0;
+                order.total_price += 0;
+                order.total_price += 0;
                 foreach (var cart in order.carts)
                 {
                     if (cart == null || cart.product == null) continue;
@@ -164,16 +167,13 @@ namespace APP_CHECKOUT.Repositories
                         UserUpdated = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                         ParentProductId=parent_product_id
                     });
-                    //total_price += (cart.product.price * cart.quanity);
-                    //total_profit += (cart.product.profit * cart.quanity);
-                    //total_amount += (amount_product * cart.quanity);
-
-                    total_product_quantity+= cart.quanity;
-                    //cart.total_price = cart.product.price * cart.quanity;
-                    //cart.total_profit = cart.product.profit * cart.quanity;
-                    //cart.total_amount = amount_product * cart.quanity;
-                    //cart.total_discount = cart.product.discount * cart.quanity;
-                    //total_weight += ((cart.product.weight == null ? 0 : (int)cart.product.weight) * cart.quanity / 1000);
+                    total_product_quantity += cart.quanity;
+                    cart.product.price= product.price;
+                    cart.product.profit= amount_per_unit - product.price;
+                    cart.product.amount= amount_per_unit;
+                    order.total_profit += (amount_per_unit - product.price) * cart.quanity;
+                    order.total_price += product.price * cart.quanity;
+                    order.total_price += cart.total_amount;
                     if (!list_supplier.Contains(cart.product.supplier_id))
                     {
                         list_supplier.Add(cart.product.supplier_id);
