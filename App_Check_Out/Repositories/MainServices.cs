@@ -117,7 +117,6 @@ namespace APP_CHECKOUT.Repositories
                     return null;
                 }
                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById:" + order._id);
-
                 Order order_summit = new Order();
                 List<OrderDetail> details = new List<OrderDetail>();
                 //double total_price = 0;
@@ -140,12 +139,8 @@ namespace APP_CHECKOUT.Repositories
                     {
                         parent_product_id = cart.product.parent_product_id;
                     }
-                    //var amount_product = cart.product.amount;
-                    //if (cart.product.flash_sale_todate >= DateTime.Now && cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
-                    //{
-                    //    amount_product = (double)cart.product.amount_after_flashsale;
-
-                    //}
+                    var product=await productDetailMongoAccess.GetByID(parent_product_id);
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder productDetailMongoAccess.GetByID: price=" + product.price);
 
                     details.Add(new OrderDetail()
                     {
@@ -153,14 +148,14 @@ namespace APP_CHECKOUT.Repositories
                         Discount = cart.product.discount,
                         OrderDetailId = 0,
                         OrderId = 0,
-                        Price = cart.product.price,
+                        Price = product.price,
                         Profit = cart.product.profit,
                         Quantity = cart.quanity,
                         Amount = cart.total_amount/cart.quanity,
                         ProductCode = cart.product.code,
                         ProductId = cart.product._id,
                         ProductLink = ConfigurationManager.AppSettings["Setting_Domain"] + "/san-pham/" + name_url + "--" + cart.product._id,
-                        TotalPrice = cart.total_price,
+                        TotalPrice = product.price* cart.quanity,
                         TotalProfit = cart.total_profit,
                         TotalAmount = cart.total_amount,
                         TotalDiscount = cart.total_discount,
@@ -427,8 +422,6 @@ namespace APP_CHECKOUT.Repositories
                    // order_summit.ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code;
                    // order_summit.ShippingFee = order.shipping_fee;
                 }
-                LogHelper.InsertLogTelegram("CreateOrder : CreateOrder");
-
                 order_summit.SupplierId = order.carts.First().product.supplier_id;
                 var order_id = await orderDAL.CreateOrder(order_summit);
                 LogHelper.InsertLogTelegram("Order Created - " + order.order_no + " - " + order_summit.Amount);
