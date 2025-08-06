@@ -17,6 +17,7 @@ using DAL;
 using Entities.Models;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.Controllers.Shipping.Business;
+using HuloToys_Service.RedisWorker;
 using Newtonsoft.Json;
 using System.Configuration;
 using System.Net;
@@ -44,6 +45,7 @@ namespace APP_CHECKOUT.Repositories
         private readonly ViettelPostService _viettelPostService;
         private readonly SupplierESRepository _supplierESRepository;
         private readonly ProductDetailMongoAccess _productDetailMongoAccess;
+        private readonly RedisConn _redisConn;
         public MainServices( ViettelPostService viettelPostService) {
 
             orderDetailMongoDbModel = new OrderMongodbService();
@@ -63,6 +65,12 @@ namespace APP_CHECKOUT.Repositories
             productDetailService=new ProductDetailService(clientESService,flashSaleESRepository,flashSaleProductESRepository,productDetailMongoAccess);
             _viettelPostService = viettelPostService;
             _productDetailMongoAccess = new ProductDetailMongoAccess();
+            try
+            {
+                _redisConn = new RedisConn();
+                _redisConn.Connect();
+            }
+            catch { }
         }
         public async Task Excute(CheckoutQueueModel request)
         {
@@ -458,20 +466,21 @@ namespace APP_CHECKOUT.Repositories
                     extend_order.email = client.Email;
                 }
                 extend_order.created_date = time;
-                try{
-                    foreach (var detail in details)
+                foreach (var detail in details)
+                {
+                    try
                     {
                         await _productDetailMongoAccess.UpdateQuantityOfStock(detail.ProductId, (int)detail.Quantity);
 
                     }
-                }
-                catch (Exception ex)
-                {
-                    string err = "CreateOrder with [" + order_detail_id + "] error: " + ex.ToString();
-                    Console.WriteLine(err);
-                    LogHelper.InsertLogTelegram(err);
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder:" + err);
+                    catch { }
+                    try
+                    {
+                        var cache_name = CacheType.PRODUCT_DETAIL + detail.ProductId;
+                        _redisConn.clear(cache_name, Convert.ToInt32(ConfigurationManager.AppSettings["Redis_Database_db_search_result"]));
 
+                    }
+                    catch { }
                 }
                 return extend_order;
             }
