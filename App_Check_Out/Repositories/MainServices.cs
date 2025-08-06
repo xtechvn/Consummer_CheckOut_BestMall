@@ -133,19 +133,15 @@ namespace APP_CHECKOUT.Repositories
                 {
                     if (cart == null || cart.product == null) continue;
                     list_cart.Add(cart);
-                    LogHelper.InsertLogTelegram("CreateOrder : listcart");
-
                     string name_url = CommonHelpers.RemoveUnicode(cart.product.name);
                     name_url = CommonHelpers.RemoveSpecialCharacters(name_url);
                     name_url = name_url.Replace(" ", "-").Trim();
                     string parent_product_id = cart.product._id;
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.carts.product:" + cart.product._id);
                     if (cart.product != null && cart.product.parent_product_id != null && cart.product.parent_product_id.Trim() != "")
                     {
                         parent_product_id = cart.product.parent_product_id;
                     }
                     var product=await productDetailMongoAccess.GetByID(parent_product_id);
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder productDetailMongoAccess.GetByID: price=" + product.price);
                     double amount_per_unit = cart.total_amount / cart.quanity;
                     details.Add(new OrderDetail()
                     {
@@ -180,17 +176,11 @@ namespace APP_CHECKOUT.Repositories
                     {
                         list_supplier.Add(cart.product.supplier_id);
                     }
-                    LogHelper.InsertLogTelegram("CreateOrder : details");
-
                 }
                 var account_client = accountClientESService.GetById(order.account_client_id);
-                LogHelper.InsertLogTelegram("CreateOrder : account_client");
-
                 var client = clientESService.GetById((long)account_client.ClientId);
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder clientESService.GetById:" + client.Id);
 
                 AddressClientESModel address_client = addressClientESService.GetById(order.address_id, client.Id);
-                LogHelper.InsertLogTelegram("CreateOrder : address_client");
                 order.total_price = total_price;
                // order.total_amount = total_amount;
                 order.total_profit = total_profit;
@@ -228,13 +218,9 @@ namespace APP_CHECKOUT.Repositories
                     PackageWeight = total_weight,
                     ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code
                 };
-                LogHelper.InsertLogTelegram("CreateOrder : order_summit");
-
                 List<Province> provinces = GetProvince();
                 List<District> districts = GetDistrict();
                 List<Ward> wards = GetWards();
-                LogHelper.InsertLogTelegram("CreateOrder : provinces");
-
                 if (address_client != null && address_client.ProvinceId != null && address_client.DistrictId != null && address_client.WardId != null)
                 {
                     if (address_client.ProvinceId.Trim() != "" && provinces != null && provinces.Count > 0)
@@ -333,8 +319,6 @@ namespace APP_CHECKOUT.Repositories
                         //---- ViettelPost
                         case 3:
                             {
-                                LogHelper.InsertLogTelegram("CreateOrder : carrier_id ViettelPost");
-
                                 List<VTPOrderRequestModel> model = new List<VTPOrderRequestModel>();
                                 if (order.delivery_detail.shipping_service_code != null && order.delivery_detail.shipping_service_code.Trim() != "")
                                 {
@@ -470,8 +454,6 @@ namespace APP_CHECKOUT.Repositories
                 {
                     extend_order.email = client.Email;
                 }
-                LogHelper.InsertLogTelegram("CreateOrder : extend_order");
-
                 extend_order.created_date = time;
                 try{
                     foreach (var detail in details)
