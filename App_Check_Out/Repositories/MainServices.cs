@@ -126,9 +126,9 @@ namespace APP_CHECKOUT.Repositories
                 var list_supplier = new List<int>();
                 var list_cart = new List<CartItemMongoDbModel>();
                 int total_product_quantity = 0;
-                order.total_profit = 0;
-                order.total_price = 0;
-                order.total_price = 0;
+                double total_profit = 0;
+                double total_price = 0;
+                double total_amount = 0;
                 foreach (var cart in order.carts)
                 {
                     if (cart == null || cart.product == null) continue;
@@ -171,9 +171,9 @@ namespace APP_CHECKOUT.Repositories
                     cart.product.price= product.price;
                     cart.product.profit= amount_per_unit - product.price;
                     cart.product.amount= amount_per_unit;
-                    order.total_profit += (amount_per_unit - product.price) * cart.quanity;
-                    order.total_price += product.price * cart.quanity;
-                    order.total_amount += cart.total_amount;
+                    total_profit += (amount_per_unit - product.price) * cart.quanity;
+                    total_price += product.price * cart.quanity;
+                    total_amount += cart.total_amount;
                     if (!list_supplier.Contains(cart.product.supplier_id))
                     {
                         list_supplier.Add(cart.product.supplier_id);
@@ -183,6 +183,10 @@ namespace APP_CHECKOUT.Repositories
                 var account_client = accountClientESService.GetById(order.account_client_id);
                 var client = clientESService.GetById((long)account_client.ClientId);
                 AddressClientESModel address_client = addressClientESService.GetById(order.address_id, client.Id);
+                LogHelper.InsertLogTelegram("CreateOrder : address_client");
+                order.total_price = total_price;
+                order.total_amount = total_amount;
+                order.total_profit = total_profit;
                 order_summit = new Order()
                 {
                     Amount = order.total_amount,
