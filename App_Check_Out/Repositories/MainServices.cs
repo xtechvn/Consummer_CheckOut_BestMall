@@ -185,7 +185,7 @@ namespace APP_CHECKOUT.Repositories
                 AddressClientESModel address_client = addressClientESService.GetById(order.address_id, client.Id);
                 LogHelper.InsertLogTelegram("CreateOrder : address_client");
                 order.total_price = total_price;
-                order.total_amount = total_amount;
+               // order.total_amount = total_amount;
                 order.total_profit = total_profit;
                 order_summit = new Order()
                 {
