@@ -126,9 +126,9 @@ namespace APP_CHECKOUT.Repositories
                 var list_supplier = new List<int>();
                 var list_cart = new List<CartItemMongoDbModel>();
                 int total_product_quantity = 0;
-                order.total_profit += 0;
-                order.total_price += 0;
-                order.total_price += 0;
+                order.total_profit = 0;
+                order.total_price = 0;
+                order.total_price = 0;
                 foreach (var cart in order.carts)
                 {
                     if (cart == null || cart.product == null) continue;
