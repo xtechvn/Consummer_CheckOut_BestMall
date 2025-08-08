@@ -39,7 +39,7 @@ namespace APP_CHECKOUT.Repositories
 
         }
 
-        public bool SendOrderConfirmationEmail(string recipientEmail, OrderDetailMongoDbModelExtend order)
+        public bool SendOrderConfirmationEmail(string recipientEmail, OrderMergeSummitModel order)
         {
             try
             {
@@ -54,7 +54,7 @@ namespace APP_CHECKOUT.Repositories
                     {
                         mail.From = new MailAddress(_username, "BestMall CSKH"); // Tên hiển thị là BestMall
                         mail.To.Add(recipientEmail);
-                        mail.Subject = $"Xác nhận đơn hàng của bạn tại BestMall - #{order.order_no}";
+                        mail.Subject = $"Xác nhận đơn hàng của bạn tại BestMall - #{order.data_mongo.order_no}";
                         mail.IsBodyHtml = true;
 
                         if (!string.IsNullOrEmpty(_cc))
@@ -66,7 +66,7 @@ namespace APP_CHECKOUT.Repositories
                             mail.Bcc.Add(_bcc);
                         }
 
-                        mail.Body = ReadEmailTemplateAndPopulate(order);
+                        mail.Body = ReadEmailTemplateAndPopulate(order.data_mongo);
 
                         client.Send(mail);
                         return true;
