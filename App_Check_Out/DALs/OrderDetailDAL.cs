@@ -34,6 +34,7 @@ namespace APP_CHECKOUT.DAL
                      new SqlParameter("@UserCreate", request.UserCreate),
                      new SqlParameter("@UserUpdated", request.UserUpdated),
                      new SqlParameter("@ParentProductId", request.ParentProductId),
+                     new SqlParameter("@OrderMergeId", request.OrderMergeId),
 
                 };
                 request.OrderDetailId = _DbWorker.ExecuteNonQuery(SPName.CREATE_ORDER_DEATIL, objParam);
@@ -67,6 +68,7 @@ namespace APP_CHECKOUT.DAL
                      new SqlParameter("@UserCreate", request.UserCreate),
                      new SqlParameter("@UserUpdated", request.UserUpdated),
                     new SqlParameter("@ParentProductId", request.ParentProductId),
+                    new SqlParameter("@OrderMergeId", request.OrderMergeId),
 
 
                 };
