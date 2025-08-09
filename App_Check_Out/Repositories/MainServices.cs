@@ -368,7 +368,7 @@ namespace APP_CHECKOUT.Repositories
                     {
                         var delivery_selected = order.delivery_order.FirstOrDefault(x => x.SupplierId == supplier);
                         if (delivery_selected != null) {
-                            result_item.order.Amount -= delivery_selected.shipping_fee;
+                            result_item.order.Amount += delivery_selected.shipping_fee;
                             result_item.order.Profit -= delivery_selected.shipping_fee;
                             result_item.order.ShippingFee = delivery_selected.shipping_fee;
                             LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder [" + supplier + "] order.delivery_order:" + result_item.order.ShippingFee);
