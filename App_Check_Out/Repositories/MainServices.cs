@@ -428,7 +428,7 @@ namespace APP_CHECKOUT.Repositories
                     extend_order.created_date = time;
                     result.data_mongo = extend_order;
                 }
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder extend_order: [" + extend_order == null ? "NULL" : extend_order._id + "]");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder extend_order: [" + (extend_order == null ? "NULL" : extend_order._id) + "]");
 
                 result.order_merge = new OrderMerge()
                 {
@@ -471,7 +471,7 @@ namespace APP_CHECKOUT.Repositories
                     if (order_id > 0)
                     {
                         order.order_id = order_id;
-                        order.order_no = result_item.order.OrderNo;
+                        order.order_no = result.order_merge.OrderNo;
                         foreach (var detail in result_item.order_detail)
                         {
                             detail.OrderId = order_id;
