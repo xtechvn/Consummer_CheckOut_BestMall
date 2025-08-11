@@ -482,7 +482,7 @@ namespace APP_CHECKOUT.Repositories
             }
             catch (Exception ex)
             {
-                string err = "CreateOrder with ["+ order_detail_id+"] error: " + ex;
+                string err = "CreateOrder with ["+ order_detail_id+"] error: " + ex.Message + "at "+ex.StackTrace;
                 Console.WriteLine(err);
                 LogHelper.InsertLogTelegram(err);
                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder:" + err);
