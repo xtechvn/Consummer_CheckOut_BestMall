@@ -135,9 +135,7 @@ namespace APP_CHECKOUT.Repositories
                 {
                     return null;
                 }
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById: ["+ order._id + "][" + (order.order_no==null ? "NULL" : order.order_no) + "]");
                 var account_client = accountClientESService.GetById(order.account_client_id);
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder account_client: [" + order.account_client_id + "][" + (account_client == null ? "NULL" : account_client.ClientId) + "]");
                 var client = clientESService.GetById((long)account_client.ClientId);
                 AddressClientESModel address_client = addressClientESService.GetById(order.address_id, client.Id);
                 order.total_price = 0;
@@ -155,8 +153,6 @@ namespace APP_CHECKOUT.Repositories
                         order_detail = new List<OrderDetail>()
                     };
                     var cart_belong_to_supplier = order.carts.Where(x => x.product.supplier_id == supplier);
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder cart_belong_to_supplier: [" + (cart_belong_to_supplier == null ? "NULL" : string.Join(",", cart_belong_to_supplier.Select(x => x._id))) + "]");
-
                     sub_order_id++;
                     int total_weight = 0;
                     var list_supplier = new List<int>();
@@ -201,8 +197,6 @@ namespace APP_CHECKOUT.Repositories
                             UserUpdated = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                             ParentProductId = parent_product_id
                         });
-                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder  result_item.order_detail: [" + (result_item.order_detail == null ? "NULL" : amount_per_unit) + "]");
-
                         total_product_quantity += cart.quanity;
                         cart.product.price = product.price;
                         cart.product.profit = amount_per_unit - product.price;
@@ -218,6 +212,7 @@ namespace APP_CHECKOUT.Repositories
 
                     order.total_price += total_price;
                     order.total_profit += total_profit;
+                    string order_no = (supplier_ids == null || supplier_ids.Count() <= 1  ? order.order_no : order.order_no + "-" + sub_order_id);
                     result_item.order = new Entities.Models.Order()
                     {
                         Amount = total_amount,
@@ -227,7 +222,7 @@ namespace APP_CHECKOUT.Repositories
                         IsDelete = 0,
                         Note = "",
                         OrderId = 0,
-                        OrderNo = order.order_no+"-"+sub_order_id,
+                        OrderNo = order_no,
                         PaymentStatus = 0,
                         PaymentType = Convert.ToInt16(order.payment_type),
                         Price = total_price,
@@ -253,7 +248,6 @@ namespace APP_CHECKOUT.Repositories
                         ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code,
 
                     };
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder result_item.order: [" + (order.order_no == null ? "NULL" : order.order_no) + "]");
 
                     List<Province> provinces = GetProvince();
                     List<District> districts = GetDistrict();
@@ -428,8 +422,6 @@ namespace APP_CHECKOUT.Repositories
                     extend_order.created_date = time;
                     result.data_mongo = extend_order;
                 }
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder extend_order: [" + (extend_order == null ? "NULL" : extend_order._id) + "]");
-
                 result.order_merge = new OrderMerge()
                 {
                     Amount = order.total_amount,
