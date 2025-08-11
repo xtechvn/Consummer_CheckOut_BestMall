@@ -127,6 +127,8 @@ namespace APP_CHECKOUT.Repositories
                 var order = await orderDetailMongoDbModel.FindById(order_detail_id);
                 if (order == null || order.carts == null || order.carts.Count <= 0)
                 {
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById("+ order_detail_id + "): NULL" );
+
                     return null;
                 }
                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById:" + order._id);
