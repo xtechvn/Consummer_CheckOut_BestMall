@@ -36,7 +36,7 @@ namespace APP_CHECKOUT.Utilities.Lib
             }
             catch (Exception ex)
             {
-                WriteLogActivity("D://", ex.ToString());
+                WriteLogActivity("D://", ex);
             }
         }
         public static void WriteLogActivity(string AppPath, string log_content)

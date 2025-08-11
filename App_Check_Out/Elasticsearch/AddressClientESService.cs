@@ -43,7 +43,7 @@ namespace Caching.Elasticsearch
             }
             catch (Exception ex)
             {
-                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex;
             }
             return null;
         }
@@ -79,7 +79,7 @@ namespace Caching.Elasticsearch
             }
             catch (Exception ex)
             {
-                string error_msg = "AddressClientESService" + "->" + "InsertOrUpdateAddress" + "=>" + ex.ToString();
+                string error_msg = "AddressClientESService" + "->" + "InsertOrUpdateAddress" + "=>" + ex;
             }
             return null;
         }

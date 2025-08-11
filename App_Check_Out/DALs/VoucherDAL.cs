@@ -31,7 +31,7 @@ namespace DAL
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL: " + ex.ToString());
+                LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL: " + ex);
                 return null;
             }
         }
@@ -46,7 +46,7 @@ namespace DAL
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL: " + ex.ToString());
+                LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL: " + ex);
                 return null;
             }
         }
@@ -79,7 +79,7 @@ namespace DAL
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL: " + ex.ToString());
+                LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL: " + ex);
                 return null;
             }
         }

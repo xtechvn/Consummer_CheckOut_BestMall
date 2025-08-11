@@ -36,6 +36,7 @@ namespace APP_CHECKOUT.Models.Orders
         public int? voucher_id { get; set; }
         public string voucher_code { get; set; }
 
+
         public string receivername { get; set; }
 
         public string phone { get; set; }

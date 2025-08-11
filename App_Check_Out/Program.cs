@@ -62,13 +62,13 @@ try
                     await main_service.Excute(request);
                 }
                  catch (Exception ex) { 
-                     Console.WriteLine("error ->[APP CHECKOUT] message: " + ex.ToString());
+                     Console.WriteLine("error ->[APP CHECKOUT] message: " + ex);
                 }
                 channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
             }
             catch (Exception ex)
             {
-                string err = "Program: " + ex.ToString();
+                string err = "Program: " + ex;
                 Console.WriteLine(err);
                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MAIN - excute: error:" + err);
 
@@ -83,7 +83,7 @@ try
 }
 catch (Exception ex)
 {
-    string err = "Main: " + ex.ToString();
+    string err = "Main: " + ex;
     Console.WriteLine(err);
     LogHelper.InsertLogTelegram("[APP.CHECKOUT] MAIN: error:" + err);
 

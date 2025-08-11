@@ -126,7 +126,7 @@ namespace APP_CHECKOUT.RabitMQ
                 }
                 catch (Exception ex)
                 {
-                    LogHelper.InsertLogTelegram("WorkQueueClient - InsertQueueSimple[" + message + "][" + queueName + "]: " + ex.ToString());
+                    LogHelper.InsertLogTelegram("WorkQueueClient - InsertQueueSimple[" + message + "][" + queueName + "]: " + ex);
 
                     return false;
                 }
