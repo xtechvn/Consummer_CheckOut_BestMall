@@ -39,7 +39,7 @@ namespace DAL
                 new SqlParameter("@Amount", model.Amount ?? (object)DBNull.Value),
                 new SqlParameter("@OrderStatus", model.OrderStatus <0 ? (object)DBNull.Value : model.OrderStatus),
                 new SqlParameter("@PaymentType", model.PaymentType < 0 ? (object)DBNull.Value : model.PaymentType),
-                new SqlParameter("@PaymentStatus", model.PaymentStatus <= 0 ? (object)DBNull.Value : model.PaymentStatus),
+                new SqlParameter("@PaymentStatus", model.PaymentStatus < 0 ? (object)DBNull.Value : model.PaymentStatus),
                 new SqlParameter("@UtmSource", model.UtmSource ?? (object)DBNull.Value),
                 new SqlParameter("@UtmMedium", model.UtmMedium ?? (object)DBNull.Value),
                 new SqlParameter("@Note", model.Note ?? (object)DBNull.Value),
