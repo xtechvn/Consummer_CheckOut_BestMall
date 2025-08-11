@@ -121,7 +121,12 @@ namespace APP_CHECKOUT.Repositories
         }
         private async Task<OrderMergeSummitModel> CreateOrder(string order_detail_id)
         {
-            OrderMergeSummitModel result = new OrderMergeSummitModel();
+            OrderMergeSummitModel result = new OrderMergeSummitModel()
+            {
+                data_mongo = new OrderDetailMongoDbModelExtend(),
+                detail = new List<OrderMergeSummitOrder>(),
+                order_merge = new OrderMerge()
+            };
             try
             {
                 var time = DateTime.Now;
