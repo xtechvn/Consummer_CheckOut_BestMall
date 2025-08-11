@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using APP_CHECKOUT.Utilities.Lib;
+using Microsoft.Data.SqlClient;
 using System.Data;
 
 namespace DAL.StoreProcedure
@@ -219,13 +220,11 @@ namespace DAL.StoreProcedure
                         }
                         catch (Exception ex)
                         {
-                            //string data_log = "";
-                            //if (parameters != null && parameters.Length > 0)
-                            //{
-                            //    data_log = string.Join(",", parameters.Select(x => x.ParameterName)) + ":" + string.Join(",", parameters.Select(x => x.Value == null ? "NULL" : x.Value.ToString()));
+                            if (procedureName != null && procedureName.Trim()== "sp_InsertOrderMerge")
+                            {
+                                LogHelper.InsertLogTelegram("SP Name: " + procedureName + "\n" + "Params GetDataTable - Transaction Rollback - DbWorker: \n ExecuteNonQuery - Transaction Rollback - DbWorker: " + ex);
 
-                            //}
-                            //LogHelper.InsertLogTelegram("SP Name: " + procedureName + "\n" + "Params GetDataTable - Transaction Rollback - DbWorker: " + data_log + "\n ExecuteNonQuery - Transaction Rollback - DbWorker: " + ex);
+                            }
 
                             oTransaction.Rollback();
                             oCommand.Parameters.Clear();
