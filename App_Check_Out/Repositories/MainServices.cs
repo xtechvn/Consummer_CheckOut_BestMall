@@ -143,7 +143,7 @@ namespace APP_CHECKOUT.Repositories
                 {
                     OrderMergeSummitOrder result_item = new OrderMergeSummitOrder()
                     {
-                        order = new Order(),
+                        order = new Entities.Models.Order(),
                         order_detail = new List<OrderDetail>()
                     };
                     var cart_belong_to_supplier = order.carts.Where(x => x.product.supplier_id == supplier);
@@ -206,7 +206,7 @@ namespace APP_CHECKOUT.Repositories
                    
                     order.total_price += total_price;
                     order.total_profit += total_profit;
-                    result_item.order = new Order()
+                    result_item.order = new Entities.Models.Order()
                     {
                         Amount = total_amount,
                         ClientId = (long)account_client.ClientId,
