@@ -246,7 +246,7 @@ namespace APP_CHECKOUT.Repositories
                         ShippingStatus = 0,
                         PackageWeight = total_weight,
                         ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code,
-
+                        
                     };
 
                     List<Province> provinces = GetProvince();
@@ -452,7 +452,7 @@ namespace APP_CHECKOUT.Repositories
                 };
                 var order_merge_id = await orderMergeDAL.InsertOrderMerge(result.order_merge);
                 result.order_merge.Id = order_merge_id;
-                LogHelper.InsertLogTelegram("OrderMerge Created - " + result.order_merge.OrderNo + " - " + result.order_merge.Amount);
+                LogHelper.InsertLogTelegram("OrderMerge Created - ["+ order_merge_id + "] " + result.order_merge.OrderNo + " - " + result.order_merge.Amount);
                 workQueueClient.SyncES(order_merge_id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", Convert.ToInt16(ProjectType.HULOTOYS));
                 foreach(var result_item in result.detail)
                 {
