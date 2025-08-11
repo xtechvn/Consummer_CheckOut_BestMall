@@ -54,7 +54,8 @@ namespace APP_CHECKOUT.Models.Orders
         public double? total_amount_product { get; set; }
         public List<OrderDetailMongoDbVoucherApply>? voucher_apply { get; set; }
         public List<OrderDetailMongoDbDelivery>? delivery_order { get; set; }
-
+        public List<int> list_voucher_id { get; set; }
+        public List<string> list_voucher_code { get; set; }
     }
     public class OrderDetailMongoDbVoucherApply
     {
