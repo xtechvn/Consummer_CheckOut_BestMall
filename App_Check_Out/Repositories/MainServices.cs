@@ -19,6 +19,7 @@ using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.Controllers.Shipping.Business;
 using HuloToys_Service.RedisWorker;
 using Newtonsoft.Json;
+using StackExchange.Redis;
 using System.Configuration;
 using System.Net;
 using System.Text;
@@ -127,11 +128,9 @@ namespace APP_CHECKOUT.Repositories
                 var order = await orderDetailMongoDbModel.FindById(order_detail_id);
                 if (order == null || order.carts == null || order.carts.Count <= 0)
                 {
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById("+ order_detail_id + "): NULL" );
-
                     return null;
                 }
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById:" + order._id);
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById: ["+ order._id + "][" + (order.order_no==null ? "NULL" : order.order_no) + "]");
                 var account_client = accountClientESService.GetById(order.account_client_id);
                 var client = clientESService.GetById((long)account_client.ClientId);
                 AddressClientESModel address_client = addressClientESService.GetById(order.address_id, client.Id);
