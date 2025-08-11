@@ -448,8 +448,29 @@ namespace APP_CHECKOUT.Repositories
                     Address = order.address,
                     ReceiverName = order.receivername,
                     Phone = order.phone,
-                   ShippingFee= (order.delivery_order != null && order.delivery_order.Count > 0)? order.delivery_order.Sum(x => x.shipping_fee) : 0
+                    ShippingFee= (order.delivery_order != null && order.delivery_order.Count > 0)? order.delivery_order.Sum(x => x.shipping_fee) : 0,
+                    
                 };
+                if (result.detail.First().order.PaymentType == 1)
+                {
+                    result.order_merge.OrderStatus = 1;
+                }
+                if (result.detail.First().order.ProvinceId >0)
+                {
+                    result.order_merge.ProvinceId = result.detail.First().order.ProvinceId;
+                }
+                if (result.detail.First().order.DistrictId > 0)
+                {
+                    result.order_merge.DistrictId = result.detail.First().order.DistrictId;
+                }
+                if (result.detail.First().order.WardId > 0)
+                {
+                    result.order_merge.WardId = result.detail.First().order.WardId;
+                }
+                if (order.voucher_apply != null && order.voucher_apply.Count > 0)
+                {
+                    result.order_merge.VoucherId=string.Join(",", order.voucher_apply);
+                }
                 var order_merge_id = await orderMergeDAL.InsertOrderMerge(result.order_merge);
                 result.order_merge.Id = order_merge_id;
                 LogHelper.InsertLogTelegram("OrderMerge Created - ["+ order_merge_id + "] " + result.order_merge.OrderNo + " - " + result.order_merge.Amount);
