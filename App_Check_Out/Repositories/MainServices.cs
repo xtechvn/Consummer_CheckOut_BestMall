@@ -132,13 +132,13 @@ namespace APP_CHECKOUT.Repositories
                 }
                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById: ["+ order._id + "][" + (order.order_no==null ? "NULL" : order.order_no) + "]");
                 var account_client = accountClientESService.GetById(order.account_client_id);
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder account_client: [" + order.account_client_id + "][" + account_client == null ? "NULL" : account_client.ClientId + "]");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder account_client: [" + order.account_client_id + "][" + (account_client == null ? "NULL" : account_client.ClientId) + "]");
                 var client = clientESService.GetById((long)account_client.ClientId);
                 AddressClientESModel address_client = addressClientESService.GetById(order.address_id, client.Id);
                 order.total_price = 0;
                 order.total_profit= 0;
                 var supplier_ids = order.carts.Select(x => x.product.supplier_id).GroupBy(x=>x).Select(x=>x.First());
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder supplier_ids: [" + supplier_ids == null ? "NULL" : string.Join(",", supplier_ids) + "]");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder supplier_ids: [" + (supplier_ids == null ? "NULL" : string.Join(",", supplier_ids)) + "]");
 
                 supplier_ids = supplier_ids.Distinct();
                 int sub_order_id = 0;
@@ -150,7 +150,7 @@ namespace APP_CHECKOUT.Repositories
                         order_detail = new List<OrderDetail>()
                     };
                     var cart_belong_to_supplier = order.carts.Where(x => x.product.supplier_id == supplier);
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder cart_belong_to_supplier: [" + cart_belong_to_supplier == null ? "NULL" : string.Join(",", cart_belong_to_supplier.Select(x=>x._id)) + "]");
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder cart_belong_to_supplier: [" + (cart_belong_to_supplier == null ? "NULL" : string.Join(",", cart_belong_to_supplier.Select(x => x._id))) + "]");
 
                     sub_order_id++;
                     int total_weight = 0;
@@ -196,7 +196,7 @@ namespace APP_CHECKOUT.Repositories
                             UserUpdated = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                             ParentProductId = parent_product_id
                         });
-                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder  result_item.order_detail: [" + result_item.order_detail == null ? "NULL" : amount_per_unit + "]");
+                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder  result_item.order_detail: [" + (result_item.order_detail == null ? "NULL" : amount_per_unit) + "]");
 
                         total_product_quantity += cart.quanity;
                         cart.product.price = product.price;
@@ -248,7 +248,7 @@ namespace APP_CHECKOUT.Repositories
                         ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code,
 
                     };
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder result_item.order: [" + order.order_no == null ? "NULL" : order.order_no + "]");
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder result_item.order: [" + (order.order_no == null ? "NULL" : order.order_no) + "]");
 
                     List<Province> provinces = GetProvince();
                     List<District> districts = GetDistrict();
@@ -290,7 +290,7 @@ namespace APP_CHECKOUT.Repositories
 
                     result_item.order.VoucherId = order.voucher_id;
                     result_item.order.Discount = order.total_discount;
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.delivery_detail: [" + order.delivery_detail == null ? "NULL" : order.delivery_detail.carrier_id + "]");
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.delivery_detail: [" + (order.delivery_detail == null ? "NULL" : order.delivery_detail.carrier_id) + "]");
 
                     //-- Shipping token
                     if (order.delivery_detail != null && order.delivery_detail.carrier_id > 0)
@@ -377,7 +377,7 @@ namespace APP_CHECKOUT.Repositories
                         
 
                     }
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.delivery_order: [" + order.delivery_order == null ? "NULL" : order.delivery_order.Count + "]");
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.delivery_order: [" + (order.delivery_order == null ? "NULL" : order.delivery_order.Count) + "]");
 
                     if (order.delivery_order!=null && order.delivery_order.Count > 0)
                     {
@@ -390,7 +390,7 @@ namespace APP_CHECKOUT.Repositories
                         }
 
                     }
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.voucher_apply: [" + order.voucher_apply == null ? "NULL" : order.voucher_apply.Count + "]");
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.voucher_apply: [" + (order.voucher_apply == null ? "NULL" : order.voucher_apply.Count) + "]");
 
                     if (order.voucher_apply != null && order.voucher_apply.Count > 0)
                     {
