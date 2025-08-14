@@ -182,7 +182,7 @@ namespace APP_CHECKOUT.Repositories
                             OrderDetailId = 0,
                             OrderId = 0,
                             Price = product.price,
-                            Profit = amount_per_unit - product.price,
+                            Profit = product.profit,
                             Quantity = cart.quanity,
                             Amount = amount_per_unit,
                             ProductCode = cart.product.code,
@@ -198,10 +198,10 @@ namespace APP_CHECKOUT.Repositories
                             ParentProductId = parent_product_id
                         });
                         total_product_quantity += cart.quanity;
-                        cart.product.price = product.price;
-                        cart.product.profit = amount_per_unit - product.price;
+                        //cart.product.price = product.price;
+                        //cart.product.profit = amount_per_unit - product.price;
                         cart.product.amount = amount_per_unit;
-                        total_profit += (amount_per_unit - product.price) * cart.quanity;
+                        total_profit += product.profit * cart.quanity;
                         total_price += product.price * cart.quanity;
                         total_amount += cart.total_amount;
                         if (!list_supplier.Contains(cart.product.supplier_id))
@@ -383,7 +383,7 @@ namespace APP_CHECKOUT.Repositories
                         var delivery_selected = order.delivery_order.FirstOrDefault(x => x.SupplierId == supplier);
                         if (delivery_selected != null) {
                             result_item.order.Amount += delivery_selected.shipping_fee;
-                            result_item.order.Profit -= delivery_selected.shipping_fee;
+                           // result_item.order.Profit -= delivery_selected.shipping_fee;
                             result_item.order.ShippingFee = delivery_selected.shipping_fee;
                             LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder [" + supplier + "] order.delivery_order:" + result_item.order.ShippingFee);
                         }
@@ -397,7 +397,7 @@ namespace APP_CHECKOUT.Repositories
                         if (delivery_selected != null)
                         {
                             result_item.order.Amount -= delivery_selected.TotalDiscount;
-                            result_item.order.Profit -= delivery_selected.TotalDiscount;
+                            //result_item.order.Profit -= delivery_selected.TotalDiscount;
                             result_item.order.Discount = delivery_selected.TotalDiscount;
                             result_item.order.VoucherId = delivery_selected.voucher_id;
                             LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder [" + supplier + "] order.voucher_apply: [" + delivery_selected.voucher_id + "] ["+ delivery_selected.TotalDiscount + "]" );
