@@ -48,7 +48,8 @@ namespace APP_CHECKOUT.Repositories
         private readonly ProductDetailMongoAccess _productDetailMongoAccess;
         private readonly RedisConn _redisConn;
         private readonly OrderMergeDAL orderMergeDAL;
-
+        private readonly float affiliate_percent = 5;
+        private readonly float vnpay_percent = 1;
         public MainServices( ViettelPostService viettelPostService) {
 
             orderDetailMongoDbModel = new OrderMongodbService();
@@ -168,6 +169,7 @@ namespace APP_CHECKOUT.Repositories
                         }
                         var product = await productDetailMongoAccess.GetByID(parent_product_id);
                         double amount_per_unit = cart.total_amount / cart.quanity;
+                        double order_detail_profit = CalculateTotalProfitProduct(amount_per_unit, product.profit, product.price, cart.quanity,order.payment_type,order.utm_medium);
                         result_item.order_detail.Add(new OrderDetail()
                         {
                             CreatedDate = time,
@@ -175,7 +177,7 @@ namespace APP_CHECKOUT.Repositories
                             OrderDetailId = 0,
                             OrderId = 0,
                             Price = product.price,
-                            Profit = product.profit,
+                            Profit = order_detail_profit,
                             Quantity = cart.quanity,
                             Amount = amount_per_unit,
                             ProductCode = cart.product.code,
@@ -192,9 +194,9 @@ namespace APP_CHECKOUT.Repositories
                         });
                         total_product_quantity += cart.quanity;
                         //cart.product.price = product.price;
-                        //cart.product.profit = amount_per_unit - product.price;
+                        cart.total_profit= order_detail_profit;
                         cart.product.amount = amount_per_unit;
-                        total_profit += product.profit * cart.quanity;
+                        total_profit += order_detail_profit;
                         total_price += product.price * cart.quanity;
                         total_amount += cart.total_amount;
                         if (!list_supplier.Contains(cart.product.supplier_id))
@@ -538,44 +540,28 @@ namespace APP_CHECKOUT.Repositories
             }
             return wards;
         }
-        private async Task<TrackingVoucherResponse> ApplyVoucher(TrackingVoucherRequest input)
+        private double CalculateTotalProfitProduct(double amount, double profit, double price,int quantity,int payment_type, string utm_medium)
         {
-            TrackingVoucherResponse result = new TrackingVoucherResponse();
+            var total_profit = profit * (quantity <= 0 ? 1 : quantity);
             try
             {
-                HttpClient _HttpClient = new HttpClient(new HttpClientHandler
+                double aff_fee = 0;
+                if (utm_medium!=null && utm_medium.Trim() != "")
                 {
-                    ServerCertificateCustomValidationCallback = (message, certificate2, arg3, arg4) => true
-                })
-                {
-                    BaseAddress = new Uri(ConfigurationManager.AppSettings["API_Domain"])
-                };
-                string url = ConfigurationManager.AppSettings["API_Get_Voucher"];
-                //HttpClient client = new HttpClient();
-
-                //var token = CommonHelpers.Encode(JsonConvert.SerializeObject(input), ConfigurationManager.AppSettings["key_private"]);
-                //var content_2 = new FormUrlEncodedContent(new[]
-                //{
-                //       new KeyValuePair<string, string>("token", token),
-                //});
-               // var content = new StringContent(JsonConvert.SerializeObject(input), Encoding.UTF8, "application/json");
-                string token = CommonHelpers.Encode(JsonConvert.SerializeObject(input), ConfigurationManager.AppSettings["key_private"]);
-                var request_message = new HttpRequestMessage(HttpMethod.Post, url);
-                //request_message.Headers.Add("Authorization", "Bearer " + TOKEN);
-                var content = new StringContent("{\"token\":\"" + token + "\"}", Encoding.UTF8, "application/json");
-                request_message.Content = content;
-                var response = await _HttpClient.SendAsync(request_message);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    result = JsonConvert.DeserializeObject<TrackingVoucherResponse>(response.Content.ReadAsStringAsync().Result);
-
+                    aff_fee = Math.Ceiling(total_profit * affiliate_percent / 100);
                 }
+                double vnpay_fee = 0;
+                if (payment_type == 3)
+                {
+                    vnpay_fee = Math.Ceiling(total_profit * vnpay_percent / 100);
+                }
+                total_profit = total_profit - aff_fee - vnpay_fee;
             }
             catch (Exception ex)
             {
 
             }
-            return result;
+            return total_profit;
         }
        
     }
