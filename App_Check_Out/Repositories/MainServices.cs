@@ -472,8 +472,6 @@ namespace APP_CHECKOUT.Repositories
                     workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
                     if (order_id > 0)
                     {
-                        result_item.order.OrderId = order_id;
-                        result_item.order.OrderMergeId = result.order_merge.OrderNo;
                         foreach (var detail in result_item.order_detail)
                         {
                             detail.OrderId = order_id;
