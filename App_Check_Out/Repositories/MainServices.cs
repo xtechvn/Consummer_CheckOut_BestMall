@@ -473,6 +473,14 @@ namespace APP_CHECKOUT.Repositories
                         {
                             var cache_name = CacheType.PRODUCT_DETAIL + detail.ProductId;
                             _redisConn.clear(cache_name, Convert.ToInt32(ConfigurationManager.AppSettings["Redis_Database_db_search_result"]));
+                            var product=await _productDetailMongoAccess.GetByID(detail.ProductId);
+                            if (product != null && product.parent_product_id!=null && product.parent_product_id.Trim()!="")
+                            {
+
+                                 cache_name = CacheType.PRODUCT_DETAIL + product.parent_product_id;
+                                _redisConn.clear(cache_name, Convert.ToInt32(ConfigurationManager.AppSettings["Redis_Database_db_search_result"]));
+                            }
+                            
 
                         }
                         catch { }
