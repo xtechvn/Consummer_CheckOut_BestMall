@@ -495,7 +495,6 @@ namespace APP_CHECKOUT.Repositories
                             Console.WriteLine("Created OrderDetail - " + detail.OrderId + ": " + detail.OrderDetailId);
                             LogHelper.InsertLogTelegram("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
                         }
-                        await orderDetailMongoDbModel.Update(order);
 
                     }
                     foreach (var detail in result_item.order_detail)
@@ -523,6 +522,8 @@ namespace APP_CHECKOUT.Repositories
                         catch { }
                     }
                 }
+                order.order_id = order_merge_id;
+                await orderDetailMongoDbModel.Update(order);
 
 
                 return result;
