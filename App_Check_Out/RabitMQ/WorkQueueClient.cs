@@ -46,8 +46,6 @@ namespace APP_CHECKOUT.RabitMQ
                 var _data_push = JsonConvert.SerializeObject(j_param);
                 // Push message vào queue
                 var response_queue = InsertQueueSyncES(_data_push);
-                LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [ " + ConfigurationManager.AppSettings["QUEUE_V_HOST_SYNC"] + "/" + ConfigurationManager.AppSettings["QUEUE_SYNC_ES"] + "] -> [" + id + "][" + store_procedure + "] [" + index_es + "][" + project_id + "]: " + response_queue.ToString());
-
                 return true;
             }
             catch (Exception ex)
