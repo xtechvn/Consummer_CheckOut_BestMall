@@ -142,8 +142,6 @@ namespace APP_CHECKOUT.Repositories
                 order.total_price = 0;
                 order.total_profit= 0;
                 var supplier_ids = order.carts.Select(x => x.product.supplier_id).GroupBy(x=>x).Select(x=>x.First());
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder supplier_ids: [" + (supplier_ids == null ? "NULL" : string.Join(",", supplier_ids)) + "]");
-
                 supplier_ids = supplier_ids.Distinct();
                 int sub_order_id = 0;
                 foreach (var supplier in supplier_ids)
@@ -287,12 +285,8 @@ namespace APP_CHECKOUT.Repositories
                         result_item.order.Phone = order.phone;
                         result_item.order.Address = order.address;
                     }
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder result_item.order: [" + result_item.order.WardId + "] [" + result_item.order.ProvinceId + "]");
-
                     result_item.order.VoucherId = order.voucher_id;
                     result_item.order.Discount = order.total_discount;
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.delivery_detail: [" + (order.delivery_detail == null ? "NULL" : order.delivery_detail.carrier_id) + "]");
-
                     //-- Shipping token
                     if (order.delivery_detail != null && order.delivery_detail.carrier_id > 0)
                     {
@@ -378,8 +372,6 @@ namespace APP_CHECKOUT.Repositories
                         
 
                     }
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.delivery_order: [" + (order.delivery_order == null ? "NULL" : order.delivery_order.Count) + "]");
-
                     if (order.delivery_order!=null && order.delivery_order.Count > 0)
                     {
                         var delivery_selected = order.delivery_order.FirstOrDefault(x => x.SupplierId == supplier);
@@ -387,12 +379,9 @@ namespace APP_CHECKOUT.Repositories
                             result_item.order.Amount += delivery_selected.shipping_fee;
                            // result_item.order.Profit -= delivery_selected.shipping_fee;
                             result_item.order.ShippingFee = delivery_selected.shipping_fee;
-                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder [" + supplier + "] order.delivery_order:" + result_item.order.ShippingFee);
                         }
 
                     }
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder order.voucher_apply: [" + (order.voucher_apply == null ? "NULL" : order.voucher_apply.Count) + "]");
-
                     if (order.voucher_apply != null && order.voucher_apply.Count > 0)
                     {
                         var delivery_selected = order.voucher_apply.FirstOrDefault(x => x.SupplierId == supplier);
@@ -402,8 +391,6 @@ namespace APP_CHECKOUT.Repositories
                             //result_item.order.Profit -= delivery_selected.TotalDiscount;
                             result_item.order.Discount = delivery_selected.TotalDiscount;
                             result_item.order.VoucherId = delivery_selected.voucher_id;
-                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder [" + supplier + "] order.voucher_apply: [" + delivery_selected.voucher_id + "] ["+ delivery_selected.TotalDiscount + "]" );
-
                         }
 
                     }
@@ -485,8 +472,8 @@ namespace APP_CHECKOUT.Repositories
                     workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
                     if (order_id > 0)
                     {
-                        order.order_id = order_id;
-                        order.order_no = result.order_merge.OrderNo;
+                        result_item.order.OrderId = order_id;
+                        result_item.order.OrderMergeId = result.order_merge.OrderNo;
                         foreach (var detail in result_item.order_detail)
                         {
                             detail.OrderId = order_id;
