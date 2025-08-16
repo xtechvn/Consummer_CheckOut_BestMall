@@ -222,7 +222,7 @@ namespace APP_CHECKOUT.Repositories
                             ProductId = cart.product._id,
                             ProductLink = ConfigurationManager.AppSettings["Setting_Domain"] + "/san-pham/" + name_url + "--" + cart.product._id,
                             TotalPrice = product.price * cart.quanity,
-                            TotalProfit = (amount_per_unit - product.price) * cart.quanity,
+                            TotalProfit = (amount_per_unit * profit_value / 100),
                             TotalAmount = cart.total_amount,
                             TotalDiscount = 0,
                             UpdatedDate = time,
@@ -233,9 +233,9 @@ namespace APP_CHECKOUT.Repositories
                         });
                         total_product_quantity += cart.quanity;
                         //cart.product.price = product.price;
-                        cart.total_profit= Convert.ToDouble(order_detail_profit);
-                        //cart.product.amount = amount_per_unit;
-                        total_profit += Convert.ToDouble(order_detail_profit);
+                        cart.total_profit= cart.total_amount * profit_value / 100;
+                        cart.product.amount = amount_per_unit;
+                        total_profit += (cart.total_amount * profit_value / 100);
                         total_price += product.price * cart.quanity;
                         total_amount += cart.total_amount;
                         if (!list_supplier.Contains(cart.product.supplier_id))
