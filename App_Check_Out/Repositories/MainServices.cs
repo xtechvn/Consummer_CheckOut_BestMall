@@ -48,8 +48,7 @@ namespace APP_CHECKOUT.Repositories
         private readonly ProductDetailMongoAccess _productDetailMongoAccess;
         private readonly RedisConn _redisConn;
         private readonly OrderMergeDAL orderMergeDAL;
-        private readonly float affiliate_percent = 5;
-        private readonly float vnpay_percent = 1;
+        private readonly BesmalPriceFormulaManager besmalPriceFormulaManager;
         public MainServices( ViettelPostService viettelPostService) {
 
             orderDetailMongoDbModel = new OrderMongodbService();
@@ -76,6 +75,7 @@ namespace APP_CHECKOUT.Repositories
                 _redisConn.Connect();
             }
             catch { }
+            besmalPriceFormulaManager=new BesmalPriceFormulaManager();
         }
         public async Task Excute(CheckoutQueueModel request)
         {
@@ -169,7 +169,31 @@ namespace APP_CHECKOUT.Repositories
                         }
                         var product = await productDetailMongoAccess.GetByID(parent_product_id);
                         double amount_per_unit = cart.total_amount / cart.quanity;
-                        double order_detail_profit = CalculateTotalProfitProduct(amount_per_unit, product.profit, product.price, cart.quanity,order.payment_type,order.utm_medium);
+                        //double order_detail_profit = CalculateTotalProfitProduct(amount_per_unit, product.profit, product.price, cart.quanity,order.payment_type,order.utm_medium
+                        //    , Convert.ToDouble((cart!=null && cart.product!=null && cart.product.profit_affliate!=null) ?cart.product.profit_affliate:0)
+                        //    , Convert.ToDouble((order != null && order.profit_vnpay != null && order.profit_vnpay > 0) ? order.profit_vnpay : 0)
+
+                        //    );
+                        var order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
+                            Convert.ToDecimal(amount_per_unit)
+                            , Convert.ToDecimal(cart.product.profit_value==null?0: cart.product.profit_value)
+                            , Convert.ToDecimal(cart.product.profit_supplier==null?0:cart.product.profit_supplier)
+                            , 0
+                            ,cart.quanity);
+                        var order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale(
+                            Convert.ToDecimal(amount_per_unit),
+                            Convert.ToDecimal(cart.product.profit_value == null ? 0 : cart.product.profit_value)
+                            , Convert.ToDecimal(cart.product.profit_supplier == null ? 0 : cart.product.profit_supplier)
+                            , 0
+                            ,cart.quanity
+                            ,order.utm_medium!=null && order.utm_medium.Trim()!=""? Convert.ToDecimal(cart.product.profit_affliate) :0
+                            , order.payment_type != null && order.payment_type==3 ? Convert.ToDecimal(order.profit_vnpay): 0
+                            ,0
+                            ,0
+                            ,0
+                            ,0
+                            ,0
+                            );
                         result_item.order_detail.Add(new OrderDetail()
                         {
                             CreatedDate = time,
@@ -177,7 +201,7 @@ namespace APP_CHECKOUT.Repositories
                             OrderDetailId = 0,
                             OrderId = 0,
                             Price = product.price,
-                            Profit = order_detail_profit,
+                            Profit = Convert.ToDouble(order_detail_profit),
                             Quantity = cart.quanity,
                             Amount = amount_per_unit,
                             ProductCode = cart.product.code,
@@ -190,13 +214,14 @@ namespace APP_CHECKOUT.Repositories
                             UpdatedDate = time,
                             UserCreate = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                             UserUpdated = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
-                            ParentProductId = parent_product_id
+                            ParentProductId = parent_product_id,
+                            FinalProfit=Convert.ToDouble(order_detail_final_profit)
                         });
                         total_product_quantity += cart.quanity;
                         //cart.product.price = product.price;
-                        cart.total_profit= order_detail_profit;
-                        cart.product.amount = amount_per_unit;
-                        total_profit += order_detail_profit;
+                        cart.total_profit= Convert.ToDouble(order_detail_profit);
+                        //cart.product.amount = amount_per_unit;
+                        total_profit += Convert.ToDouble(order_detail_profit);
                         total_price += product.price * cart.quanity;
                         total_amount += cart.total_amount;
                         if (!list_supplier.Contains(cart.product.supplier_id))
@@ -549,7 +574,7 @@ namespace APP_CHECKOUT.Repositories
             }
             return wards;
         }
-        private double CalculateTotalProfitProduct(double amount, double profit, double price,int quantity,int payment_type, string utm_medium)
+        private double CalculateTotalProfitProduct(double amount, double profit, double price,int quantity,int payment_type, string utm_medium, double affiliate_percent, double vnpay_percent)
         {
             var total_profit = profit * (quantity <= 0 ? 1 : quantity);
             try
