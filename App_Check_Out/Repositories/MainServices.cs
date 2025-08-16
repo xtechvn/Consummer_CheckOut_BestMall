@@ -176,13 +176,13 @@ namespace APP_CHECKOUT.Repositories
                         //    );
                         double base_profit_value = Convert.ToDouble(cart.product.profit_value == null ? 0 : cart.product.profit_value);
                         double profit_value = base_profit_value;
-                        if(cart.product.profit_value_type!=null && cart.product.profit_value_type == 1)
+                        if(cart.product.profit_value_type!=null && cart.product.profit_value_type == 0)
                         {
                             profit_value = Math.Ceiling((base_profit_value / amount_per_unit) * 100);
                         }
                         double base_profit_supplier_value = Convert.ToDouble(cart.product.profit_supplier == null ? 0 : cart.product.profit_supplier);
                         double profit_supplier_value = base_profit_value;
-                        if (cart.product.profit_supplier_type != null && cart.product.profit_supplier_type == 1)
+                        if (cart.product.profit_supplier_type != null && cart.product.profit_supplier_type == 0)
                         {
                             profit_supplier_value = Math.Ceiling((base_profit_supplier_value / amount_per_unit) * 100);
                         }
