@@ -183,14 +183,16 @@ namespace APP_CHECKOUT.Repositories
                         double profit_value = base_profit_value;
                         if(cart.product.profit_value_type!=null && cart.product.profit_value_type == 0)
                         {
-                            profit_value = Math.Ceiling((base_profit_value / amount_per_unit) * 100);
+                            profit_value = Math.Round(base_profit_value / amount_per_unit * 100,0);
                         }
+
                         double base_profit_supplier_value = Convert.ToDouble(cart.product.profit_supplier == null ? 0 : cart.product.profit_supplier);
-                        double profit_supplier_value = base_profit_value;
+                        double profit_supplier_value = base_profit_supplier_value;
                         if (cart.product.profit_supplier_type != null && cart.product.profit_supplier_type == 0)
                         {
-                            profit_supplier_value = Math.Ceiling((base_profit_supplier_value / amount_per_unit) * 100);
+                            profit_supplier_value = Math.Round(base_profit_supplier_value / amount_per_unit* 100,0);
                         }
+
                         var order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
                             Convert.ToDecimal(amount_per_unit)
                             , Convert.ToDecimal(profit_value / 100)
