@@ -179,16 +179,28 @@ namespace APP_CHECKOUT.Repositories
                         //    , Convert.ToDouble((order != null && order.profit_vnpay != null && order.profit_vnpay > 0) ? order.profit_vnpay : 0)
 
                         //    );
+                        double base_profit_value = Convert.ToDouble(cart.product.profit_value == null ? 0 : cart.product.profit_value);
+                        double profit_value = base_profit_value;
+                        if(cart.product.profit_value_type!=null && cart.product.profit_value_type == 1)
+                        {
+                            profit_value = Math.Ceiling((base_profit_value / amount_per_unit) * 100);
+                        }
+                        double base_profit_supplier_value = Convert.ToDouble(cart.product.profit_supplier == null ? 0 : cart.product.profit_supplier);
+                        double profit_supplier_value = base_profit_value;
+                        if (cart.product.profit_supplier_type != null && cart.product.profit_supplier_type == 1)
+                        {
+                            profit_supplier_value = Math.Ceiling((base_profit_supplier_value / amount_per_unit) * 100);
+                        }
                         var order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
                             Convert.ToDecimal(amount_per_unit)
-                            , Convert.ToDecimal(cart.product.profit_value==null?0: cart.product.profit_value)
-                            , Convert.ToDecimal(cart.product.profit_supplier==null?0:cart.product.profit_supplier)
+                            , Convert.ToDecimal(profit_value)
+                            , Convert.ToDecimal(base_profit_supplier_value)
                             , 0
                             ,cart.quanity);
                         var order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale(
-                            Convert.ToDecimal(amount_per_unit),
-                            Convert.ToDecimal(cart.product.profit_value == null ? 0 : cart.product.profit_value)
-                            , Convert.ToDecimal(cart.product.profit_supplier == null ? 0 : cart.product.profit_supplier)
+                            Convert.ToDecimal(amount_per_unit)
+                            , Convert.ToDecimal(profit_value)
+                            , Convert.ToDecimal(base_profit_supplier_value)
                             , 0
                             ,cart.quanity
                             ,order.utm_medium!=null && order.utm_medium.Trim()!=""? Convert.ToDecimal(cart.product.profit_affliate) :0
