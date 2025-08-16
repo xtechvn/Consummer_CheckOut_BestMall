@@ -75,6 +75,8 @@ namespace Entities.ViewModels.Products
         public int? flashsale_badge_type { get; set; }
         public float? profit_supplier { get; set; }
         public int? profit_supplier_type { get; set; }
+        public float? profit_affliate { get; set; }
+
     }
     public class ProductMongoDbSpecification
     {
