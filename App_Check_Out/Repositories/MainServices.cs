@@ -194,13 +194,13 @@ namespace APP_CHECKOUT.Repositories
                         var order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
                             Convert.ToDecimal(amount_per_unit)
                             , Convert.ToDecimal(profit_value / 100)
-                            , Convert.ToDecimal(base_profit_supplier_value / 100)
+                            , Convert.ToDecimal(profit_supplier_value / 100)
                             , 0
                             ,cart.quanity);
                         var order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale(
                             Convert.ToDecimal(amount_per_unit)
                             , Convert.ToDecimal(profit_value/100)
-                            , Convert.ToDecimal(base_profit_supplier_value / 100)
+                            , Convert.ToDecimal(profit_supplier_value / 100)
                             , 0
                             ,cart.quanity
                             ,order.utm_medium!=null && order.utm_medium.Trim()!=""? Convert.ToDecimal(cart.product.profit_affliate / 100) :0
