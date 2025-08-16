@@ -73,7 +73,8 @@ namespace Entities.ViewModels.Products
         public List<string>? attachment_supply { get; set; }
         public List<string>? attachment_confirm { get; set; }
         public int? flashsale_badge_type { get; set; }
-
+        public float? profit_supplier { get; set; }
+        public int? profit_supplier_type { get; set; }
     }
     public class ProductMongoDbSpecification
     {
