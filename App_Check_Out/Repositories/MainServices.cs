@@ -229,7 +229,7 @@ namespace APP_CHECKOUT.Repositories
                             }
                             else
                             {
-                                product_total_discount = Math.Round(base_profit_supplier_value / product.amount * 100, 0);
+                                product_total_discount = Math.Round(Convert.ToDouble(shipper_voucher.PriceSales) / product.amount * 100, 0);
                             }
                         }
                         var order_detail_price = besmalPriceFormulaManager.tinh_gia_nhap(
