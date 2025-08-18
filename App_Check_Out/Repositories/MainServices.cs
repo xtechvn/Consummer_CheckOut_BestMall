@@ -161,6 +161,7 @@ namespace APP_CHECKOUT.Repositories
                     double total_profit = 0;
                     double total_price = 0;
                     double total_amount = 0;
+                    double voucher_total_discount = 0;
                     foreach (var cart in cart_belong_to_supplier)
                     {
                         if (cart == null || cart.product == null) continue;
@@ -204,16 +205,17 @@ namespace APP_CHECKOUT.Repositories
                             var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 1);
                             if (shipper_voucher != null && shipper_voucher.PriceSales!=null)
                             {
-                                shipper_voucher_total_discount = shipper_voucher.TotalDiscount;
                                 if (shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd")
                                 {
                                     shipper_voucher_total_discount =Convert.ToDouble(shipper_voucher.PriceSales);
-
+                                    voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) * (order.shipping_fee==null?0:(double)order.shipping_fee) / 100);
                                 }
                                 else
                                 {
                                     var percent_cal = Convert.ToDouble(shipper_voucher.PriceSales) / order.shipping_fee * 100;
                                     shipper_voucher_total_discount = Math.Round((percent_cal == null ? 0 : (double)percent_cal), 0);
+                                    voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) / cart_belong_to_supplier.Count());
+
                                 }
 
                             }
@@ -228,11 +230,14 @@ namespace APP_CHECKOUT.Repositories
                                 if ( shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd")
                                 {
                                     product_total_discount = Convert.ToDouble(shipper_voucher.PriceSales);
+                                    voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) * ((product == null || product.amount<=0) ? 0 : (double)product.amount) / 100);
 
                                 }
                                 else
                                 {
                                     product_total_discount = Math.Round(Convert.ToDouble(shipper_voucher.PriceSales) / product.amount * 100, 0);
+                                    voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) /cart_belong_to_supplier.Count());
+
                                 }
                             }
                         }
@@ -325,9 +330,19 @@ namespace APP_CHECKOUT.Repositories
                     order.total_price += total_price;
                     order.total_profit += total_profit;
                     string order_no = (supplier_ids == null || supplier_ids.Count() <= 1  ? order.order_no : order.order_no + "-" + sub_order_id);
+                    double shipping_fee_supplier = 0;
+                    //--shipping fee
+                    if (order.delivery_order!=null && order.delivery_order.Count > 0)
+                    {
+                        var shipping_supplier = order.delivery_order.FirstOrDefault(x => x.SupplierId == supplier);
+                        if (shipping_supplier != null)
+                        {
+                            shipping_fee_supplier=shipping_supplier.shipping_fee==null?0:(double)shipping_supplier.shipping_fee;
+                        }
+                    }
                     result_item.order = new Entities.Models.Order()
                     {
-                        Amount = total_amount,
+                        Amount = total_amount + shipping_fee_supplier- voucher_total_discount,
                         ClientId = (long)account_client.ClientId,
                         CreatedDate = DateTime.Now,
                         Discount = 0,
