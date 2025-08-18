@@ -202,10 +202,10 @@ namespace APP_CHECKOUT.Repositories
                         if(order.voucher_apply!=null && order.voucher_apply.Count > 0)
                         {
                             var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 1);
-                            if (shipper_voucher != null)
+                            if (shipper_voucher != null && shipper_voucher.PriceSales!=null)
                             {
                                 shipper_voucher_total_discount = shipper_voucher.TotalDiscount;
-                                if (shipper_voucher != null && shipper_voucher.Unit.ToLower().Trim() != "vnd")
+                                if (shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd")
                                 {
                                     shipper_voucher_total_discount =Convert.ToDouble(shipper_voucher.PriceSales);
 
@@ -222,14 +222,18 @@ namespace APP_CHECKOUT.Repositories
                         if (order.voucher_apply != null && order.voucher_apply.Count > 0)
                         {
                             var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 0);
-                            if (shipper_voucher != null && shipper_voucher.Unit.ToLower().Trim()!="vnd")
+                            if (shipper_voucher != null && shipper_voucher.PriceSales != null)
                             {
-                                product_total_discount = Convert.ToDouble(shipper_voucher.PriceSales);
 
-                            }
-                            else
-                            {
-                                product_total_discount = Math.Round(Convert.ToDouble(shipper_voucher.PriceSales) / product.amount * 100, 0);
+                                if ( shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd")
+                                {
+                                    product_total_discount = Convert.ToDouble(shipper_voucher.PriceSales);
+
+                                }
+                                else
+                                {
+                                    product_total_discount = Math.Round(Convert.ToDouble(shipper_voucher.PriceSales) / product.amount * 100, 0);
+                                }
                             }
                         }
                         var order_detail_price = besmalPriceFormulaManager.tinh_gia_nhap(
