@@ -196,7 +196,7 @@ namespace APP_CHECKOUT.Repositories
                         double flashsale_percent = cart.product.flash_sale_price_sales==null?0: Convert.ToDouble(cart.product.flash_sale_price_sales);
                         if ((cart.product.flash_sale_unit == null && flashsale_percent>0) || cart.product.flash_sale_unit == 0)
                         {
-                            flashsale_percent= Convert.ToDouble(cart.product.flash_sale_price_sales) /cart.product.amount;
+                            flashsale_percent= Convert.ToDouble(cart.product.flash_sale_price_sales) / product.amount;
                         }
                         double shipper_voucher_total_discount = 0;
                         if(order.voucher_apply!=null && order.voucher_apply.Count > 0)
