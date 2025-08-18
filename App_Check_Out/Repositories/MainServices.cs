@@ -192,7 +192,27 @@ namespace APP_CHECKOUT.Repositories
                         {
                             flashsale_percent= Convert.ToDouble(cart.product.flash_sale_price_sales) /cart.product.amount;
                         }
+                        double shipper_voucher_total_discount = 0;
+                        if(order.voucher_apply!=null && order.voucher_apply.Count > 0)
+                        {
+                            var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 1);
+                            if (shipper_voucher != null)
+                            {
+                                shipper_voucher_total_discount = shipper_voucher.TotalDiscount;
 
+
+                            }
+                        }
+                        double product_total_discount = 0;
+                        if (order.voucher_apply != null && order.voucher_apply.Count > 0)
+                        {
+                            var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 0);
+                            if (shipper_voucher != null && shipper_voucher.Unit.Trim()!="vnd")
+                            {
+                                product_total_discount = shipper_voucher.TotalDiscount;
+
+                            }
+                        }
                         var order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
                             Convert.ToDecimal(product.amount)
                             , Convert.ToDecimal(profit_value / 100)
@@ -207,11 +227,11 @@ namespace APP_CHECKOUT.Repositories
                             , cart.quanity
                             ,order.utm_medium!=null && order.utm_medium.Trim()!=""? Convert.ToDecimal(cart.product.profit_affliate / 100) :0
                             , order.payment_type != null && order.payment_type==3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0
-                            ,0
-                            ,0
-                            ,0
-                            ,0
-                            ,0
+                            ,Convert.ToDecimal(order.shipping_fee)
+                            , Convert.ToDecimal(shipper_voucher_total_discount)
+                            , Convert.ToDecimal(product_total_discount)
+                            , 0
+                            , 0
                             );
                         result_item.order_detail.Add(new OrderDetail()
                         {
