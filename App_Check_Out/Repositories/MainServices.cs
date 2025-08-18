@@ -172,7 +172,7 @@ namespace APP_CHECKOUT.Repositories
                         {
                             parent_product_id = cart.product.parent_product_id;
                         }
-                        var product = await productDetailMongoAccess.GetByID(parent_product_id);
+                        var product = await productDetailMongoAccess.GetByID(cart.product._id);
                         double amount_per_unit = cart.total_amount / cart.quanity;
                         //double order_detail_profit = CalculateTotalProfitProduct(amount_per_unit, product.profit, product.price, cart.quanity,order.payment_type,order.utm_medium
                         //    , Convert.ToDouble((cart!=null && cart.product!=null && cart.product.profit_affliate!=null) ?cart.product.profit_affliate:0)
