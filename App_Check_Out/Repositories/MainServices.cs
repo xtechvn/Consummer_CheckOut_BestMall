@@ -267,28 +267,28 @@ namespace APP_CHECKOUT.Repositories
                             , 0
                             , 0
                             );
-                        LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
-                            " + Convert.ToDecimal(product.amount) + @"
-                            , " + Convert.ToDecimal(profit_value / 100) + @"
-                             , " + Convert.ToDecimal(profit_supplier_value / 100) + @"
-                             , " + Convert.ToDecimal(flashsale_percent / 100) + @"
-                             , " + cart.quanity + @"
+                        //LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
+                        //    " + Convert.ToDecimal(product.amount) + @"
+                        //    , " + Convert.ToDecimal(profit_value / 100) + @"
+                        //     , " + Convert.ToDecimal(profit_supplier_value / 100) + @"
+                        //     , " + Convert.ToDecimal(flashsale_percent / 100) + @"
+                        //     , " + cart.quanity + @"
                             
-                            );: [" + order_detail_profit + "]");
-                        LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale(
-                            "+ Convert.ToDecimal(product.amount) + @"
-                            , "+Convert.ToDecimal(profit_value/100) + @"
-                             , "+Convert.ToDecimal(profit_supplier_value / 100) + @"
-                             , " + Convert.ToDecimal(flashsale_percent / 100) + @"
-                             , " + cart.quanity + @"
-                            , " + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + @"
-                            , " + (order.payment_type != null && order.payment_type == 3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0) + @"
-                             , " + Convert.ToDecimal(order.shipping_fee) + @"
-                             , " + Convert.ToDecimal(shipper_voucher_total_discount / 100) + @"
-                             , " + Convert.ToDecimal(product_total_discount / 100) + @"
-                             , " + 0 + @"
-                             , " + 0 + @"
-                            );: ["+ order_detail_final_profit + "]");
+                        //    );: [" + order_detail_profit + "]");
+                        //LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale(
+                        //    "+ Convert.ToDecimal(product.amount) + @"
+                        //    , "+Convert.ToDecimal(profit_value/100) + @"
+                        //     , "+Convert.ToDecimal(profit_supplier_value / 100) + @"
+                        //     , " + Convert.ToDecimal(flashsale_percent / 100) + @"
+                        //     , " + cart.quanity + @"
+                        //    , " + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + @"
+                        //    , " + (order.payment_type != null && order.payment_type == 3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0) + @"
+                        //     , " + Convert.ToDecimal(order.shipping_fee) + @"
+                        //     , " + Convert.ToDecimal(shipper_voucher_total_discount / 100) + @"
+                        //     , " + Convert.ToDecimal(product_total_discount / 100) + @"
+                        //     , " + 0 + @"
+                        //     , " + 0 + @"
+                        //    );: ["+ order_detail_final_profit + "]");
                         var order_detail = new OrderDetail()
                         {
                             CreatedDate = time,
@@ -339,7 +339,7 @@ namespace APP_CHECKOUT.Repositories
                             shipping_fee_supplier=shipping_supplier.shipping_fee==null?0:(double)shipping_supplier.shipping_fee;
                         }
                     }
-                    LogHelper.InsertLogTelegram("result_item.order - ["+ total_amount + "]["+ shipping_fee_supplier + "]["+ voucher_total_discount + "]");
+                    //LogHelper.InsertLogTelegram("result_item.order - ["+ total_amount + "]["+ shipping_fee_supplier + "]["+ voucher_total_discount + "]");
 
                     result_item.order = new Entities.Models.Order()
                     {
@@ -413,8 +413,8 @@ namespace APP_CHECKOUT.Repositories
                         result_item.order.Phone = order.phone;
                         result_item.order.Address = order.address;
                     }
-                    result_item.order.VoucherId = order.voucher_id;
-                    result_item.order.Discount = order.total_discount;
+                    //result_item.order.VoucherId = order.voucher_id;
+                    //result_item.order.Discount = order.total_discount;
                     //-- Shipping token
                     if (order.delivery_detail != null && order.delivery_detail.carrier_id > 0)
                     {
@@ -500,28 +500,28 @@ namespace APP_CHECKOUT.Repositories
                         
 
                     }
-                    if (order.delivery_order!=null && order.delivery_order.Count > 0)
-                    {
-                        var delivery_selected = order.delivery_order.FirstOrDefault(x => x.SupplierId == supplier);
-                        if (delivery_selected != null) {
-                            result_item.order.Amount += delivery_selected.shipping_fee;
-                           // result_item.order.Profit -= delivery_selected.shipping_fee;
-                            result_item.order.ShippingFee = delivery_selected.shipping_fee;
-                        }
+                    //if (order.delivery_order!=null && order.delivery_order.Count > 0)
+                    //{
+                    //    var delivery_selected = order.delivery_order.FirstOrDefault(x => x.SupplierId == supplier);
+                    //    if (delivery_selected != null) {
+                    //        result_item.order.Amount += delivery_selected.shipping_fee;
+                    //       // result_item.order.Profit -= delivery_selected.shipping_fee;
+                    //        result_item.order.ShippingFee = delivery_selected.shipping_fee;
+                    //    }
 
-                    }
-                    if (order.voucher_apply != null && order.voucher_apply.Count > 0)
-                    {
-                        var delivery_selected = order.voucher_apply.FirstOrDefault(x => x.SupplierId == supplier);
-                        if (delivery_selected != null)
-                        {
-                            result_item.order.Amount -= delivery_selected.TotalDiscount;
-                            //result_item.order.Profit -= delivery_selected.TotalDiscount;
-                            result_item.order.Discount = delivery_selected.TotalDiscount;
-                            result_item.order.VoucherId = delivery_selected.voucher_id;
-                        }
+                    //}
+                    //if (order.voucher_apply != null && order.voucher_apply.Count > 0)
+                    //{
+                    //    var delivery_selected = order.voucher_apply.FirstOrDefault(x => x.SupplierId == supplier);
+                    //    if (delivery_selected != null)
+                    //    {
+                    //        result_item.order.Amount -= delivery_selected.TotalDiscount;
+                    //        //result_item.order.Profit -= delivery_selected.TotalDiscount;
+                    //        result_item.order.Discount = delivery_selected.TotalDiscount;
+                    //        result_item.order.VoucherId = delivery_selected.voucher_id;
+                    //    }
 
-                    }
+                    //}
                     result_item.order.SupplierId = supplier;
                     //--Payment Type:
                     if (result_item.order.PaymentType == 1)
