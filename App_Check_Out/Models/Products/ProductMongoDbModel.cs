@@ -91,7 +91,9 @@ namespace Entities.ViewModels.Products
         public DateTime? flash_sale_fromdate { get; set; }
         public DateTime? flash_sale_todate { get; set; }
         public string supplier_name { get; set; } = null;
+        public decimal? flash_sale_price_sales { get; set; }
 
+        public int? flash_sale_unit { get; set; }
     }
     public class ProductMongoDbModelFEResponseCollection : ProductMongoDbModelFEResponse
     {

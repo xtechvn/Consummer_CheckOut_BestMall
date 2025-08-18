@@ -176,30 +176,35 @@ namespace APP_CHECKOUT.Repositories
                         //    );
                         double base_profit_value = Convert.ToDouble(cart.product.profit_value == null ? 0 : cart.product.profit_value);
                         double profit_value = base_profit_value;
-                        if(cart.product.profit_value_type!=null && cart.product.profit_value_type == 0)
+                        if (cart.product.profit_value_type != null && cart.product.profit_value_type == 0)
                         {
-                            profit_value = Math.Round(base_profit_value / amount_per_unit * 100,0);
+                            profit_value = Math.Round(base_profit_value / amount_per_unit * 100, 0);
                         }
 
                         double base_profit_supplier_value = Convert.ToDouble(cart.product.profit_supplier == null ? 0 : cart.product.profit_supplier);
                         double profit_supplier_value = base_profit_supplier_value;
                         if (cart.product.profit_supplier_type != null && cart.product.profit_supplier_type == 0)
                         {
-                            profit_supplier_value = Math.Round(base_profit_supplier_value / amount_per_unit* 100,0);
+                            profit_supplier_value = Math.Round(base_profit_supplier_value / amount_per_unit * 100, 0);
+                        }
+                        double flashsale_percent = cart.product.flash_sale_price_sales==null?0: Convert.ToDouble(cart.product.flash_sale_price_sales);
+                        if ((cart.product.flash_sale_unit == null && flashsale_percent>0) || cart.product.flash_sale_unit == 0)
+                        {
+                            flashsale_percent= Convert.ToDouble(cart.product.flash_sale_price_sales) /cart.product.amount;
                         }
 
                         var order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
-                            Convert.ToDecimal(amount_per_unit)
+                            Convert.ToDecimal(product.amount)
                             , Convert.ToDecimal(profit_value / 100)
                             , Convert.ToDecimal(profit_supplier_value / 100)
-                            , 0
-                            ,cart.quanity);
+                            , Convert.ToDecimal(flashsale_percent)
+                            , cart.quanity);
                         var order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale(
-                            Convert.ToDecimal(amount_per_unit)
+                            Convert.ToDecimal(product.amount)
                             , Convert.ToDecimal(profit_value/100)
                             , Convert.ToDecimal(profit_supplier_value / 100)
-                            , 0
-                            ,cart.quanity
+                            , Convert.ToDecimal(flashsale_percent)
+                            , cart.quanity
                             ,order.utm_medium!=null && order.utm_medium.Trim()!=""? Convert.ToDecimal(cart.product.profit_affliate / 100) :0
                             , order.payment_type != null && order.payment_type==3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0
                             ,0
