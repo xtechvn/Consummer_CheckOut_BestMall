@@ -596,7 +596,7 @@ namespace APP_CHECKOUT.Repositories
                 {
                     result_item.order.OrderMergeId = order_merge_id;
                     var order_id = await orderDAL.CreateOrder(result_item.order);
-                    LogHelper.InsertLogTelegram("Order Created - " + order.order_no + " - " + result_item.order.Amount);
+                    LogHelper.InsertLogTelegram("Order Created - " + result_item.order.OrderNo + " - " + result_item.order.Amount);
                     workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
                     if (order_id > 0)
                     {
