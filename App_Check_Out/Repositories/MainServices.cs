@@ -194,7 +194,8 @@ namespace APP_CHECKOUT.Repositories
                         {
                             profit_supplier_value = Math.Round(base_profit_supplier_value / product.amount * 100, 0);
                         }
-                        double flashsale_percent = cart.product.flash_sale_price_sales==null?0: Convert.ToDouble(cart.product.flash_sale_price_sales);
+                        double flashsale_percent = (cart.product.flash_sale_price_sales == null || cart.product.amount_after_flashsale == null || cart.product.amount_after_flashsale <=0) ?0: Convert.ToDouble(cart.product.flash_sale_price_sales);
+
                         if ((cart.product.flash_sale_unit == null && flashsale_percent>0) || cart.product.flash_sale_unit == 0)
                         {
                             flashsale_percent= Math.Round(Convert.ToDouble(cart.product.flash_sale_price_sales) / product.amount * 100,0);
