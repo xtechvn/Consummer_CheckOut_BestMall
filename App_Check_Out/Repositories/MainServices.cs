@@ -238,6 +238,14 @@ namespace APP_CHECKOUT.Repositories
                             , 0
                             , 0
                             );
+                        LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
+                            " + Convert.ToDecimal(product.amount) + @"
+                            , " + Convert.ToDecimal(profit_value / 100) + @"
+                             , " + Convert.ToDecimal(profit_supplier_value / 100) + @"
+                             , " + Convert.ToDecimal(flashsale_percent) + @"
+                             , " + cart.quanity + @"
+                            
+                            );: [" + order_detail_profit + "]");
                         LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale(
                             "+ Convert.ToDecimal(product.amount) + @"
                             , "+Convert.ToDecimal(profit_value/100) + @"
@@ -251,7 +259,7 @@ namespace APP_CHECKOUT.Repositories
                              , " + Convert.ToDecimal(product_total_discount) + @"
                              , " + 0 + @"
                              , " + 0 + @"
-                            );:");
+                            );: ["+ order_detail_final_profit + "]");
 
                         result_item.order_detail.Add(new OrderDetail()
                         {
