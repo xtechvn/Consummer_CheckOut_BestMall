@@ -353,7 +353,7 @@ namespace APP_CHECKOUT.Repositories
                         OrderNo = order_no,
                         PaymentStatus = 0,
                         PaymentType = Convert.ToInt16(order.payment_type),
-                        Price = total_price,
+                        Price = total_amount,
                         Profit = total_profit,
                         OrderStatus = 0,
                         UpdateLast = time,
