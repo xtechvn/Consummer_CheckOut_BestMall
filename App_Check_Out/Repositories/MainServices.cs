@@ -200,6 +200,7 @@ namespace APP_CHECKOUT.Repositories
                         {
                             flashsale_percent= Math.Round(Convert.ToDouble(cart.product.flash_sale_price_sales) / product.amount * 100,0);
                         }
+                        //-- voucher:
                         double shipper_voucher_total_discount = 0;
                         if(order.voucher_apply!=null && order.voucher_apply.Count > 0)
                         {
@@ -242,6 +243,7 @@ namespace APP_CHECKOUT.Repositories
                                 }
                             }
                         }
+                        //-- calculate price:
                         var order_detail_price = besmalPriceFormulaManager.tinh_gia_nhap(
                           Convert.ToDecimal(product.amount)
                            , Convert.ToDecimal(profit_supplier_value / 100)
