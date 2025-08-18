@@ -238,6 +238,21 @@ namespace APP_CHECKOUT.Repositories
                             , 0
                             , 0
                             );
+                        LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale(
+                            "+ Convert.ToDecimal(product.amount) + @"
+                            , "+Convert.ToDecimal(profit_value/100) + @"
+                             , "+Convert.ToDecimal(profit_supplier_value / 100) + @"
+                             , " + Convert.ToDecimal(flashsale_percent) + @"
+                             , " + cart.quanity + @"
+                            , " + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + @"
+                            , " + (order.payment_type != null && order.payment_type == 3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0) + @"
+                             , " + Convert.ToDecimal(order.shipping_fee) + @"
+                             , " + Convert.ToDecimal(shipper_voucher_total_discount) + @"
+                             , " + Convert.ToDecimal(product_total_discount) + @"
+                             , " + 0 + @"
+                             , " + 0 + @"
+                            );:");
+
                         result_item.order_detail.Add(new OrderDetail()
                         {
                             CreatedDate = time,
