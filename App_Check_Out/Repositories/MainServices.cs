@@ -218,6 +218,11 @@ namespace APP_CHECKOUT.Repositories
 
                             }
                         }
+                        var order_detail_price = besmalPriceFormulaManager.tinh_gia_nhap(
+                          Convert.ToDecimal(product.amount)
+                           , Convert.ToDecimal(profit_supplier_value / 100)
+                          , Convert.ToDecimal(profit_value / 100)
+                          );
                         var order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
                             Convert.ToDecimal(product.amount)
                             , Convert.ToDecimal(profit_value / 100)
@@ -267,14 +272,14 @@ namespace APP_CHECKOUT.Repositories
                             Discount = 0,
                             OrderDetailId = 0,
                             OrderId = 0,
-                            Price = product.price,
+                            Price = Convert.ToDouble(order_detail_price),
                             Profit = Convert.ToDouble(order_detail_profit),
                             Quantity = cart.quanity,
                             Amount = amount_per_unit,
                             ProductCode = cart.product.code,
                             ProductId = cart.product._id,
                             ProductLink = ConfigurationManager.AppSettings["Setting_Domain"] + "/san-pham/" + name_url + "--" + cart.product._id,
-                            TotalPrice = product.price * cart.quanity,
+                            TotalPrice = Convert.ToDouble(order_detail_price) * cart.quanity,
                             TotalProfit = (amount_per_unit * profit_value / 100),
                             TotalAmount = cart.total_amount,
                             TotalDiscount = 0,
@@ -285,11 +290,11 @@ namespace APP_CHECKOUT.Repositories
                             FinalProfit=Convert.ToDouble(order_detail_final_profit)
                         });
                         total_product_quantity += cart.quanity;
-                        //cart.product.price = product.price;
-                        cart.total_profit= cart.total_amount * profit_value / 100;
+                        cart.total_price = Convert.ToDouble(order_detail_price) * cart.quanity;
+                        cart.total_profit = Convert.ToDouble(order_detail_final_profit);
                         cart.product.amount = amount_per_unit;
-                        total_profit += (cart.total_amount * profit_value / 100);
-                        total_price += product.price * cart.quanity;
+                        total_profit += Convert.ToDouble(order_detail_final_profit);
+                        total_price += Convert.ToDouble(order_detail_price) * cart.quanity;
                         total_amount += cart.total_amount;
                         if (!list_supplier.Contains(cart.product.supplier_id))
                         {
