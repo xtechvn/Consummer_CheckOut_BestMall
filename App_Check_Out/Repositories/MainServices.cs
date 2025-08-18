@@ -313,8 +313,6 @@ namespace APP_CHECKOUT.Repositories
                             FinalProfit = Convert.ToDouble(order_detail_final_profit)
                         };
                         result_item.order_detail.Add(order_detail);
-                        LogHelper.InsertLogTelegram("result_item.order_detail - " + order_detail.Profit + " - " + order_detail.FinalProfit);
-
                         total_product_quantity += cart.quanity;
                         cart.total_price = Convert.ToDouble(order_detail_price) * cart.quanity;
                         cart.total_profit = Convert.ToDouble(order_detail_final_profit);
@@ -341,12 +339,14 @@ namespace APP_CHECKOUT.Repositories
                             shipping_fee_supplier=shipping_supplier.shipping_fee==null?0:(double)shipping_supplier.shipping_fee;
                         }
                     }
+                    LogHelper.InsertLogTelegram("result_item.order - ["+ total_amount + "]["+ shipping_fee_supplier + "]["+ voucher_total_discount + "]");
+
                     result_item.order = new Entities.Models.Order()
                     {
-                        Amount = total_amount + shipping_fee_supplier- voucher_total_discount,
+                        Amount = total_amount,
                         ClientId = (long)account_client.ClientId,
                         CreatedDate = DateTime.Now,
-                        Discount = 0,
+                        Discount = voucher_total_discount,
                         IsDelete = 0,
                         Note = "",
                         OrderId = 0,
