@@ -184,19 +184,19 @@ namespace APP_CHECKOUT.Repositories
                         double profit_value = base_profit_value;
                         if (cart.product.profit_value_type != null && cart.product.profit_value_type == 0)
                         {
-                            profit_value = Math.Round(base_profit_value / amount_per_unit * 100, 0);
+                            profit_value = Math.Round(base_profit_value / product.amount * 100, 0);
                         }
 
                         double base_profit_supplier_value = Convert.ToDouble(cart.product.profit_supplier == null ? 0 : cart.product.profit_supplier);
                         double profit_supplier_value = base_profit_supplier_value;
                         if (cart.product.profit_supplier_type != null && cart.product.profit_supplier_type == 0)
                         {
-                            profit_supplier_value = Math.Round(base_profit_supplier_value / amount_per_unit * 100, 0);
+                            profit_supplier_value = Math.Round(base_profit_supplier_value / product.amount * 100, 0);
                         }
                         double flashsale_percent = cart.product.flash_sale_price_sales==null?0: Convert.ToDouble(cart.product.flash_sale_price_sales);
                         if ((cart.product.flash_sale_unit == null && flashsale_percent>0) || cart.product.flash_sale_unit == 0)
                         {
-                            flashsale_percent= Convert.ToDouble(cart.product.flash_sale_price_sales) / product.amount;
+                            flashsale_percent= Convert.ToDouble(cart.product.flash_sale_price_sales) / product.amount *100;
                         }
                         double shipper_voucher_total_discount = 0;
                         if(order.voucher_apply!=null && order.voucher_apply.Count > 0)
@@ -205,7 +205,16 @@ namespace APP_CHECKOUT.Repositories
                             if (shipper_voucher != null)
                             {
                                 shipper_voucher_total_discount = shipper_voucher.TotalDiscount;
+                                if (shipper_voucher != null && shipper_voucher.Unit.ToLower().Trim() != "vnd")
+                                {
+                                    shipper_voucher_total_discount =Convert.ToDouble(shipper_voucher.PriceSales);
 
+                                }
+                                else
+                                {
+                                    var percent_cal = Convert.ToDouble(shipper_voucher.PriceSales) / order.shipping_fee * 100;
+                                    shipper_voucher_total_discount = Math.Round((percent_cal == null ? 0 : (double)percent_cal), 0);
+                                }
 
                             }
                         }
@@ -213,10 +222,14 @@ namespace APP_CHECKOUT.Repositories
                         if (order.voucher_apply != null && order.voucher_apply.Count > 0)
                         {
                             var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 0);
-                            if (shipper_voucher != null && shipper_voucher.Unit.Trim()!="vnd")
+                            if (shipper_voucher != null && shipper_voucher.Unit.ToLower().Trim()!="vnd")
                             {
-                                product_total_discount = shipper_voucher.TotalDiscount;
+                                product_total_discount = Convert.ToDouble(shipper_voucher.PriceSales);
 
+                            }
+                            else
+                            {
+                                product_total_discount = Math.Round(base_profit_supplier_value / product.amount * 100, 0);
                             }
                         }
                         var order_detail_price = besmalPriceFormulaManager.tinh_gia_nhap(
@@ -228,19 +241,19 @@ namespace APP_CHECKOUT.Repositories
                             Convert.ToDecimal(product.amount)
                             , Convert.ToDecimal(profit_value / 100)
                             , Convert.ToDecimal(profit_supplier_value / 100)
-                            , Convert.ToDecimal(flashsale_percent)
+                            , Convert.ToDecimal(flashsale_percent/100)
                             , cart.quanity);
                         var order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale(
                             Convert.ToDecimal(product.amount)
                             , Convert.ToDecimal(profit_value/100)
                             , Convert.ToDecimal(profit_supplier_value / 100)
-                            , Convert.ToDecimal(flashsale_percent)
+                            , Convert.ToDecimal(flashsale_percent / 100)
                             , cart.quanity
                             ,order.utm_medium!=null && order.utm_medium.Trim()!=""? Convert.ToDecimal(cart.product.profit_affliate / 100) :0
                             , order.payment_type != null && order.payment_type==3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0
                             ,Convert.ToDecimal(order.shipping_fee)
-                            , Convert.ToDecimal(shipper_voucher_total_discount)
-                            , Convert.ToDecimal(product_total_discount)
+                            , Convert.ToDecimal(shipper_voucher_total_discount / 100)
+                            , Convert.ToDecimal(product_total_discount / 100)
                             , 0
                             , 0
                             );
@@ -248,7 +261,7 @@ namespace APP_CHECKOUT.Repositories
                             " + Convert.ToDecimal(product.amount) + @"
                             , " + Convert.ToDecimal(profit_value / 100) + @"
                              , " + Convert.ToDecimal(profit_supplier_value / 100) + @"
-                             , " + Convert.ToDecimal(flashsale_percent) + @"
+                             , " + Convert.ToDecimal(flashsale_percent / 100) + @"
                              , " + cart.quanity + @"
                             
                             );: [" + order_detail_profit + "]");
@@ -256,13 +269,13 @@ namespace APP_CHECKOUT.Repositories
                             "+ Convert.ToDecimal(product.amount) + @"
                             , "+Convert.ToDecimal(profit_value/100) + @"
                              , "+Convert.ToDecimal(profit_supplier_value / 100) + @"
-                             , " + Convert.ToDecimal(flashsale_percent) + @"
+                             , " + Convert.ToDecimal(flashsale_percent / 100) + @"
                              , " + cart.quanity + @"
                             , " + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + @"
                             , " + (order.payment_type != null && order.payment_type == 3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0) + @"
                              , " + Convert.ToDecimal(order.shipping_fee) + @"
-                             , " + Convert.ToDecimal(shipper_voucher_total_discount) + @"
-                             , " + Convert.ToDecimal(product_total_discount) + @"
+                             , " + Convert.ToDecimal(shipper_voucher_total_discount / 100) + @"
+                             , " + Convert.ToDecimal(product_total_discount / 100) + @"
                              , " + 0 + @"
                              , " + 0 + @"
                             );: ["+ order_detail_final_profit + "]");
@@ -572,8 +585,8 @@ namespace APP_CHECKOUT.Repositories
                             detail.OrderId = order_id;
                             detail.OrderMergeId = order_merge_id;
                             await orderDetailDAL.CreateOrderDetail(detail);
-                            Console.WriteLine("Created OrderDetail - " + detail.OrderId + ": " + detail.OrderDetailId);
-                            LogHelper.InsertLogTelegram("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId+"[" + detail.Profit + "] - [" + detail.FinalProfit+"]");
+                            Console.WriteLine("Created OrderDetail - [" + detail.OrderId + "][ " + detail.OrderDetailId + "]");
+                            LogHelper.InsertLogTelegram("OrderDetail Created - [" + detail.OrderId + "] [" + detail.OrderDetailId+"] [" + detail.Profit + "] - [" + detail.FinalProfit+"]");
 
                         }
 
