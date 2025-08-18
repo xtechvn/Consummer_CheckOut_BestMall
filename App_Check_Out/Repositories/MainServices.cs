@@ -18,6 +18,7 @@ using Entities.Models;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.Controllers.Shipping.Business;
 using HuloToys_Service.RedisWorker;
+using Nest;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 using System.Configuration;
@@ -265,8 +266,7 @@ namespace APP_CHECKOUT.Repositories
                              , " + 0 + @"
                              , " + 0 + @"
                             );: ["+ order_detail_final_profit + "]");
-
-                        result_item.order_detail.Add(new OrderDetail()
+                        var order_detail = new OrderDetail()
                         {
                             CreatedDate = time,
                             Discount = 0,
@@ -287,8 +287,11 @@ namespace APP_CHECKOUT.Repositories
                             UserCreate = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                             UserUpdated = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                             ParentProductId = parent_product_id,
-                            FinalProfit=Convert.ToDouble(order_detail_final_profit)
-                        });
+                            FinalProfit = Convert.ToDouble(order_detail_final_profit)
+                        };
+                        result_item.order_detail.Add(order_detail);
+                        LogHelper.InsertLogTelegram("result_item.order_detail - " + order_detail.Profit + " - " + order_detail.FinalProfit);
+
                         total_product_quantity += cart.quanity;
                         cart.total_price = Convert.ToDouble(order_detail_price) * cart.quanity;
                         cart.total_profit = Convert.ToDouble(order_detail_final_profit);
@@ -570,7 +573,8 @@ namespace APP_CHECKOUT.Repositories
                             detail.OrderMergeId = order_merge_id;
                             await orderDetailDAL.CreateOrderDetail(detail);
                             Console.WriteLine("Created OrderDetail - " + detail.OrderId + ": " + detail.OrderDetailId);
-                            LogHelper.InsertLogTelegram("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
+                            LogHelper.InsertLogTelegram("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId+"[" + detail.Profit + "] - [" + detail.FinalProfit+"]");
+
                         }
 
                     }
