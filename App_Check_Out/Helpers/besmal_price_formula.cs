@@ -207,7 +207,16 @@ public class BesmalPriceFormulaManager
         
         decimal voucher_van_chuyen_ap_dung = kiem_tra_dieu_kien_voucher_ship(tong_gia_ban_sale, dieu_kien_voucher_ship) ? voucher_van_chuyen : 0;
         decimal ty_le_voucher_giam_gia_ap_dung = kiem_tra_dieu_kien_voucher_giam_gia(tong_gia_ban_goc, dieu_kien_voucher_giam_gia) ? ty_le_voucher_giam_gia : 0;
-        
+        LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices -tinh_loi_nhuan_rong_sau_sale: 
+            " + loi_nhuan_tam_tinh_sale + @"
+            , " + gia_khach_hang_thanh_toan_sale + @"
+             , " + tong_gia_ban_sale + @"
+             , " + tong_gia_ban_goc + @"
+             , " + phan_tram_sale_best_mall + @"
+             , " + voucher_van_chuyen_ap_dung + @"
+             , " + ty_le_voucher_giam_gia_ap_dung + @"
+
+            ;");
         return loi_nhuan_tam_tinh_sale - (gia_khach_hang_thanh_toan_sale * phi_affiliate) - (gia_khach_hang_thanh_toan_sale * phi_vnpay) - (phi_van_chuyen * voucher_van_chuyen_ap_dung) - (tong_gia_ban_sale * ty_le_voucher_giam_gia_ap_dung) - (gia_niem_yet * phan_tram_sale_best_mall);
     }
 }
