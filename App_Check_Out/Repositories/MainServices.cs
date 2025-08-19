@@ -208,19 +208,20 @@ namespace APP_CHECKOUT.Repositories
                             var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 1);
                             if (shipper_voucher != null && shipper_voucher.PriceSales!=null)
                             {
-                                if (shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd")
-                                {
-                                    shipper_voucher_total_discount =Convert.ToDouble(shipper_voucher.PriceSales);
-                                    voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) * (order.shipping_fee==null?0:(double)order.shipping_fee) / 100);
-                                }
-                                else
-                                {
-                                    var percent_cal = Convert.ToDouble(shipper_voucher.PriceSales) / order.shipping_fee * 100;
-                                    shipper_voucher_total_discount = (percent_cal == null ? 0 : (double)percent_cal);
-                                    voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) / cart_belong_to_supplier.Count());
+                                //if (shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd")
+                                //{
+                                //    shipper_voucher_total_discount =Convert.ToDouble(shipper_voucher.PriceSales);
+                                //    voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) * (order.shipping_fee==null?0:(double)order.shipping_fee) / 100);
+                                //}
+                                //else
+                                //{
+                                //    var percent_cal = Convert.ToDouble(shipper_voucher.PriceSales) / order.shipping_fee * 100;
+                                //    shipper_voucher_total_discount = (percent_cal == null ? 0 : (double)percent_cal);
+                                //    voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) / cart_belong_to_supplier.Count());
 
-                                }
-
+                                //}
+                                shipper_voucher_total_discount = shipper_voucher.TotalDiscount / (double)order.shipping_fee * 100;
+                                voucher_total_discount += shipper_voucher.TotalDiscount;
                             }
                         }
                         double product_total_discount = 0;
@@ -230,20 +231,23 @@ namespace APP_CHECKOUT.Repositories
                             if (shipper_voucher != null && shipper_voucher.PriceSales != null)
                             {
 
-                                if ( shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd")
-                                {
-                                    product_total_discount = Convert.ToDouble(shipper_voucher.PriceSales);
-                                    voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) * ((product == null || product.amount<=0) ? 0 : (double)product.amount) / 100);
+                                //if ( shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd")
+                                //{
+                                //    product_total_discount = Convert.ToDouble(shipper_voucher.PriceSales);
+                                //    voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) * ((product == null || product.amount<=0) ? 0 : (double)product.amount) / 100);
 
-                                }
-                                else
-                                {
-                                    product_total_discount = Math.Round(Convert.ToDouble(shipper_voucher.PriceSales) / product.amount * 100,2);
-                                    voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) /cart_belong_to_supplier.Count());
+                                //}
+                                //else
+                                //{
+                                //    product_total_discount = Math.Round(Convert.ToDouble(shipper_voucher.PriceSales) / product.amount * 100,2);
+                                //    voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) /cart_belong_to_supplier.Count());
 
-                                }
+                                //}
+                                product_total_discount = Math.Round(Convert.ToDouble(shipper_voucher.TotalDiscount) / product.amount * 100, 2);
+                                voucher_total_discount += shipper_voucher.TotalDiscount;
                             }
                         }
+                        
                         //-- calculate price:
                         var order_detail_price = besmalPriceFormulaManager.tinh_gia_nhap(
                           Convert.ToDecimal(product.amount)
