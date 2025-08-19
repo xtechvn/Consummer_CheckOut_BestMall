@@ -238,7 +238,7 @@ namespace APP_CHECKOUT.Repositories
                                 }
                                 else
                                 {
-                                    product_total_discount = Math.Round(Convert.ToDouble(shipper_voucher.PriceSales) / product.amount * 100,4);
+                                    product_total_discount = Math.Round(Convert.ToDouble(shipper_voucher.PriceSales) / product.amount * 100,2);
                                     voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) /cart_belong_to_supplier.Count());
 
                                 }
@@ -292,8 +292,8 @@ namespace APP_CHECKOUT.Repositories
                         //     , " + 0 + @"
                         //     , " + 0 + @"
                         //    );: ["+ order_detail_final_profit + "]");
-                        order_detail_profit = StringHelper.RoundUp(order_detail_profit);
-                        order_detail_final_profit = StringHelper.RoundUp(order_detail_final_profit);
+                        //order_detail_profit = StringHelper.RoundUp(order_detail_profit);
+                       // order_detail_final_profit = StringHelper.RoundUp(order_detail_final_profit);
                         var order_detail = new OrderDetail()
                         {
                             CreatedDate = time,
