@@ -18,6 +18,7 @@ using Entities.Models;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.Controllers.Shipping.Business;
 using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Utilities.lib;
 using Nest;
 using Newtonsoft.Json;
 using StackExchange.Redis;
@@ -275,7 +276,7 @@ namespace APP_CHECKOUT.Repositories
                         //     , " + Convert.ToDecimal(profit_supplier_value / 100) + @"
                         //     , " + Convert.ToDecimal(flashsale_percent / 100) + @"
                         //     , " + cart.quanity + @"
-                            
+
                         //    );: [" + order_detail_profit + "]");
                         //LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale(
                         //    "+ Convert.ToDecimal(product.amount) + @"
@@ -291,6 +292,8 @@ namespace APP_CHECKOUT.Repositories
                         //     , " + 0 + @"
                         //     , " + 0 + @"
                         //    );: ["+ order_detail_final_profit + "]");
+                        order_detail_profit = StringHelper.RoundUp(order_detail_profit);
+                        order_detail_final_profit = StringHelper.RoundUp(order_detail_final_profit);
                         var order_detail = new OrderDetail()
                         {
                             CreatedDate = time,

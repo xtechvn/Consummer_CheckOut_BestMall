@@ -46,8 +46,8 @@ namespace HuloToys_Service.Utilities.lib
         }
         public static string ValidateTextForSearch(string input)
         {
-            var validate= input.Normalize(NormalizationForm.FormC).ToLower().Trim();
-            validate= regex_vietnamese_unicode.Replace(validate, "");
+            var validate = input.Normalize(NormalizationForm.FormC).ToLower().Trim();
+            validate = regex_vietnamese_unicode.Replace(validate, "");
 
             return validate;
         }
@@ -110,5 +110,17 @@ namespace HuloToys_Service.Utilities.lib
             // 4. Định dạng và trả về chuỗi
             return utcPlus7Time;
         }
+        public static decimal RoundUp(decimal value, int step = 100)
+        {
+            double number=Convert.ToDouble(value);
+            if (number <= 0) return 0;
+            double du = number % step;
+
+            if (du == 0)
+                return Convert.ToDecimal(number);
+            else
+                return Convert.ToDecimal(number + (step - du));
+        }
     }
+
 }
