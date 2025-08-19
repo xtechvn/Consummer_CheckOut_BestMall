@@ -272,6 +272,7 @@ namespace APP_CHECKOUT.Repositories
                             , Convert.ToDecimal(product_total_discount / 100)
                             , 0
                             , 0
+                            ,Convert.ToDecimal(order.total_amount)
                             );
                         //LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
                         //    " + Convert.ToDecimal(product.amount) + @"
@@ -294,6 +295,7 @@ namespace APP_CHECKOUT.Repositories
                              , " + Convert.ToDecimal(product_total_discount / 100) + @"
                              , " + 0 + @"
                              , " + 0 + @"
+                             , " + Convert.ToDecimal(order.total_amount) + @"
                             );: [" + order_detail_final_profit + "]");
                         //order_detail_profit = StringHelper.RoundUp(order_detail_profit);
                         // order_detail_final_profit = StringHelper.RoundUp(order_detail_final_profit);

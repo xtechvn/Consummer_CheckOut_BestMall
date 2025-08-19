@@ -193,10 +193,11 @@ public class BesmalPriceFormulaManager
     /// </summary>
     public decimal tinh_loi_nhuan_rong_sau_sale(decimal gia_niem_yet, decimal ty_le_chiet_khau, decimal ty_le_sncc, 
         decimal ty_le_sale_ncc, int so_luong, decimal phi_affiliate, decimal phi_vnpay, decimal phi_van_chuyen, 
-        decimal voucher_van_chuyen, decimal ty_le_voucher_giam_gia, decimal dieu_kien_voucher_ship, decimal dieu_kien_voucher_giam_gia)
+        decimal voucher_van_chuyen, decimal ty_le_voucher_giam_gia, decimal dieu_kien_voucher_ship, decimal dieu_kien_voucher_giam_gia
+        , decimal gia_khach_hang_thanh_toan_sale)
     {
         decimal loi_nhuan_tam_tinh_sale = tinh_loi_nhuan_tam_tinh_sau_sale(gia_niem_yet, ty_le_chiet_khau, ty_le_sncc, ty_le_sale_ncc, so_luong);
-        decimal gia_khach_hang_thanh_toan_sale = tinh_gia_khach_hang_tra_co_sale(gia_niem_yet, ty_le_sale_ncc, so_luong, phi_van_chuyen, voucher_van_chuyen, ty_le_voucher_giam_gia, dieu_kien_voucher_ship, dieu_kien_voucher_giam_gia);
+        //decimal gia_khach_hang_thanh_toan_sale = tinh_gia_khach_hang_tra_co_sale(gia_niem_yet, ty_le_sale_ncc, so_luong, phi_van_chuyen, voucher_van_chuyen, ty_le_voucher_giam_gia, dieu_kien_voucher_ship, dieu_kien_voucher_giam_gia);
        
 
         decimal tong_gia_ban_sale = tinh_tong_gia_ban_co_sale(gia_niem_yet, ty_le_sale_ncc, so_luong);
