@@ -215,7 +215,7 @@ namespace APP_CHECKOUT.Repositories
                                 else
                                 {
                                     var percent_cal = Convert.ToDouble(shipper_voucher.PriceSales) / order.shipping_fee * 100;
-                                    shipper_voucher_total_discount = Math.Round((percent_cal == null ? 0 : (double)percent_cal), 0);
+                                    shipper_voucher_total_discount = (percent_cal == null ? 0 : (double)percent_cal);
                                     voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) / cart_belong_to_supplier.Count());
 
                                 }
@@ -237,7 +237,7 @@ namespace APP_CHECKOUT.Repositories
                                 }
                                 else
                                 {
-                                    product_total_discount = Math.Round(Convert.ToDouble(shipper_voucher.PriceSales) / product.amount * 100, 0);
+                                    product_total_discount = Convert.ToDouble(shipper_voucher.PriceSales) / product.amount * 100;
                                     voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) /cart_belong_to_supplier.Count());
 
                                 }
