@@ -1,3 +1,4 @@
+using APP_CHECKOUT.Utilities.Lib;
 using System;
 
 /// <summary>
@@ -196,9 +197,17 @@ public class BesmalPriceFormulaManager
     {
         decimal loi_nhuan_tam_tinh_sale = tinh_loi_nhuan_tam_tinh_sau_sale(gia_niem_yet, ty_le_chiet_khau, ty_le_sncc, ty_le_sale_ncc, so_luong);
         decimal gia_khach_hang_thanh_toan_sale = tinh_gia_khach_hang_tra_co_sale(gia_niem_yet, ty_le_sale_ncc, so_luong, phi_van_chuyen, voucher_van_chuyen, ty_le_voucher_giam_gia, dieu_kien_voucher_ship, dieu_kien_voucher_giam_gia);
+       
+
         decimal tong_gia_ban_sale = tinh_tong_gia_ban_co_sale(gia_niem_yet, ty_le_sale_ncc, so_luong);
         decimal tong_gia_ban_goc = tinh_tong_gia_ban_chua_sale(gia_niem_yet, so_luong);
-        
+        LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] tinh_loi_nhuan_rong_sau_sale(
+            [" + loi_nhuan_tam_tinh_sale + @"]
+            [" + gia_khach_hang_thanh_toan_sale + @"]
+            [" + tong_gia_ban_sale + @"]
+            [" + tong_gia_ban_goc + @"]
+         
+            ");
         // Tính SBM từ công thức 7
         decimal phan_tram_sale_best_mall = tinh_phan_tram_sale_best_mall(ty_le_sale_ncc, ty_le_sncc);
         
