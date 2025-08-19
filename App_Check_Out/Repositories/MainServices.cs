@@ -237,7 +237,7 @@ namespace APP_CHECKOUT.Repositories
                                 }
                                 else
                                 {
-                                    product_total_discount = Convert.ToDouble(shipper_voucher.PriceSales) / product.amount * 100;
+                                    product_total_discount = Math.Round(Convert.ToDouble(shipper_voucher.PriceSales) / product.amount * 100,2);
                                     voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) /cart_belong_to_supplier.Count());
 
                                 }
