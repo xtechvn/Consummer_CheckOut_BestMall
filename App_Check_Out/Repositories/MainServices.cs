@@ -688,7 +688,11 @@ namespace APP_CHECKOUT.Repositories
                                     }
                                 }
                             }
-                            catch { }
+                            catch (Exception ex)
+                            {
+                                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder - UpdateVoucher:" + ex);
+
+                            }
                         }
                     }
                 }
