@@ -175,6 +175,13 @@ namespace APP_CHECKOUT.Repositories
                         {
                             parent_product_id = cart.product.parent_product_id;
                         }
+                        var product_amount_after_sale = cart.product.amount;
+                        if (cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
+                        {
+                            product_amount_after_sale = (double)cart.product.amount_after_flashsale;
+
+
+                        }
                         var product = await productDetailMongoAccess.GetByID(cart.product._id);
                         double amount_per_unit = cart.total_amount / cart.quanity;
                         //double order_detail_profit = CalculateTotalProfitProduct(amount_per_unit, product.profit, product.price, cart.quanity,order.payment_type,order.utm_medium
@@ -239,7 +246,7 @@ namespace APP_CHECKOUT.Repositories
                                 }
                                 else
                                 {
-                                    product_total_discount = Math.Round(Convert.ToDouble(shipper_voucher.PriceSales) / product.amount * 100, 2);
+                                    product_total_discount = Math.Round(Convert.ToDouble(shipper_voucher.PriceSales) / product_amount_after_sale * 100, 2);
                                    // voucher_total_discount += (Convert.ToDouble(shipper_voucher.PriceSales) / cart_belong_to_supplier.Count());
 
                                 }
@@ -272,7 +279,7 @@ namespace APP_CHECKOUT.Repositories
                             , Convert.ToDecimal(product_total_discount / 100)
                             , 0
                             , 0
-                            ,Convert.ToDecimal(order.total_amount)
+                            ,Convert.ToDecimal(product_amount_after_sale)
                             );
                         //LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
                         //    " + Convert.ToDecimal(product.amount) + @"
@@ -295,7 +302,7 @@ namespace APP_CHECKOUT.Repositories
                              , " + Convert.ToDecimal(product_total_discount / 100) + @"
                              , " + 0 + @"
                              , " + 0 + @"
-                             , " + Convert.ToDecimal(order.total_amount) + @"
+                             , " + Convert.ToDecimal(product_amount_after_sale) + @"
                             );: [" + order_detail_final_profit + "]");
                         //order_detail_profit = StringHelper.RoundUp(order_detail_profit);
                         // order_detail_final_profit = StringHelper.RoundUp(order_detail_final_profit);
