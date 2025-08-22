@@ -52,6 +52,8 @@ namespace APP_CHECKOUT.Repositories
         private readonly RedisConn _redisConn;
         private readonly OrderMergeDAL orderMergeDAL;
         private readonly BesmalPriceFormulaManager besmalPriceFormulaManager;
+        private readonly VoucherDAL voucherDAL;
+
         public MainServices( ViettelPostService viettelPostService) {
 
             orderDetailMongoDbModel = new OrderMongodbService();
@@ -79,6 +81,8 @@ namespace APP_CHECKOUT.Repositories
             }
             catch { }
             besmalPriceFormulaManager=new BesmalPriceFormulaManager();
+            voucherDAL = new VoucherDAL(ConfigurationManager.AppSettings["ConnectionString"]);
+
         }
         public async Task Excute(CheckoutQueueModel request)
         {
@@ -655,6 +659,39 @@ namespace APP_CHECKOUT.Repositories
                 }
                 order.order_id = order_merge_id;
                 await orderDetailMongoDbModel.Update(order);
+                if (order.voucher_apply != null && order.voucher_apply.Count > 0)
+                {
+                    string cache_name = "VOUCHER";
+                    _redisConn.clear(cache_name, Convert.ToInt32(ConfigurationManager.AppSettings["Redis_Database_db_search_result"]));
+                    foreach (var voucher in order.voucher_apply)
+                    {
+                        var exists_voucher = await voucherDAL.FindByVoucherId(voucher.voucher_id);
+                        if (exists_voucher != null && exists_voucher.Id>0) {
+                            exists_voucher.LimitUse--;
+                            if (exists_voucher.LimitUse <= 0)
+                            {
+                                exists_voucher.LimitUse = 0;
+                            }
+                            try
+                            {
+                                voucherDAL.UpdateVoucher(exists_voucher);
+                                if (exists_voucher.GroupUserPriority != null && exists_voucher.GroupUserPriority.Trim() != "")
+                                {
+                                    List<long> client_ids = JsonConvert.DeserializeObject<List<long>>(exists_voucher.GroupUserPriority);
+                                    if (client_ids != null && client_ids.Count > 0)
+                                    {
+                                        foreach (var client_id in client_ids)
+                                        {
+                                            cache_name = "VOUCHER" + client;
+                                            _redisConn.clear(cache_name, Convert.ToInt32(ConfigurationManager.AppSettings["Redis_Database_db_search_result"]));
+                                        }
+                                    }
+                                }
+                            }
+                            catch { }
+                        }
+                    }
+                }
 
 
                 return result;
