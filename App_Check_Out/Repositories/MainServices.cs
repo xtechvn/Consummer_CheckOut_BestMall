@@ -25,6 +25,7 @@ using StackExchange.Redis;
 using System.Configuration;
 using System.Net;
 using System.Text;
+using Telegram.Bot.Types;
 using Utilities.Contants;
 using static MongoDB.Driver.WriteConcern;
 
@@ -53,6 +54,7 @@ namespace APP_CHECKOUT.Repositories
         private readonly OrderMergeDAL orderMergeDAL;
         private readonly BesmalPriceFormulaManager besmalPriceFormulaManager;
         private readonly VoucherDAL voucherDAL;
+        private readonly NotificationService notificationService;
 
         public MainServices( ViettelPostService viettelPostService) {
 
@@ -82,7 +84,7 @@ namespace APP_CHECKOUT.Repositories
             catch { }
             besmalPriceFormulaManager=new BesmalPriceFormulaManager();
             voucherDAL = new VoucherDAL(ConfigurationManager.AppSettings["ConnectionString"]);
-
+            notificationService = new NotificationService();
         }
         public async Task Excute(CheckoutQueueModel request)
         {
@@ -98,6 +100,7 @@ namespace APP_CHECKOUT.Repositories
                            var data=  await CreateOrder(request.order_mongo_id);
                             if (data != null && data.data_mongo != null&& data.data_mongo._id != null && data.data_mongo._id.Trim() != "")
                             {
+                                await notificationService.SendMessage((data.order_merge.UserId==null?0:(int)data.order_merge.UserId).ToString(),"", "0", data.order_merge.OrderNo, "/Order/");
                                 emailService.SendOrderConfirmationEmail(data.data_mongo.email, data);
                             }
                         }break;
