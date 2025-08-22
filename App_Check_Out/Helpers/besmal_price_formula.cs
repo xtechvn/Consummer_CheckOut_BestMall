@@ -218,6 +218,6 @@ public class BesmalPriceFormulaManager
              , " + ty_le_voucher_giam_gia_ap_dung + @"
 
             ;");
-        return loi_nhuan_tam_tinh_sale - (gia_khach_hang_thanh_toan_sale * phi_affiliate) - (gia_khach_hang_thanh_toan_sale * phi_vnpay) - (phi_van_chuyen * voucher_van_chuyen_ap_dung) - (tong_gia_ban_sale * ty_le_voucher_giam_gia_ap_dung) - (gia_niem_yet * phan_tram_sale_best_mall);
+        return loi_nhuan_tam_tinh_sale - (gia_khach_hang_thanh_toan_sale * phi_affiliate) - (gia_khach_hang_thanh_toan_sale * phi_vnpay) - (phi_van_chuyen * voucher_van_chuyen_ap_dung) - (gia_khach_hang_thanh_toan_sale * ty_le_voucher_giam_gia_ap_dung) - (gia_niem_yet * phan_tram_sale_best_mall);
     }
 }
