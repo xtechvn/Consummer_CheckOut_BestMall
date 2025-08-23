@@ -169,12 +169,17 @@ namespace APP_CHECKOUT.Repositories
                     }
                 }
                 double product_total_discount = 0;
+                double product_total_discount_percent = 0;
                 if (order.voucher_apply != null && order.voucher_apply.Count > 0)
                 {
                     var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 0);
                     if (shipper_voucher != null && shipper_voucher.PriceSales != null)
                     {
+                        if (shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd")
+                        {
+                            product_total_discount_percent = Convert.ToDouble(shipper_voucher.PriceSales);
 
+                        }
                         product_total_discount = shipper_voucher.TotalDiscount;
                         voucher_total_discount += shipper_voucher.TotalDiscount;
                     }
@@ -242,7 +247,11 @@ namespace APP_CHECKOUT.Repositories
                         {
                             flashsale_percent= Math.Round(Convert.ToDouble(cart.product.flash_sale_price_sales) / product.amount * 100,0);
                         }
-                      
+                        double order_detail_product_total_discount = Math.Ceiling(product_total_discount / order.carts.Count);
+                        if (product_total_discount_percent > 0)
+                        {
+                            order_detail_product_total_discount = product_amount_after_sale * cart.quanity * order_detail_product_total_discount / 100;
+                        }
                         
                         //-- calculate price:
                         var order_detail_price = besmalPriceFormulaManager.tinh_gia_nhap(
@@ -265,7 +274,7 @@ namespace APP_CHECKOUT.Repositories
                             ,order.utm_medium!=null && order.utm_medium.Trim()!=""? Convert.ToDecimal(cart.product.profit_affliate / 100) :0
                             , order.payment_type != null && order.payment_type==3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0
                             , Convert.ToDecimal(Math.Ceiling(shipper_voucher_total_discount / order.carts.Count))
-                            , Convert.ToDecimal(Math.Ceiling(product_total_discount / order.carts.Count))
+                            , Convert.ToDecimal(order_detail_product_total_discount)
                             , 0
                             , 0
                             ,Convert.ToDecimal(order.total_amount)
@@ -287,7 +296,7 @@ namespace APP_CHECKOUT.Repositories
                             , " + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + @"
                             , " + (order.payment_type != null && order.payment_type == 3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0) + @"
                              , " + Convert.ToDecimal(Math.Ceiling(shipper_voucher_total_discount / order.carts.Count)) + @"
-                             , " + Convert.ToDecimal(Math.Ceiling(product_total_discount / order.carts.Count)) + @"
+                             , " + Convert.ToDecimal(order_detail_product_total_discount) + @"
                              , " + 0 + @"
                              , " + 0 + @"
                              , " + Convert.ToDecimal(product_amount_after_sale) + @"
