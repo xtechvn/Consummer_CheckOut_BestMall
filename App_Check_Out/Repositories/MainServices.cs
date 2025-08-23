@@ -170,6 +170,7 @@ namespace APP_CHECKOUT.Repositories
                 }
                 double product_total_discount = 0;
                 double product_total_discount_percent = 0;
+                List<ProductVoucherCalculatorModel> product_voucher_calc = new List<ProductVoucherCalculatorModel>();
                 if (order.voucher_apply != null && order.voucher_apply.Count > 0)
                 {
                     var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 0);
@@ -182,9 +183,25 @@ namespace APP_CHECKOUT.Repositories
                         }
                         product_total_discount = shipper_voucher.TotalDiscount;
                         voucher_total_discount += shipper_voucher.TotalDiscount;
+                        try
+                        {
+                            product_voucher_calc = order.carts.Select(x => new ProductVoucherCalculatorModel()
+                            {
+                                Name = x.product._id,
+                                Price = Convert.ToDecimal(x.total_amount),
+                                Quantity = 1
+                            }).ToList();
+                            VoucherCalculator.ApplyVoucher(product_voucher_calc, (decimal)shipper_voucher.PriceSales, (decimal?)shipper_voucher.LimitVoucherTotalDiscount, ((shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd") ? "percent" : "vnd"), (shipper_voucher.IsLimitVoucher == null ? false : (bool)shipper_voucher.IsLimitVoucher));
+                            LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher - [" + JsonConvert.SerializeObject(product_voucher_calc) + "]");
+
+                        }
+                        catch (Exception ex) {
+                            LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher - ["+ order_detail_id + "]"+ex);
+
+                        }
                     }
                 }
-
+              
                 //split by supplier
                 foreach (var supplier in supplier_ids)
                 {
@@ -247,10 +264,10 @@ namespace APP_CHECKOUT.Repositories
                         {
                             flashsale_percent= Math.Round(Convert.ToDouble(cart.product.flash_sale_price_sales) / product.amount * 100,0);
                         }
-                        double order_detail_product_total_discount = Math.Ceiling(product_total_discount / order.carts.Count);
-                        if (product_total_discount_percent > 0)
+                        double order_detail_product_total_discount = 0;
+                        if(product_voucher_calc!=null && product_voucher_calc.Count > 0&& product_voucher_calc.Any(x=>x.Name.ToLower().Trim()==cart.product._id.ToLower().Trim()))
                         {
-                            order_detail_product_total_discount = product_amount_after_sale * cart.quanity * order_detail_product_total_discount / 100;
+                            order_detail_product_total_discount = Convert.ToDouble(product_voucher_calc.First(x => x.Name.ToLower().Trim() == cart.product._id.ToLower().Trim()).Discount);
                         }
                         
                         //-- calculate price:
@@ -586,7 +603,7 @@ namespace APP_CHECKOUT.Repositories
                 {
                     result_item.order.OrderMergeId = order_merge_id;
                     var order_id = await orderDAL.CreateOrder(result_item.order);
-                    LogHelper.InsertLogTelegram("Order Created - " + result_item.order.OrderNo + " - " + result_item.order.Amount);
+                    LogHelper.InsertLogTelegram("Order Created - [" + result_item.order.OrderNo + "][" + result_item.order.Profit + "][" + result_item.order.Amount + "] ");
                     workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
                     if (order_id > 0)
                     {
@@ -595,8 +612,8 @@ namespace APP_CHECKOUT.Repositories
                             detail.OrderId = order_id;
                             detail.OrderMergeId = order_merge_id;
                             await orderDetailDAL.CreateOrderDetail(detail);
-                            Console.WriteLine("Created OrderDetail - [" + detail.OrderId + "][ " + detail.OrderDetailId + "]");
-                            LogHelper.InsertLogTelegram("OrderDetail Created - [" + detail.OrderId + "] [" + detail.OrderDetailId+"] [" + detail.Profit + "] - [" + detail.FinalProfit+"]");
+                            Console.WriteLine("Created OrderDetail - [ " + detail.OrderDetailId + "]");
+                            LogHelper.InsertLogTelegram("OrderDetail Created -  [" + detail.OrderDetailId+"] [" + detail.Profit + "] - [" + detail.FinalProfit+"]");
 
                         }
 
