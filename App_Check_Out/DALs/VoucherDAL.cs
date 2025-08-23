@@ -39,6 +39,8 @@ namespace DAL
         {
             try
             {
+                LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL [" + id + "][" + _connection + "]: ");
+
                 using (var _DbContext = new EntityDataContext(_connection))
                 {
                     return await _DbContext.Vouchers.FirstOrDefaultAsync(s => s.Id == id);
@@ -66,23 +68,7 @@ namespace DAL
                 return null;
             }
         }
-        public async Task<string> FindByVoucherid(int voucherId)
-        {
-            try
-            {
-                using (var _DbContext = new EntityDataContext(_connection))
-                {
-
-                    var Voucher = await _DbContext.Vouchers.FirstOrDefaultAsync(s => s.Id == voucherId);
-                    return Voucher.Code;
-                }
-            }
-            catch (Exception ex)
-            {
-                LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL: " + ex);
-                return null;
-            }
-        }
+       
         public int UpdateVoucher(Voucher model)
         {
             try

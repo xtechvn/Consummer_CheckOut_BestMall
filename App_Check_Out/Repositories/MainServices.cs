@@ -191,8 +191,16 @@ namespace APP_CHECKOUT.Repositories
                                 Price = Convert.ToDecimal(x.total_amount),
                                 Quantity = 1
                             }).ToList();
-                            VoucherCalculator.ApplyVoucher(product_voucher_calc, (decimal)shipper_voucher.PriceSales, (decimal?)shipper_voucher.LimitVoucherTotalDiscount, ((shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd") ? "percent" : "vnd"), (shipper_voucher.IsLimitVoucher == null ? false : (bool)shipper_voucher.IsLimitVoucher));
-                            LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher - [" + JsonConvert.SerializeObject(product_voucher_calc) + "]");
+                            LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher - "
+                                + "[" + ((decimal)shipper_voucher.PriceSales / 100) + "]"
+                                + "[" + (decimal?)shipper_voucher.LimitVoucherTotalDiscount + "]"
+                                + "[" + ((shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd") ? "percent" : "vnd") + "]"
+                                + "[" + (shipper_voucher.IsLimitVoucher == null ? false : (bool)shipper_voucher.IsLimitVoucher) + "]"
+                              
+                                
+                                );
+
+                            VoucherCalculator.ApplyVoucher(product_voucher_calc, ((decimal)shipper_voucher.PriceSales/100), (decimal?)shipper_voucher.LimitVoucherTotalDiscount, ((shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd") ? "percent" : "vnd"), (shipper_voucher.IsLimitVoucher == null ? false : (bool)shipper_voucher.IsLimitVoucher));
 
                         }
                         catch (Exception ex) {
@@ -304,20 +312,20 @@ namespace APP_CHECKOUT.Repositories
                         //     , " + cart.quanity + @"
 
                         //    );: [" + order_detail_profit + "]");
-                        LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale_v2(
-                            " + Convert.ToDecimal(product.amount) + @"
-                            , " + Convert.ToDecimal(profit_value / 100) + @"
-                             , " + Convert.ToDecimal(profit_supplier_value / 100) + @"
-                             , " + Convert.ToDecimal(flashsale_percent / 100) + @"
-                             , " + cart.quanity + @"
-                            , " + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + @"
-                            , " + (order.payment_type != null && order.payment_type == 3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0) + @"
-                             , " + Convert.ToDecimal(Math.Ceiling(shipper_voucher_total_discount / order.carts.Count)) + @"
-                             , " + Convert.ToDecimal(order_detail_product_total_discount) + @"
-                             , " + 0 + @"
-                             , " + 0 + @"
-                             , " + Convert.ToDecimal(product_amount_after_sale) + @"
-                            );: [" + order_detail_final_profit + "]");
+                        //LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale_v2(
+                        //    " + Convert.ToDecimal(product.amount) + @"
+                        //    , " + Convert.ToDecimal(profit_value / 100) + @"
+                        //     , " + Convert.ToDecimal(profit_supplier_value / 100) + @"
+                        //     , " + Convert.ToDecimal(flashsale_percent / 100) + @"
+                        //     , " + cart.quanity + @"
+                        //    , " + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + @"
+                        //    , " + (order.payment_type != null && order.payment_type == 3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0) + @"
+                        //     , " + Convert.ToDecimal(Math.Ceiling(shipper_voucher_total_discount / order.carts.Count)) + @"
+                        //     , " + Convert.ToDecimal(order_detail_product_total_discount) + @"
+                        //     , " + 0 + @"
+                        //     , " + 0 + @"
+                        //     , " + Convert.ToDecimal(product_amount_after_sale) + @"
+                        //    );: [" + order_detail_final_profit + "]");
                         //order_detail_profit = StringHelper.RoundUp(order_detail_profit);
                         // order_detail_final_profit = StringHelper.RoundUp(order_detail_final_profit);
                         var order_detail = new OrderDetail()
