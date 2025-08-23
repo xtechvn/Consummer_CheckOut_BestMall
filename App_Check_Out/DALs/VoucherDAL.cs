@@ -46,7 +46,7 @@ namespace DAL
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL: " + ex);
+                LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL ["+id+"]: " + ex);
                 return null;
             }
         }
