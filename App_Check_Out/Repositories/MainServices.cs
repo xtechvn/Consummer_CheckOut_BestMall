@@ -100,7 +100,7 @@ namespace APP_CHECKOUT.Repositories
                            var data=  await CreateOrder(request.order_mongo_id);
                             if (data != null && data.data_mongo != null&& data.data_mongo._id != null && data.data_mongo._id.Trim() != "")
                             {
-                                await notificationService.SendMessage((data.order_merge.UserId==null?0:(int)data.order_merge.UserId).ToString(),"", "0", data.order_merge.OrderNo, "/Order/");
+                                await notificationService.SendMessage((data.order_merge.UserId==null?0:(int)data.order_merge.UserId).ToString(),data.order_merge.ClientId.ToString(), "0", data.order_merge.OrderNo, "/Order/");
                                 emailService.SendOrderConfirmationEmail(data.data_mongo.email, data);
                             }
                         }break;
