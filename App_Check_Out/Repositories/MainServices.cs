@@ -205,7 +205,7 @@ namespace APP_CHECKOUT.Repositories
                 }
                 //-- VNPAY:
                 double profit_vnpay = 0;
-                if (order.utm_medium != null && order.utm_medium.Trim() != "")
+                if ( order.payment_type == 3)
                 {
                     profit_vnpay = order.total_amount * (order.profit_vnpay==null?0: (double)order.profit_vnpay) / 100;
                 }
