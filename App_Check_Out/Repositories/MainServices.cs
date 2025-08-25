@@ -192,15 +192,7 @@ namespace APP_CHECKOUT.Repositories
                                 Price = Convert.ToDecimal(x.total_amount),
                                 Quantity = 1
                             }).ToList();
-                            //LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher - "
-                            //    + "[" + ((decimal)shipper_voucher.PriceSales / 100) + "]"
-                            //    + "[" + (decimal?)shipper_voucher.LimitVoucherTotalDiscount + "]"
-                            //    + "[" + ((shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd") ? "percent" : "vnd") + "]"
-                            //    + "[" + (shipper_voucher.IsLimitVoucher == null ? false : (bool)shipper_voucher.IsLimitVoucher) + "]"
-
-
-                            //    );
-
+                           
                             VoucherCalculator.ApplyVoucher(product_voucher_calc, ((decimal)shipper_voucher.PriceSales / 100), (decimal?)shipper_voucher.LimitVoucherTotalDiscount, ((shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd") ? "percent" : "vnd"), (shipper_voucher.IsLimitVoucher == null ? false : (bool)shipper_voucher.IsLimitVoucher));
 
                         }
@@ -218,6 +210,7 @@ namespace APP_CHECKOUT.Repositories
                     profit_vnpay = order.total_amount * (order.profit_vnpay==null?0: (double)order.profit_vnpay) / 100;
                 }
 
+               
 
                 //-- split by supplier
                 foreach (var supplier in supplier_ids)
@@ -257,11 +250,7 @@ namespace APP_CHECKOUT.Repositories
                         }
                         var product = await productDetailMongoAccess.GetByID(cart.product._id);
                         double amount_per_unit = cart.total_amount / cart.quanity;
-                        //double order_detail_profit = CalculateTotalProfitProduct(amount_per_unit, product.profit, product.price, cart.quanity,order.payment_type,order.utm_medium
-                        //    , Convert.ToDouble((cart!=null && cart.product!=null && cart.product.profit_affliate!=null) ?cart.product.profit_affliate:0)
-                        //    , Convert.ToDouble((order != null && order.profit_vnpay != null && order.profit_vnpay > 0) ? order.profit_vnpay : 0)
 
-                        //    );
                         double base_profit_value = Convert.ToDouble(cart.product.profit_value == null ? 0 : cart.product.profit_value);
                         double profit_value = base_profit_value;
                         if (cart.product.profit_value_type != null && cart.product.profit_value_type == 0)
@@ -291,6 +280,7 @@ namespace APP_CHECKOUT.Repositories
                         {
                             order_detail_vnpay_fee = profit_vnpay / order.carts.Count;
                         }
+                       
                         //-- calculate price:
                         var order_detail_price = besmalPriceFormulaManager.tinh_gia_nhap(
                           Convert.ToDecimal(product.amount)
@@ -317,6 +307,13 @@ namespace APP_CHECKOUT.Repositories
                             , 0
                             ,Convert.ToDecimal(order.total_amount)
                             );
+                        LogHelper.InsertLogTelegram(" OrderDetail Discount and profit- "
+                          + "[" + Math.Ceiling(shipper_voucher_total_discount / order.carts.Count) + "]"
+                          + "[" + order_detail_product_total_discount + "]"
+                          + "[" + order_detail_vnpay_fee + "]"
+                          + "[" + order_detail_final_profit + "]"
+                          + "[" + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + "]"
+                          );
                         //LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
                         //    " + Convert.ToDecimal(product.amount) + @"
                         //    , " + Convert.ToDecimal(profit_value / 100) + @"
