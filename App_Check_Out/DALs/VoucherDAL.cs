@@ -40,7 +40,7 @@ namespace DAL
             try
             {
                 var _DbContext = new EntityDataContext(_connection);
-                LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL [" + id + "][" + _connection + "][" + (_DbContext==null?"NULL": "_DbContext") + "]: ");
+               // LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL [" + id + "][" + _connection + "][" + (_DbContext==null?"NULL": "_DbContext") + "]: ");
 
                 return await _DbContext.Vouchers.FirstOrDefaultAsync(s => s.Id == id);
 
