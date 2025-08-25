@@ -42,22 +42,49 @@ namespace APP_CHECKOUT.Helpers
             }
             else
             {
-                return;
+                throw new ArgumentException("Unit không hợp lệ. Chỉ hỗ trợ 'percent' hoặc 'vnd'");
             }
 
-            // phân bổ theo tỷ lệ giá trị sản phẩm
-            decimal allocated = 0;
-            for (int i = 0; i < products.Count; i++)
+            // Reset discount
+            foreach (var p in products) p.Discount = 0;
+
+            if (unit == "percent")
             {
-                if (i == products.Count - 1)
+                // phân bổ theo tỷ lệ giá trị sản phẩm
+                decimal allocated = 0;
+                for (int i = 0; i < products.Count; i++)
                 {
-                    products[i].Discount = voucherDiscount - allocated;
+                    if (i == products.Count - 1)
+                    {
+                        products[i].Discount = voucherDiscount - allocated;
+                    }
+                    else
+                    {
+                        decimal part = Math.Round((products[i].Total / orderTotal) * voucherDiscount, 0, MidpointRounding.AwayFromZero);
+                        products[i].Discount = part;
+                        allocated += part;
+                    }
                 }
-                else
+            }
+            else if (unit == "vnd")
+            {
+                // chia đều cho tất cả sản phẩm
+                int n = products.Count;
+                decimal equalPart = Math.Floor(voucherDiscount / n);
+                decimal allocated = 0;
+
+                for (int i = 0; i < products.Count; i++)
                 {
-                    decimal part = Math.Round((products[i].Total / orderTotal) * voucherDiscount, 0, MidpointRounding.AwayFromZero);
-                    products[i].Discount = part;
-                    allocated += part;
+                    if (i == n - 1)
+                    {
+                        // sản phẩm cuối nhận phần dư
+                        products[i].Discount = voucherDiscount - allocated;
+                    }
+                    else
+                    {
+                        products[i].Discount = equalPart;
+                        allocated += equalPart;
+                    }
                 }
             }
         }

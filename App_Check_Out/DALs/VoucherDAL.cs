@@ -39,12 +39,11 @@ namespace DAL
         {
             try
             {
-                LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL [" + id + "][" + _connection + "]: ");
+                var _DbContext = new EntityDataContext(_connection);
+                LogHelper.InsertLogTelegram("FindByVoucherCode - VoucherDAL [" + id + "][" + _connection + "][" + (_DbContext==null?"NULL": "_DbContext") + "]: ");
 
-                using (var _DbContext = new EntityDataContext(_connection))
-                {
-                    return await _DbContext.Vouchers.FirstOrDefaultAsync(s => s.Id == id);
-                }
+                return await _DbContext.Vouchers.FirstOrDefaultAsync(s => s.Id == id);
+
             }
             catch (Exception ex)
             {
