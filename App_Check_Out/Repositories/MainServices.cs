@@ -156,17 +156,33 @@ namespace APP_CHECKOUT.Repositories
                 double voucher_total_discount = 0;
 
                 //-- voucher:
-
+                List<ProductVoucherCalculatorModel> shipper_voucher_calc = new List<ProductVoucherCalculatorModel>();
                 double shipper_voucher_total_discount = 0;
+
                 if (order.voucher_apply != null && order.voucher_apply.Count > 0)
                 {
                     var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 1);
                     if (shipper_voucher != null && shipper_voucher.PriceSales != null)
                     {
                         shipper_voucher_total_discount = shipper_voucher.TotalDiscount;
-
                         voucher_total_discount += shipper_voucher.TotalDiscount;
+                        try
+                        {
+                            shipper_voucher_calc = order.delivery_order.Select(x => new ProductVoucherCalculatorModel()
+                            {
+                                Name = x.SupplierId.ToString(),
+                                Price = Convert.ToDecimal(x.shipping_fee),
+                                Quantity = 1
+                            }).ToList();
 
+                            VoucherCalculator.ApplyVoucher(shipper_voucher_calc, ((decimal)shipper_voucher.PriceSales / 100), (decimal?)shipper_voucher.LimitVoucherTotalDiscount, ((shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd") ? "percent" : "vnd"), (shipper_voucher.IsLimitVoucher == null ? false : (bool)shipper_voucher.IsLimitVoucher));
+
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher Shipping - [" + order_detail_id + "]" + ex);
+
+                        }
                     }
                 }
                 double product_total_discount = 0;
@@ -274,6 +290,12 @@ namespace APP_CHECKOUT.Repositories
                         if (product_voucher_calc != null && product_voucher_calc.Count > 0 && product_voucher_calc.Any(x => x.Name.ToLower().Trim() == cart.product._id.ToLower().Trim()))
                         {
                             order_detail_product_total_discount = Convert.ToDouble(product_voucher_calc.First(x => x.Name.ToLower().Trim() == cart.product._id.ToLower().Trim()).Discount);
+                        }
+                        double order_detail_shipping_voucher_total_discount = 0;
+                        if (shipper_voucher_calc != null && shipper_voucher_calc.Count > 0 && shipper_voucher_calc.Any(x => x.Name.ToLower().Trim() == cart.product.supplier_id.ToString()))
+                        {
+                            order_detail_shipping_voucher_total_discount = Convert.ToDouble(shipper_voucher_calc.First(x => x.Name.ToLower().Trim() == cart.product.supplier_id.ToString()).Discount / cart_belong_to_supplier.Count());
+                            order_detail_shipping_voucher_total_discount = Math.Ceiling(order_detail_shipping_voucher_total_discount);
                         }
                         double order_detail_vnpay_fee = 0;
                         if( profit_vnpay > 0)
