@@ -176,7 +176,11 @@ namespace APP_CHECKOUT.Repositories
                             }).ToList();
 
                             VoucherCalculator.ApplyVoucher(shipper_voucher_calc, ((decimal)shipper_voucher.PriceSales / 100), (decimal?)shipper_voucher.LimitVoucherTotalDiscount, ((shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd") ? "percent" : "vnd"), (shipper_voucher.IsLimitVoucher == null ? false : (bool)shipper_voucher.IsLimitVoucher));
-                            LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher Shipping - [" + JsonConvert.SerializeObject(shipper_voucher_calc) + "]");
+                            LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher Shipping - " 
+                                +"[" + JsonConvert.SerializeObject(shipper_voucher) + "]"
+                                + "[" + JsonConvert.SerializeObject(shipper_voucher_calc) + "]"
+
+                                );
 
                         }
                         catch (Exception ex)
