@@ -636,13 +636,13 @@ namespace APP_CHECKOUT.Repositories
                 }
                 var order_merge_id = await orderMergeDAL.InsertOrderMerge(result.order_merge);
                 result.order_merge.Id = order_merge_id;
-                LogHelper.InsertLogTelegram("OrderMerge Created - ["+ order_merge_id + "] " + result.order_merge.OrderNo + " - " + result.order_merge.Amount);
+                //LogHelper.InsertLogTelegram("OrderMerge Created - ["+ order_merge_id + "] " + result.order_merge.OrderNo + " - " + result.order_merge.Amount);
                 workQueueClient.SyncES(order_merge_id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", Convert.ToInt16(ProjectType.HULOTOYS));
                 foreach(var result_item in result.detail)
                 {
                     result_item.order.OrderMergeId = order_merge_id;
                     var order_id = await orderDAL.CreateOrder(result_item.order);
-                    LogHelper.InsertLogTelegram("Order Created - [" + result_item.order.OrderNo + "][" + result_item.order.Profit + "][" + result_item.order.Amount + "] ");
+                   // LogHelper.InsertLogTelegram("Order Created - [" + result_item.order.OrderNo + "][" + result_item.order.Profit + "][" + result_item.order.Amount + "] ");
                     workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
                     if (order_id > 0)
                     {
@@ -652,7 +652,7 @@ namespace APP_CHECKOUT.Repositories
                             detail.OrderMergeId = order_merge_id;
                             await orderDetailDAL.CreateOrderDetail(detail);
                             Console.WriteLine("Created OrderDetail - [ " + detail.OrderDetailId + "]");
-                            LogHelper.InsertLogTelegram("OrderDetail Created -  [" + detail.OrderDetailId+"] [" + detail.Profit + "] - [" + detail.FinalProfit+"]");
+                           // LogHelper.InsertLogTelegram("OrderDetail Created -  [" + detail.OrderDetailId+"] [" + detail.Profit + "] - [" + detail.FinalProfit+"]");
 
                         }
 
