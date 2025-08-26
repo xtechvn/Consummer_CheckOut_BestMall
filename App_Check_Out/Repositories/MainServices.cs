@@ -153,19 +153,17 @@ namespace APP_CHECKOUT.Repositories
                 var supplier_ids = order.carts.Select(x => x.product.supplier_id).GroupBy(x=>x).Select(x=>x.First());
                 supplier_ids = supplier_ids.Distinct();
                 int sub_order_id = 0;
-                double voucher_total_discount = 0;
+                double order_merge_total_discount = 0;
 
                 //-- voucher:
                 List<ProductVoucherCalculatorModel> shipper_voucher_calc = new List<ProductVoucherCalculatorModel>();
-                double shipper_voucher_total_discount = 0;
 
                 if (order.voucher_apply != null && order.voucher_apply.Count > 0)
                 {
                     var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 1);
                     if (shipper_voucher != null && shipper_voucher.PriceSales != null)
                     {
-                        shipper_voucher_total_discount = shipper_voucher.TotalDiscount;
-                        voucher_total_discount += shipper_voucher.TotalDiscount;
+                        order_merge_total_discount += shipper_voucher.TotalDiscount;
                         try
                         {
                             shipper_voucher_calc = order.delivery_order.Select(x => new ProductVoucherCalculatorModel()
@@ -190,21 +188,13 @@ namespace APP_CHECKOUT.Repositories
                         }
                     }
                 }
-                double product_total_discount = 0;
-                double product_total_discount_percent = 0;
                 List<ProductVoucherCalculatorModel> product_voucher_calc = new List<ProductVoucherCalculatorModel>();
                 if (order.voucher_apply != null && order.voucher_apply.Count > 0)
                 {
                     var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 0);
                     if (shipper_voucher != null && shipper_voucher.PriceSales != null)
                     {
-                        if (shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd")
-                        {
-                            product_total_discount_percent = Convert.ToDouble(shipper_voucher.PriceSales);
-
-                        }
-                        product_total_discount = shipper_voucher.TotalDiscount;
-                        voucher_total_discount += shipper_voucher.TotalDiscount;
+                        order_merge_total_discount += shipper_voucher.TotalDiscount;
                         try
                         {
                             product_voucher_calc = order.carts.Select(x => new ProductVoucherCalculatorModel()
@@ -250,6 +240,7 @@ namespace APP_CHECKOUT.Repositories
                     double total_profit = 0;
                     double total_price = 0;
                     double total_amount = 0;
+                    double order_total_discount = 0;
                     foreach (var cart in cart_belong_to_supplier)
                     {
                         if (cart == null || cart.product == null) continue;
@@ -295,12 +286,15 @@ namespace APP_CHECKOUT.Repositories
                         if (product_voucher_calc != null && product_voucher_calc.Count > 0 && product_voucher_calc.Any(x => x.Name.ToLower().Trim() == cart.product._id.ToLower().Trim()))
                         {
                             order_detail_product_total_discount = Convert.ToDouble(product_voucher_calc.First(x => x.Name.ToLower().Trim() == cart.product._id.ToLower().Trim()).Discount);
+                            order_total_discount += order_detail_product_total_discount;
                         }
                         double order_detail_shipping_voucher_total_discount = 0;
                         if (shipper_voucher_calc != null && shipper_voucher_calc.Count > 0 && shipper_voucher_calc.Any(x => x.Name.ToLower().Trim() == cart.product.supplier_id.ToString()))
                         {
                             order_detail_shipping_voucher_total_discount = Convert.ToDouble(shipper_voucher_calc.First(x => x.Name.ToLower().Trim() == cart.product.supplier_id.ToString()).Discount / cart_belong_to_supplier.Count());
                             order_detail_shipping_voucher_total_discount = Math.Ceiling(order_detail_shipping_voucher_total_discount);
+                            order_total_discount += order_detail_shipping_voucher_total_discount;
+
                         }
                         double order_detail_vnpay_fee = 0;
                         if( profit_vnpay > 0)
@@ -349,20 +343,20 @@ namespace APP_CHECKOUT.Repositories
                         //     , " + cart.quanity + @"
 
                         //    );: [" + order_detail_profit + "]");
-                        //LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale_v2(
-                        //    " + Convert.ToDecimal(product.amount) + @"
-                        //    , " + Convert.ToDecimal(profit_value / 100) + @"
-                        //     , " + Convert.ToDecimal(profit_supplier_value / 100) + @"
-                        //     , " + Convert.ToDecimal(flashsale_percent / 100) + @"
-                        //     , " + cart.quanity + @"
-                        //    , " + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + @"
-                        //    , " + (order.payment_type != null && order.payment_type == 3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0) + @"
-                        //     , " + Convert.ToDecimal(Math.Ceiling(shipper_voucher_total_discount / order.carts.Count)) + @"
-                        //     , " + Convert.ToDecimal(order_detail_product_total_discount) + @"
-                        //     , " + 0 + @"
-                        //     , " + 0 + @"
-                        //     , " + Convert.ToDecimal(product_amount_after_sale) + @"
-                        //    );: [" + order_detail_final_profit + "]");
+                        LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale_v2(
+                            " + Convert.ToDecimal(product.amount) + @"
+                            , " + Convert.ToDecimal(profit_value / 100) + @"
+                             , " + Convert.ToDecimal(profit_supplier_value / 100) + @"
+                             , " + Convert.ToDecimal(flashsale_percent / 100) + @"
+                             , " + cart.quanity + @"
+                            , " + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + @"
+                            , " + (order.payment_type != null && order.payment_type == 3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0) + @"
+                             , " + Convert.ToDecimal(order_detail_shipping_voucher_total_discount) + @"
+                             , " + Convert.ToDecimal(order_detail_product_total_discount) + @"
+                             , " + 0 + @"
+                             , " + 0 + @"
+                             , " + Convert.ToDecimal(product_amount_after_sale) + @"
+                            );: [" + order_detail_final_profit + "]");
                         //order_detail_profit = StringHelper.RoundUp(order_detail_profit);
                         // order_detail_final_profit = StringHelper.RoundUp(order_detail_final_profit);
                         var order_detail = new OrderDetail()
@@ -419,10 +413,10 @@ namespace APP_CHECKOUT.Repositories
 
                     result_item.order = new Entities.Models.Order()
                     {
-                        Amount = total_amount+ shipping_fee_supplier - voucher_total_discount,
+                        Amount = total_amount+ shipping_fee_supplier - order_total_discount,
                         ClientId = (long)account_client.ClientId,
                         CreatedDate = DateTime.Now,
-                        Discount = voucher_total_discount,
+                        Discount = order_total_discount,
                         IsDelete = 0,
                         Note = "",
                         OrderId = 0,
@@ -596,7 +590,7 @@ namespace APP_CHECKOUT.Repositories
                     Amount = order.total_amount,
                     ClientId = (long)account_client.ClientId,
                     CreatedDate = DateTime.Now,
-                    Discount = 0,
+                    Discount = order_merge_total_discount,
                     IsDelete = 0,
                     Note = "",
                     Id = 0,
