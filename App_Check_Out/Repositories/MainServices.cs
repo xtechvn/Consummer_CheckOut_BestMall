@@ -323,14 +323,14 @@ namespace APP_CHECKOUT.Repositories
                             , cart.quanity
                             ,order.utm_medium!=null && order.utm_medium.Trim()!=""? Convert.ToDecimal(cart.product.profit_affliate / 100) :0
                             , Convert.ToDecimal(order_detail_vnpay_fee)
-                            , Convert.ToDecimal(Math.Ceiling(shipper_voucher_total_discount / order.carts.Count))
+                            , Convert.ToDecimal(order_detail_shipping_voucher_total_discount)
                             , Convert.ToDecimal(order_detail_product_total_discount)
                             , 0
                             , 0
                             ,Convert.ToDecimal(order.total_amount)
                             );
                         LogHelper.InsertLogTelegram(" OrderDetail Discount and profit- "
-                          + "[" + Math.Ceiling(shipper_voucher_total_discount / order.carts.Count) + "]"
+                          + "[" + order_detail_shipping_voucher_total_discount + "]"
                           + "[" + order_detail_product_total_discount + "]"
                           + "[" + order_detail_vnpay_fee + "]"
                           + "[" + order_detail_final_profit + "]"
