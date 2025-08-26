@@ -176,6 +176,7 @@ namespace APP_CHECKOUT.Repositories
                             }).ToList();
 
                             VoucherCalculator.ApplyVoucher(shipper_voucher_calc, ((decimal)shipper_voucher.PriceSales / 100), (decimal?)shipper_voucher.LimitVoucherTotalDiscount, ((shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd") ? "percent" : "vnd"), (shipper_voucher.IsLimitVoucher == null ? false : (bool)shipper_voucher.IsLimitVoucher));
+                            LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher Shipping - [" + JsonConvert.SerializeObject(shipper_voucher_calc) + "]");
 
                         }
                         catch (Exception ex)
@@ -329,13 +330,13 @@ namespace APP_CHECKOUT.Repositories
                             , 0
                             ,Convert.ToDecimal(order.total_amount)
                             );
-                        LogHelper.InsertLogTelegram(" OrderDetail Discount and profit- "
-                          + "[" + order_detail_shipping_voucher_total_discount + "]"
-                          + "[" + order_detail_product_total_discount + "]"
-                          + "[" + order_detail_vnpay_fee + "]"
-                          + "[" + order_detail_final_profit + "]"
-                          + "[" + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + "]"
-                          );
+                        //LogHelper.InsertLogTelegram(" OrderDetail Discount and profit- "
+                        //  + "[" + order_detail_shipping_voucher_total_discount + "]"
+                        //  + "[" + order_detail_product_total_discount + "]"
+                        //  + "[" + order_detail_vnpay_fee + "]"
+                        //  + "[" + order_detail_final_profit + "]"
+                        //  + "[" + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + "]"
+                        //  );
                         //LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
                         //    " + Convert.ToDecimal(product.amount) + @"
                         //    , " + Convert.ToDecimal(profit_value / 100) + @"
