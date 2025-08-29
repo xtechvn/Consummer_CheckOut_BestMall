@@ -221,7 +221,7 @@ namespace APP_CHECKOUT.Repositories
                     profit_vnpay = order.total_amount * (order.profit_vnpay==null?0: (double)order.profit_vnpay) / 100;
                 }
 
-               
+                double profit_affiliate = 0;
 
                 //-- split by supplier
                 foreach (var supplier in supplier_ids)
@@ -328,6 +328,7 @@ namespace APP_CHECKOUT.Repositories
                             , 0
                             ,Convert.ToDecimal(order.total_amount)
                             );
+                        profit_affiliate += (order.total_amount) * (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDouble(cart.product.profit_affliate / 100) : 0);
                         //LogHelper.InsertLogTelegram(" OrderDetail Discount and profit- "
                         //  + "[" + order_detail_shipping_voucher_total_discount + "]"
                         //  + "[" + order_detail_product_total_discount + "]"
@@ -612,7 +613,7 @@ namespace APP_CHECKOUT.Repositories
                     ReceiverName = order.receivername,
                     Phone = order.phone,
                     ShippingFee= (order.delivery_order != null && order.delivery_order.Count > 0)? order.delivery_order.Sum(x => x.shipping_fee) : 0,
-                    
+                    ProfitAffiliate= profit_affiliate
                 };
                 if (result.detail.First().order.PaymentType == 1)
                 {

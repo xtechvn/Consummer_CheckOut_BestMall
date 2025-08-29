@@ -68,5 +68,6 @@ public partial class OrderMerge
 
     public DateTime? RefundDate { get; set; }
     public double? ShippingFee { get; set; }
+    public double? ProfitAffiliate { get; set; }
 
 }
