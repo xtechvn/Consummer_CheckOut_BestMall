@@ -55,6 +55,8 @@ namespace APP_CHECKOUT.Repositories
         private readonly BesmalPriceFormulaManager besmalPriceFormulaManager;
         private readonly VoucherDAL voucherDAL;
         private readonly NotificationService notificationService;
+        private readonly AllotmentUseDAL allotmentUseDAL;
+        private readonly AllotmentFundDAL allotmentFundDAL;
 
         public MainServices( ViettelPostService viettelPostService) {
 
@@ -85,6 +87,10 @@ namespace APP_CHECKOUT.Repositories
             besmalPriceFormulaManager=new BesmalPriceFormulaManager();
             voucherDAL = new VoucherDAL(ConfigurationManager.AppSettings["ConnectionString"]);
             notificationService = new NotificationService();
+
+            allotmentUseDAL = new AllotmentUseDAL(ConfigurationManager.AppSettings["ConnectionString"]);
+            allotmentFundDAL = new AllotmentFundDAL(ConfigurationManager.AppSettings["ConnectionString"]);
+
         }
         public async Task Excute(CheckoutQueueModel request)
         {
@@ -722,7 +728,41 @@ namespace APP_CHECKOUT.Repositories
                         }
                     }
                 }
+                if (profit_affiliate > 0)
+                {
+                    var fund = allotmentFundDAL.GetByAccountClientId(order.account_client_id);
+                    if (fund != null && fund.Id>0) {
+                        fund.AccountBalance += profit_affiliate;                  
+                        fund.UpdateTime= DateTime.Now;
+                        allotmentFundDAL.Update(fund);
+                    }
+                    else
+                    {
+                        fund = new HuloToys_Service.Models.Models.AllotmentFund()
+                        {
+                            UpdateTime = DateTime.Now,
+                            AccountBalance = profit_affiliate,
+                            AccountClientId = order.account_client_id,
+                            CreateDate=DateTime.Now,
+                            FundType=1,
+                            
+                        };
+                       fund.Id= allotmentFundDAL.Insert(fund);
+                    }
+                    var fund_use = new HuloToys_Service.Models.Models.AllotmentUse()
+                    {
+                        AllotmentFundId = fund.Id,
+                        AccountClientId = order.account_client_id,
+                        AmountUse = profit_affiliate,
+                        ClientId = client.Id,
+                        CreateDate = DateTime.Now,
+                        DataId = order.order_id,
+                        ServiceType = 0,
 
+                    };
+                    allotmentUseDAL.Insert(fund_use);
+
+                }
 
                 return result;
             }
