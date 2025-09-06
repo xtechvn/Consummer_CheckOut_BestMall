@@ -103,7 +103,7 @@ namespace APP_CHECKOUT.Repositories
                 {
                     case (int)CheckoutEventID.CREATE_ORDER:
                         {
-                           var data=  await CreateOrder(request.order_mongo_id);
+                           var data=  await CreateOrder(request.order_mongo_id,request.utm_source, request.utm_medium);
                             if (data != null && data.data_mongo != null&& data.data_mongo._id != null && data.data_mongo._id.Trim() != "")
                             {
                                 await notificationService.SendMessage((data.order_merge.UserId==null?0:(int)data.order_merge.UserId).ToString(),data.order_merge.ClientId.ToString(), "0", data.order_merge.OrderNo, "/Order/");
@@ -135,7 +135,7 @@ namespace APP_CHECKOUT.Repositories
 
             }
         }
-        private async Task<OrderMergeSummitModel> CreateOrder(string order_detail_id)
+        private async Task<OrderMergeSummitModel> CreateOrder(string order_detail_id,string? utm_source=null,string? utm_medium = null)
         {
             OrderMergeSummitModel result = new OrderMergeSummitModel()
             {
@@ -151,7 +151,12 @@ namespace APP_CHECKOUT.Repositories
                 {
                     return null;
                 }
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById: [" + order.utm_source + "][" + order.utm_medium + "]" );
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById: [" + order.utm_source + "][" + order.utm_medium + "][" + utm_source + "][" + utm_medium + "]" );
+                if(order.utm_medium==null || order.utm_medium.Trim() == "")
+                {
+                    order.utm_source = utm_source;
+                    order.utm_medium = utm_medium;
+                }
 
                 var account_client = accountClientESService.GetById(order.account_client_id);
                 var client = clientESService.GetById((long)account_client.ClientId);
