@@ -151,7 +151,7 @@ namespace APP_CHECKOUT.Repositories
                 {
                     return null;
                 }
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById: [" + order.utm_source + "][" + order.utm_source + "]" );
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById: [" + order.utm_source + "][" + order.utm_medium + "]" );
 
                 var account_client = accountClientESService.GetById(order.account_client_id);
                 var client = clientESService.GetById((long)account_client.ClientId);
