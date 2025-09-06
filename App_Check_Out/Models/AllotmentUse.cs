@@ -34,4 +34,6 @@ public partial class AllotmentUse
     public long ClientId { get; set; }
 
     public virtual AllotmentFund AllomentFund { get; set; } = null!;
+    public int PaymentStatus { get; set; }
+
 }

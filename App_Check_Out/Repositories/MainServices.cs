@@ -151,6 +151,8 @@ namespace APP_CHECKOUT.Repositories
                 {
                     return null;
                 }
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById: [" + order.utm_source + "][" + order.utm_source + "]" );
+
                 var account_client = accountClientESService.GetById(order.account_client_id);
                 var client = clientESService.GetById((long)account_client.ClientId);
                 AddressClientESModel address_client = addressClientESService.GetById(order.address_id, client.Id);
@@ -180,16 +182,16 @@ namespace APP_CHECKOUT.Repositories
                             }).ToList();
 
                             VoucherCalculator.ApplyVoucher(shipper_voucher_calc, ((decimal)shipper_voucher.PriceSales / 100), (decimal?)shipper_voucher.LimitVoucherTotalDiscount, ((shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd") ? "percent" : "vnd"), (shipper_voucher.IsLimitVoucher == null ? false : (bool)shipper_voucher.IsLimitVoucher));
-                            LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher Shipping - " 
-                                +"[" + JsonConvert.SerializeObject(shipper_voucher) + "]"
-                                + "[" + JsonConvert.SerializeObject(shipper_voucher_calc) + "]"
+                            //LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher Shipping - " 
+                            //    +"[" + JsonConvert.SerializeObject(shipper_voucher) + "]"
+                            //    + "[" + JsonConvert.SerializeObject(shipper_voucher_calc) + "]"
 
-                                );
+                            //    );
 
                         }
                         catch (Exception ex)
                         {
-                            LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher Shipping - [" + order_detail_id + "]" + ex);
+                            //LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher Shipping - [" + order_detail_id + "]" + ex);
 
                         }
                     }
@@ -643,13 +645,17 @@ namespace APP_CHECKOUT.Repositories
                 }
                 var order_merge_id = await orderMergeDAL.InsertOrderMerge(result.order_merge);
                 result.order_merge.Id = order_merge_id;
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder OrderMerge Created: [" + result.order_merge.UtmSource + "][" + result.order_merge.UtmMedium + "]");
+
                 //LogHelper.InsertLogTelegram("OrderMerge Created - ["+ order_merge_id + "] " + result.order_merge.OrderNo + " - " + result.order_merge.Amount);
                 workQueueClient.SyncES(order_merge_id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", Convert.ToInt16(ProjectType.HULOTOYS));
                 foreach(var result_item in result.detail)
                 {
                     result_item.order.OrderMergeId = order_merge_id;
                     var order_id = await orderDAL.CreateOrder(result_item.order);
-                   // LogHelper.InsertLogTelegram("Order Created - [" + result_item.order.OrderNo + "][" + result_item.order.Profit + "][" + result_item.order.Amount + "] ");
+                    // LogHelper.InsertLogTelegram("Order Created - [" + result_item.order.OrderNo + "][" + result_item.order.Profit + "][" + result_item.order.Amount + "] ");
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder Order Created: [" + result_item.order.UtmSource + "][" + result_item.order.UtmMedium + "]");
+
                     workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
                     if (order_id > 0)
                     {
@@ -758,7 +764,7 @@ namespace APP_CHECKOUT.Repositories
                         CreateDate = DateTime.Now,
                         DataId = order.order_id,
                         ServiceType = 0,
-
+                        PaymentStatus = 0,
                     };
                     allotmentUseDAL.Insert(fund_use);
 
