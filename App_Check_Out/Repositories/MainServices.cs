@@ -357,20 +357,20 @@ namespace APP_CHECKOUT.Repositories
                         //     , " + cart.quanity + @"
 
                         //    );: [" + order_detail_profit + "]");
-                        LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale_v2(
-                            " + Convert.ToDecimal(product.amount) + @"
-                            , " + Convert.ToDecimal(profit_value / 100) + @"
-                             , " + Convert.ToDecimal(profit_supplier_value / 100) + @"
-                             , " + Convert.ToDecimal(flashsale_percent / 100) + @"
-                             , " + cart.quanity + @"
-                            , " + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + @"
-                            , " + (order.payment_type != null && order.payment_type == 3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0) + @"
-                             , " + Convert.ToDecimal(order_detail_shipping_voucher_total_discount) + @"
-                             , " + Convert.ToDecimal(order_detail_product_total_discount) + @"
-                             , " + 0 + @"
-                             , " + 0 + @"
-                             , " + Convert.ToDecimal(product_amount_after_sale) + @"
-                            );: [" + order_detail_final_profit + "]");
+                        //LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale_v2(
+                        //    " + Convert.ToDecimal(product.amount) + @"
+                        //    , " + Convert.ToDecimal(profit_value / 100) + @"
+                        //     , " + Convert.ToDecimal(profit_supplier_value / 100) + @"
+                        //     , " + Convert.ToDecimal(flashsale_percent / 100) + @"
+                        //     , " + cart.quanity + @"
+                        //    , " + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + @"
+                        //    , " + (order.payment_type != null && order.payment_type == 3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0) + @"
+                        //     , " + Convert.ToDecimal(order_detail_shipping_voucher_total_discount) + @"
+                        //     , " + Convert.ToDecimal(order_detail_product_total_discount) + @"
+                        //     , " + 0 + @"
+                        //     , " + 0 + @"
+                        //     , " + Convert.ToDecimal(product_amount_after_sale) + @"
+                        //    );: [" + order_detail_final_profit + "]");
                         //order_detail_profit = StringHelper.RoundUp(order_detail_profit);
                         // order_detail_final_profit = StringHelper.RoundUp(order_detail_final_profit);
                         var order_detail = new OrderDetail()
@@ -650,7 +650,7 @@ namespace APP_CHECKOUT.Repositories
                 }
                 var order_merge_id = await orderMergeDAL.InsertOrderMerge(result.order_merge);
                 result.order_merge.Id = order_merge_id;
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder OrderMerge Created: [" + result.order_merge.UtmSource + "][" + result.order_merge.UtmMedium + "]");
+                //LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder OrderMerge Created: [" + result.order_merge.UtmSource + "][" + result.order_merge.UtmMedium + "]");
 
                 //LogHelper.InsertLogTelegram("OrderMerge Created - ["+ order_merge_id + "] " + result.order_merge.OrderNo + " - " + result.order_merge.Amount);
                 workQueueClient.SyncES(order_merge_id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", Convert.ToInt16(ProjectType.HULOTOYS));
@@ -659,7 +659,7 @@ namespace APP_CHECKOUT.Repositories
                     result_item.order.OrderMergeId = order_merge_id;
                     var order_id = await orderDAL.CreateOrder(result_item.order);
                     // LogHelper.InsertLogTelegram("Order Created - [" + result_item.order.OrderNo + "][" + result_item.order.Profit + "][" + result_item.order.Amount + "] ");
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder Order Created: [" + result_item.order.UtmSource + "][" + result_item.order.UtmMedium + "]");
+                   // LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder Order Created: [" + result_item.order.UtmSource + "][" + result_item.order.UtmMedium + "]");
 
                     workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
                     if (order_id > 0)
@@ -774,6 +774,7 @@ namespace APP_CHECKOUT.Repositories
                     allotmentUseDAL.Insert(fund_use);
 
                 }
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder Done [" + result.order_merge.Id + "][" + result.order_merge.OrderNo + "]:" + DateTime.Now.ToString());
 
                 return result;
             }
