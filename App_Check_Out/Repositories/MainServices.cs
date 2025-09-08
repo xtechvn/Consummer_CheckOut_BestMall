@@ -742,45 +742,53 @@ namespace APP_CHECKOUT.Repositories
                 }
                 if (profit_affiliate > 0)
                 {
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Fund [" + profit_affiliate + "]:" + DateTime.Now.ToString());
+                    long client_affiliate = GetAffiliateClient(utm_medium);
+                    if (client_affiliate <= 0)
+                    {
+                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - client_affiliate [" + utm_medium + "][" + client_affiliate + "]:" + DateTime.Now.ToString());
 
-                    var fund = allotmentFundDAL.GetByAccountClientId(order.account_client_id);
-                    if (fund != null && fund.Id>0) {
-                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Created Fund [" +  JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
-
-                        fund.AccountBalance += profit_affiliate;                  
-                        fund.UpdateTime= DateTime.Now;
-                        allotmentFundDAL.Update(fund);
                     }
                     else
                     {
-                        fund = new HuloToys_Service.Models.Models.AllotmentFund()
+                        var fund = allotmentFundDAL.GetByAccountClientId(client_affiliate);
+                        if (fund != null && fund.Id > 0)
                         {
-                            UpdateTime = DateTime.Now,
-                            AccountBalance = profit_affiliate,
-                            AccountClientId = order.account_client_id,
-                            CreateDate=DateTime.Now,
-                            FundType=1,
-                            
+                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Created Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
+
+                            fund.AccountBalance += profit_affiliate;
+                            fund.UpdateTime = DateTime.Now;
+                            allotmentFundDAL.Update(fund);
+                        }
+                        else
+                        {
+                            fund = new HuloToys_Service.Models.Models.AllotmentFund()
+                            {
+                                UpdateTime = DateTime.Now,
+                                AccountBalance = profit_affiliate,
+                                AccountClientId = client_affiliate,
+                                CreateDate = DateTime.Now,
+                                FundType = 1,
+
+                            };
+                            fund.Id = allotmentFundDAL.Insert(fund);
+                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Update Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
+
+
+                        }
+                        var fund_use = new HuloToys_Service.Models.Models.AllotmentUse()
+                        {
+                            AllotmentFundId = fund.Id,
+                            AccountClientId = client_affiliate,
+                            AmountUse = profit_affiliate,
+                            ClientId = client.Id,
+                            CreateDate = DateTime.Now,
+                            DataId = order.order_id,
+                            ServiceType = 0,
+                            PaymentStatus = 0,
                         };
-                       fund.Id= allotmentFundDAL.Insert(fund);
-                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Update Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
-
-
+                        allotmentUseDAL.Insert(fund_use);
                     }
-
-                    var fund_use = new HuloToys_Service.Models.Models.AllotmentUse()
-                    {
-                        AllotmentFundId = fund.Id,
-                        AccountClientId = order.account_client_id,
-                        AmountUse = profit_affiliate,
-                        ClientId = client.Id,
-                        CreateDate = DateTime.Now,
-                        DataId = order.order_id,
-                        ServiceType = 0,
-                        PaymentStatus = 0,
-                    };
-                    allotmentUseDAL.Insert(fund_use);
+                      
 
                 }
                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder Done [" + result.order_merge.Id + "][" + result.order_merge.OrderNo + "]:" + DateTime.Now.ToString());
@@ -845,28 +853,25 @@ namespace APP_CHECKOUT.Repositories
             }
             return wards;
         }
-        private double CalculateTotalProfitProduct(double amount, double profit, double price,int quantity,int payment_type, string utm_medium, double affiliate_percent, double vnpay_percent)
+        private long GetAffiliateClient(string utm_medium)
         {
-            var total_profit = profit * (quantity <= 0 ? 1 : quantity);
+            long client_id = -1;
             try
             {
-                double aff_fee = 0;
-                if (utm_medium!=null && utm_medium.Trim() != "")
-                {
-                    aff_fee = Math.Ceiling(total_profit * affiliate_percent / 100);
+                string decoded = CommonHelpers.Decode(utm_medium, "lmRI5gYANBix6AUX1STNNXhPIhJ2RVlvg6SrXASb3GoMDmbxdxAa");
+                if (decoded != null && decoded.Trim() != "" && decoded.ToLower().Contains("client_id")) {
+                    string client_id_value = decoded.Split(";")[0].Replace("client_id=","");
+                    if(client_id_value!=null && client_id_value.Trim() != "")
+                    {
+                        client_id=Convert.ToInt64(client_id_value);
+                    }
                 }
-                double vnpay_fee = 0;
-                if (payment_type == 3)
-                {
-                    vnpay_fee = Math.Ceiling(total_profit * vnpay_percent / 100);
-                }
-                total_profit = total_profit - aff_fee - vnpay_fee;
             }
             catch (Exception ex)
             {
 
             }
-            return total_profit;
+            return client_id;
         }
        
     }
