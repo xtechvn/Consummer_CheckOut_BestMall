@@ -35,5 +35,21 @@ public partial class AllotmentUse
 
     public virtual AllotmentFund AllomentFund { get; set; } = null!;
     public int PaymentStatus { get; set; }
+    public string Description { get; set; }
+
+    public double? TotalAmoutCalculate { get; set; }
+
+    public DateTime? PaymentFromDate { get; set; }
+
+    public DateTime? PaymentToDate { get; set; }
+
+    public string BankId { get; set; }
+
+    public string AccountNumber { get; set; }
+
+    public string AccountName { get; set; }
+
+    public string Branch { get; set; }
+
 
 }

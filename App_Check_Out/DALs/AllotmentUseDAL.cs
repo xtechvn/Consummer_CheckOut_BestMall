@@ -30,7 +30,14 @@ namespace DAL
                     new SqlParameter("@ServiceType", model.ServiceType),
                     new SqlParameter("@ClientId", model.ClientId),
                     new SqlParameter("@PaymentStatus", model.PaymentStatus),
-
+                     new SqlParameter("@Description", (object?)model.Description ?? DBNull.Value),
+                    new SqlParameter("@TotalAmoutCalculate", (object?)model.TotalAmoutCalculate ?? DBNull.Value),
+                    new SqlParameter("@PaymentFromDate", (object?)model.PaymentFromDate ?? DBNull.Value),
+                    new SqlParameter("@PaymentToDate", (object?)model.PaymentToDate ?? DBNull.Value),
+                    new SqlParameter("@BankId", model.BankId ?? (object?)DBNull.Value),
+                    new SqlParameter("@AccountNumber", model.AccountNumber?? (object?)DBNull.Value),
+                    new SqlParameter("@AccountName", (object?)model.AccountName ?? DBNull.Value),
+                    new SqlParameter("@Branch", (object?)model.Branch ?? DBNull.Value),
                 };
 
                 return Convert.ToInt32(_DbWorker.ExecuteScalar("SP_InsertAllotmentUse", objParam));
@@ -57,7 +64,14 @@ namespace DAL
                     new SqlParameter("@ClientId", model.ClientId),
                     new SqlParameter("@CreateDate", model.CreateDate==null||model.CreateDate<=DateTime.MinValue ? DBNull.Value:model.CreateDate),
                     new SqlParameter("@PaymentStatus", model.PaymentStatus),
-
+                     new SqlParameter("@Description", (object?)model.Description ?? DBNull.Value),
+                    new SqlParameter("@TotalAmoutCalculate", (object?)model.TotalAmoutCalculate ?? DBNull.Value),
+                    new SqlParameter("@PaymentFromDate", (object?)model.PaymentFromDate ?? DBNull.Value),
+                    new SqlParameter("@PaymentToDate", (object?)model.PaymentToDate ?? DBNull.Value),
+                    new SqlParameter("@BankId", model.BankId ?? (object?)DBNull.Value),
+                    new SqlParameter("@AccountNumber", model.AccountNumber?? (object?)DBNull.Value),
+                    new SqlParameter("@AccountName", (object?)model.AccountName ?? DBNull.Value),
+                    new SqlParameter("@Branch", (object?)model.Branch ?? DBNull.Value),
                 };
 
                 return _DbWorker.ExecuteNonQuery("SP_UpdateAllotmentUse", objParam);
