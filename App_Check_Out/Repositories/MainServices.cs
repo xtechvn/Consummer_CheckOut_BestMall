@@ -743,6 +743,8 @@ namespace APP_CHECKOUT.Repositories
                 {
                     var fund = allotmentFundDAL.GetByAccountClientId(order.account_client_id);
                     if (fund != null && fund.Id>0) {
+                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Created Fund [" +  JsonConvert.SerializeObject(fund) + "]:" + DateTime.Now.ToString());
+
                         fund.AccountBalance += profit_affiliate;                  
                         fund.UpdateTime= DateTime.Now;
                         allotmentFundDAL.Update(fund);
@@ -759,7 +761,11 @@ namespace APP_CHECKOUT.Repositories
                             
                         };
                        fund.Id= allotmentFundDAL.Insert(fund);
+                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Created Fund [" + JsonConvert.SerializeObject(fund) + "]:" + DateTime.Now.ToString());
+
+
                     }
+
                     var fund_use = new HuloToys_Service.Models.Models.AllotmentUse()
                     {
                         AllotmentFundId = fund.Id,
