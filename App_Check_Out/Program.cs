@@ -19,7 +19,7 @@ service_collection.AddSingleton<RedisConn>();
 service_collection.AddSingleton<ViettelPostService>();
 var service_provider = service_collection.BuildServiceProvider();
 var main_service = service_provider.GetService<IMainServices>();
-Console.WriteLine("[APP CHECKOUT] Start : " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
+LogHelper.InsertLogTelegram("[APP CHECKOUT] Start : " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
 
 try
 {
