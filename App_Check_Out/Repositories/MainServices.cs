@@ -758,7 +758,7 @@ namespace APP_CHECKOUT.Repositories
                             {
                                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Created Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
 
-                                fund.AccountBalance += profit_affiliate;
+                                fund.AccountBalance += Math.Ceiling(profit_affiliate) ;
                                 fund.UpdateTime = DateTime.Now;
                                 allotmentFundDAL.Update(fund);
                             }
@@ -767,7 +767,7 @@ namespace APP_CHECKOUT.Repositories
                                 fund = new HuloToys_Service.Models.Models.AllotmentFund()
                                 {
                                     UpdateTime = DateTime.Now,
-                                    AccountBalance = profit_affiliate,
+                                    AccountBalance = Math.Ceiling(profit_affiliate),
                                     AccountClientId = client_affiliate,
                                     CreateDate = DateTime.Now,
                                     FundType = 1,
@@ -782,7 +782,7 @@ namespace APP_CHECKOUT.Repositories
                             {
                                 AllotmentFundId = fund.Id,
                                 AccountClientId = client_affiliate,
-                                AmountUse = profit_affiliate,
+                                AmountUse = Math.Ceiling(profit_affiliate),
                                 ClientId = client.Id,
                                 CreateDate = DateTime.Now,
                                 DataId = order.order_id,
