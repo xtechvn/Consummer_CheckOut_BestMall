@@ -743,9 +743,10 @@ namespace APP_CHECKOUT.Repositories
                 if (profit_affiliate > 0)
                 {
                     long client_affiliate = GetAffiliateClient(utm_medium);
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - client_affiliate [" + utm_medium + "][" + client_affiliate + "]:" + DateTime.Now.ToString());
+
                     if (client_affiliate <= 0)
                     {
-                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - client_affiliate [" + utm_medium + "][" + client_affiliate + "]:" + DateTime.Now.ToString());
 
                     }
                     else
