@@ -151,6 +151,7 @@ namespace APP_CHECKOUT.Repositories
                 {
                     return null;
                 }
+                
                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById: [" + order.utm_source + "][" + order.utm_medium + "][" + utm_source + "][" + utm_medium + "]" );
                 if(order.utm_medium==null || order.utm_medium.Trim() == "")
                 {
@@ -741,9 +742,11 @@ namespace APP_CHECKOUT.Repositories
                 }
                 if (profit_affiliate > 0)
                 {
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Fund [" + profit_affiliate + "]:" + DateTime.Now.ToString());
+
                     var fund = allotmentFundDAL.GetByAccountClientId(order.account_client_id);
                     if (fund != null && fund.Id>0) {
-                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Created Fund [" +  JsonConvert.SerializeObject(fund) + "]:" + DateTime.Now.ToString());
+                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Created Fund [" +  JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
 
                         fund.AccountBalance += profit_affiliate;                  
                         fund.UpdateTime= DateTime.Now;
@@ -761,7 +764,7 @@ namespace APP_CHECKOUT.Repositories
                             
                         };
                        fund.Id= allotmentFundDAL.Insert(fund);
-                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Created Fund [" + JsonConvert.SerializeObject(fund) + "]:" + DateTime.Now.ToString());
+                        LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Update Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
 
 
                     }
