@@ -13,11 +13,11 @@ namespace APP_CHECKOUT.Models.Models
     }
     public class ProductDetailResponseModel
     {
-       public ProductMongoDbModelFEResponse product_main { get; set; }
-       public List<ProductMongoDbModelFEResponse> product_sub { get; set; }
+       public ProductMongoDbModel product_main { get; set; }
+       public List<ProductMongoDbModel> product_sub { get; set; }
         public ProductDetailResponseModelCertificate cert { get; set; }
         public ProductDetailResponseModelFavourite favourite { get; set; }
-        public List<ProductMongoDbModelFEResponse> product_buy_with { get; set; }
+        public List<ProductMongoDbModel> product_buy_with { get; set; }
         public List<ProductDetailResponseModelProductBuyWith> product_buy_with_output { get; set; }
         public List<GroupProductESModel> groups { get; set; }
 

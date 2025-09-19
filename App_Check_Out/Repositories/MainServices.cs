@@ -1,5 +1,4 @@
-﻿using ADAVIGO_FRONTEND.Models.Flights.TrackingVoucher;
-using APP_CHECKOUT.DAL;
+﻿using APP_CHECKOUT.DAL;
 using APP_CHECKOUT.Helpers;
 using APP_CHECKOUT.Interfaces;
 using APP_CHECKOUT.Model.Orders;
@@ -15,19 +14,10 @@ using Caching.Elasticsearch;
 using Caching.Elasticsearch.FlashSale;
 using DAL;
 using Entities.Models;
-using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.Controllers.Shipping.Business;
-using HuloToys_Service.RedisWorker;
-using HuloToys_Service.Utilities.lib;
-using Nest;
 using Newtonsoft.Json;
-using StackExchange.Redis;
 using System.Configuration;
-using System.Net;
-using System.Text;
-using Telegram.Bot.Types;
 using Utilities.Contants;
-using static MongoDB.Driver.WriteConcern;
 
 namespace APP_CHECKOUT.Repositories
 {
@@ -46,7 +36,6 @@ namespace APP_CHECKOUT.Repositories
         private readonly EmailService emailService;
         private readonly FlashSaleESRepository flashSaleESRepository;
         private readonly FlashSaleProductESRepository flashSaleProductESRepository;
-        private readonly ProductDetailService productDetailService;
         private readonly ViettelPostService _viettelPostService;
         private readonly SupplierESRepository _supplierESRepository;
         private readonly ProductDetailMongoAccess _productDetailMongoAccess;
@@ -75,7 +64,6 @@ namespace APP_CHECKOUT.Repositories
             nhanhVnService = new NhanhVnService();
             workQueueClient = new WorkQueueClient();
             emailService = new EmailService(clientESService, accountClientESService, locationDAL);
-            productDetailService=new ProductDetailService(clientESService,flashSaleESRepository,flashSaleProductESRepository,productDetailMongoAccess);
             _viettelPostService = viettelPostService;
             _productDetailMongoAccess = new ProductDetailMongoAccess();
             try
