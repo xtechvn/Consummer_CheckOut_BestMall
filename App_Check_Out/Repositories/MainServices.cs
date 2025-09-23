@@ -1,5 +1,4 @@
-﻿using ADAVIGO_FRONTEND.Models.Flights.TrackingVoucher;
-using APP_CHECKOUT.DAL;
+﻿using APP_CHECKOUT.DAL;
 using APP_CHECKOUT.Helpers;
 using APP_CHECKOUT.Interfaces;
 using APP_CHECKOUT.Model.Orders;
@@ -15,15 +14,10 @@ using Caching.Elasticsearch;
 using Caching.Elasticsearch.FlashSale;
 using DAL;
 using Entities.Models;
-using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.Controllers.Shipping.Business;
-using HuloToys_Service.RedisWorker;
 using Newtonsoft.Json;
 using System.Configuration;
-using System.Net;
-using System.Text;
 using Utilities.Contants;
-using static MongoDB.Driver.WriteConcern;
 
 namespace APP_CHECKOUT.Repositories
 {
@@ -42,13 +36,17 @@ namespace APP_CHECKOUT.Repositories
         private readonly EmailService emailService;
         private readonly FlashSaleESRepository flashSaleESRepository;
         private readonly FlashSaleProductESRepository flashSaleProductESRepository;
-        private readonly ProductDetailService productDetailService;
         private readonly ViettelPostService _viettelPostService;
         private readonly SupplierESRepository _supplierESRepository;
         private readonly ProductDetailMongoAccess _productDetailMongoAccess;
         private readonly RedisConn _redisConn;
         private readonly OrderMergeDAL orderMergeDAL;
         private readonly BesmalPriceFormulaManager besmalPriceFormulaManager;
+        private readonly VoucherDAL voucherDAL;
+        private readonly NotificationService notificationService;
+        private readonly AllotmentUseDAL allotmentUseDAL;
+        private readonly AllotmentFundDAL allotmentFundDAL;
+
         public MainServices( ViettelPostService viettelPostService) {
 
             orderDetailMongoDbModel = new OrderMongodbService();
@@ -66,7 +64,6 @@ namespace APP_CHECKOUT.Repositories
             nhanhVnService = new NhanhVnService();
             workQueueClient = new WorkQueueClient();
             emailService = new EmailService(clientESService, accountClientESService, locationDAL);
-            productDetailService=new ProductDetailService(clientESService,flashSaleESRepository,flashSaleProductESRepository,productDetailMongoAccess);
             _viettelPostService = viettelPostService;
             _productDetailMongoAccess = new ProductDetailMongoAccess();
             try
@@ -76,6 +73,12 @@ namespace APP_CHECKOUT.Repositories
             }
             catch { }
             besmalPriceFormulaManager=new BesmalPriceFormulaManager();
+            voucherDAL = new VoucherDAL(ConfigurationManager.AppSettings["ConnectionString"]);
+            notificationService = new NotificationService();
+
+            allotmentUseDAL = new AllotmentUseDAL(ConfigurationManager.AppSettings["ConnectionString"]);
+            allotmentFundDAL = new AllotmentFundDAL(ConfigurationManager.AppSettings["ConnectionString"]);
+
         }
         public async Task Excute(CheckoutQueueModel request)
         {
@@ -88,9 +91,10 @@ namespace APP_CHECKOUT.Repositories
                 {
                     case (int)CheckoutEventID.CREATE_ORDER:
                         {
-                           var data=  await CreateOrder(request.order_mongo_id);
+                           var data=  await CreateOrder(request.order_mongo_id,request.utm_source, request.utm_medium);
                             if (data != null && data.data_mongo != null&& data.data_mongo._id != null && data.data_mongo._id.Trim() != "")
                             {
+                                await notificationService.SendMessage((data.order_merge.UserId==null?0:(int)data.order_merge.UserId).ToString(),data.order_merge.ClientId.ToString(), "0", data.order_merge.OrderNo, "/Order/");
                                 emailService.SendOrderConfirmationEmail(data.data_mongo.email, data);
                             }
                         }break;
@@ -113,15 +117,20 @@ namespace APP_CHECKOUT.Repositories
                 }
             }
             catch (Exception ex) {
-                string err = "MainServices: " + ex.ToString();
+                string err = "MainServices: " + ex;
                 Console.WriteLine(err);
                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - err:"+ err);
 
             }
         }
-        private async Task<OrderMergeSummitModel> CreateOrder(string order_detail_id)
+        private async Task<OrderMergeSummitModel> CreateOrder(string order_detail_id,string? utm_source=null,string? utm_medium = null)
         {
-            OrderMergeSummitModel result = new OrderMergeSummitModel();
+            OrderMergeSummitModel result = new OrderMergeSummitModel()
+            {
+                data_mongo = new OrderDetailMongoDbModelExtend(),
+                detail = new List<OrderMergeSummitOrder>(),
+                order_merge = new OrderMerge()
+            };
             try
             {
                 var time = DateTime.Now;
@@ -130,7 +139,14 @@ namespace APP_CHECKOUT.Repositories
                 {
                     return null;
                 }
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById:" + order._id);
+                
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder orderDetailMongoDbModel.FindById: [" + order.utm_source + "][" + order.utm_medium + "][" + utm_source + "][" + utm_medium + "]" );
+                if(order.utm_medium==null || order.utm_medium.Trim() == "")
+                {
+                    order.utm_source = utm_source;
+                    order.utm_medium = utm_medium;
+                }
+
                 var account_client = accountClientESService.GetById(order.account_client_id);
                 var client = clientESService.GetById((long)account_client.ClientId);
                 AddressClientESModel address_client = addressClientESService.GetById(order.address_id, client.Id);
@@ -139,11 +155,82 @@ namespace APP_CHECKOUT.Repositories
                 var supplier_ids = order.carts.Select(x => x.product.supplier_id).GroupBy(x=>x).Select(x=>x.First());
                 supplier_ids = supplier_ids.Distinct();
                 int sub_order_id = 0;
+                double order_merge_total_discount = 0;
+
+                //-- voucher:
+                List<ProductVoucherCalculatorModel> shipper_voucher_calc = new List<ProductVoucherCalculatorModel>();
+
+                if (order.voucher_apply != null && order.voucher_apply.Count > 0)
+                {
+                    var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 1);
+                    if (shipper_voucher != null && shipper_voucher.PriceSales != null)
+                    {
+                        order_merge_total_discount += shipper_voucher.TotalDiscount;
+                        try
+                        {
+                            shipper_voucher_calc = order.delivery_order.Select(x => new ProductVoucherCalculatorModel()
+                            {
+                                Name = x.SupplierId.ToString(),
+                                Price = Convert.ToDecimal(x.shipping_fee),
+                                Quantity = 1
+                            }).ToList();
+
+                            VoucherCalculator.ApplyVoucher(shipper_voucher_calc, ((decimal)shipper_voucher.PriceSales / 100), (decimal?)shipper_voucher.LimitVoucherTotalDiscount, ((shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd") ? "percent" : "vnd"), (shipper_voucher.IsLimitVoucher == null ? false : (bool)shipper_voucher.IsLimitVoucher));
+                            //LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher Shipping - " 
+                            //    +"[" + JsonConvert.SerializeObject(shipper_voucher) + "]"
+                            //    + "[" + JsonConvert.SerializeObject(shipper_voucher_calc) + "]"
+
+                            //    );
+
+                        }
+                        catch (Exception ex)
+                        {
+                            //LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher Shipping - [" + order_detail_id + "]" + ex);
+
+                        }
+                    }
+                }
+                List<ProductVoucherCalculatorModel> product_voucher_calc = new List<ProductVoucherCalculatorModel>();
+                if (order.voucher_apply != null && order.voucher_apply.Count > 0)
+                {
+                    var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 0);
+                    if (shipper_voucher != null && shipper_voucher.PriceSales != null)
+                    {
+                        order_merge_total_discount += shipper_voucher.TotalDiscount;
+                        try
+                        {
+                            product_voucher_calc = order.carts.Select(x => new ProductVoucherCalculatorModel()
+                            {
+                                Name = x.product._id,
+                                Price = Convert.ToDecimal(x.total_amount),
+                                Quantity = 1
+                            }).ToList();
+                           
+                            VoucherCalculator.ApplyVoucher(product_voucher_calc, ((decimal)shipper_voucher.PriceSales / 100), (decimal?)shipper_voucher.LimitVoucherTotalDiscount, ((shipper_voucher.Unit != null && shipper_voucher.Unit.ToLower().Trim() != "vnd") ? "percent" : "vnd"), (shipper_voucher.IsLimitVoucher == null ? false : (bool)shipper_voucher.IsLimitVoucher));
+
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.InsertLogTelegram(" VoucherCalculator.ApplyVoucher - [" + order_detail_id + "]" + ex);
+
+                        }
+                    }
+                }
+                //-- VNPAY:
+                double profit_vnpay = 0;
+                if ( order.payment_type == 3)
+                {
+                    profit_vnpay = order.total_amount * (order.profit_vnpay==null?0: (double)order.profit_vnpay) / 100;
+                }
+
+                double profit_affiliate = 0;
+
+                //-- split by supplier
                 foreach (var supplier in supplier_ids)
                 {
                     OrderMergeSummitOrder result_item = new OrderMergeSummitOrder()
                     {
-                        order = new Order(),
+                        order = new Entities.Models.Order(),
                         order_detail = new List<OrderDetail>()
                     };
                     var cart_belong_to_supplier = order.carts.Where(x => x.product.supplier_id == supplier);
@@ -155,6 +242,7 @@ namespace APP_CHECKOUT.Repositories
                     double total_profit = 0;
                     double total_price = 0;
                     double total_amount = 0;
+                    double order_total_discount = 0;
                     foreach (var cart in cart_belong_to_supplier)
                     {
                         if (cart == null || cart.product == null) continue;
@@ -167,123 +255,178 @@ namespace APP_CHECKOUT.Repositories
                         {
                             parent_product_id = cart.product.parent_product_id;
                         }
-                        var product = await productDetailMongoAccess.GetByID(parent_product_id);
-                        double amount_per_unit = cart.total_amount / cart.quanity;
-                        //double order_detail_profit = CalculateTotalProfitProduct(amount_per_unit, product.profit, product.price, cart.quanity,order.payment_type,order.utm_medium
-                        //    , Convert.ToDouble((cart!=null && cart.product!=null && cart.product.profit_affliate!=null) ?cart.product.profit_affliate:0)
-                        //    , Convert.ToDouble((order != null && order.profit_vnpay != null && order.profit_vnpay > 0) ? order.profit_vnpay : 0)
+                        var product_amount_after_sale = cart.product.amount;
+                        if (cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
+                        {
+                            product_amount_after_sale = (double)cart.product.amount_after_flashsale;
 
-                        //    );
+
+                        }
+                        var product = await productDetailMongoAccess.GetByID(cart.product._id);
+                        double amount_per_unit = cart.total_amount / cart.quanity;
+
                         double base_profit_value = Convert.ToDouble(cart.product.profit_value == null ? 0 : cart.product.profit_value);
                         double profit_value = base_profit_value;
                         if (cart.product.profit_value_type != null && cart.product.profit_value_type == 0)
                         {
-                            profit_value = Math.Round(base_profit_value / amount_per_unit * 100, 0);
+                            profit_value = Math.Round(base_profit_value / product.amount * 100, 0);
                         }
 
                         double base_profit_supplier_value = Convert.ToDouble(cart.product.profit_supplier == null ? 0 : cart.product.profit_supplier);
                         double profit_supplier_value = base_profit_supplier_value;
                         if (cart.product.profit_supplier_type != null && cart.product.profit_supplier_type == 0)
                         {
-                            profit_supplier_value = Math.Round(base_profit_supplier_value / amount_per_unit * 100, 0);
+                            profit_supplier_value = Math.Round(base_profit_supplier_value / product.amount * 100, 0);
                         }
-                        double flashsale_percent = cart.product.flash_sale_price_sales==null?0: Convert.ToDouble(cart.product.flash_sale_price_sales);
+                        double flashsale_percent = (cart.product.flash_sale_price_sales == null || cart.product.amount_after_flashsale == null || cart.product.amount_after_flashsale <=0) ?0: Convert.ToDouble(cart.product.flash_sale_price_sales);
+
                         if ((cart.product.flash_sale_unit == null && flashsale_percent>0) || cart.product.flash_sale_unit == 0)
                         {
-                            flashsale_percent= Convert.ToDouble(cart.product.flash_sale_price_sales) /cart.product.amount;
+                            flashsale_percent= Math.Round(Convert.ToDouble(cart.product.flash_sale_price_sales) / product.amount * 100,0);
                         }
-                        double shipper_voucher_total_discount = 0;
-                        if(order.voucher_apply!=null && order.voucher_apply.Count > 0)
+                        double order_detail_product_total_discount = 0;
+                        if (product_voucher_calc != null && product_voucher_calc.Count > 0 && product_voucher_calc.Any(x => x.Name.ToLower().Trim() == cart.product._id.ToLower().Trim()))
                         {
-                            var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 1);
-                            if (shipper_voucher != null)
-                            {
-                                shipper_voucher_total_discount = shipper_voucher.TotalDiscount;
-
-
-                            }
+                            order_detail_product_total_discount = Convert.ToDouble(product_voucher_calc.First(x => x.Name.ToLower().Trim() == cart.product._id.ToLower().Trim()).Discount);
+                            order_total_discount += order_detail_product_total_discount;
                         }
-                        double product_total_discount = 0;
-                        if (order.voucher_apply != null && order.voucher_apply.Count > 0)
+                        double order_detail_shipping_voucher_total_discount = 0;
+                        if (shipper_voucher_calc != null && shipper_voucher_calc.Count > 0 && shipper_voucher_calc.Any(x => x.Name.ToLower().Trim() == cart.product.supplier_id.ToString()))
                         {
-                            var shipper_voucher = order.voucher_apply.FirstOrDefault(x => x.RuleType == 0);
-                            if (shipper_voucher != null && shipper_voucher.Unit.Trim()!="vnd")
-                            {
-                                product_total_discount = shipper_voucher.TotalDiscount;
+                            order_detail_shipping_voucher_total_discount = Convert.ToDouble(shipper_voucher_calc.First(x => x.Name.ToLower().Trim() == cart.product.supplier_id.ToString()).Discount / cart_belong_to_supplier.Count());
+                            order_detail_shipping_voucher_total_discount = Math.Ceiling(order_detail_shipping_voucher_total_discount);
+                            order_total_discount += order_detail_shipping_voucher_total_discount;
 
-                            }
                         }
+                        double order_detail_vnpay_fee = 0;
+                        if( profit_vnpay > 0)
+                        {
+                            order_detail_vnpay_fee = profit_vnpay / order.carts.Count;
+                        }
+                       
+                        //-- calculate price:
+                        var order_detail_price = besmalPriceFormulaManager.tinh_gia_nhap(
+                          Convert.ToDecimal(product.amount)
+                           , Convert.ToDecimal(profit_supplier_value / 100)
+                          , Convert.ToDecimal(profit_value / 100)
+                          );
                         var order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
                             Convert.ToDecimal(product.amount)
                             , Convert.ToDecimal(profit_value / 100)
                             , Convert.ToDecimal(profit_supplier_value / 100)
-                            , Convert.ToDecimal(flashsale_percent)
+                            , Convert.ToDecimal(flashsale_percent/100)
                             , cart.quanity);
-                        var order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale(
+                        var order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale_v2(
                             Convert.ToDecimal(product.amount)
                             , Convert.ToDecimal(profit_value/100)
                             , Convert.ToDecimal(profit_supplier_value / 100)
-                            , Convert.ToDecimal(flashsale_percent)
+                            , Convert.ToDecimal(flashsale_percent / 100)
                             , cart.quanity
                             ,order.utm_medium!=null && order.utm_medium.Trim()!=""? Convert.ToDecimal(cart.product.profit_affliate / 100) :0
-                            , order.payment_type != null && order.payment_type==3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0
-                            ,Convert.ToDecimal(order.shipping_fee)
-                            , Convert.ToDecimal(shipper_voucher_total_discount)
-                            , Convert.ToDecimal(product_total_discount)
+                            , Convert.ToDecimal(order_detail_vnpay_fee)
+                            , Convert.ToDecimal(order_detail_shipping_voucher_total_discount)
+                            , Convert.ToDecimal(order_detail_product_total_discount)
                             , 0
                             , 0
+                            ,Convert.ToDecimal(order.total_amount)
                             );
-                        result_item.order_detail.Add(new OrderDetail()
+                        profit_affiliate += (order.total_amount) * (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDouble(cart.product.profit_affliate / 100) : 0);
+                        //LogHelper.InsertLogTelegram(" OrderDetail Discount and profit- "
+                        //  + "[" + order_detail_shipping_voucher_total_discount + "]"
+                        //  + "[" + order_detail_product_total_discount + "]"
+                        //  + "[" + order_detail_vnpay_fee + "]"
+                        //  + "[" + order_detail_final_profit + "]"
+                        //  + "[" + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + "]"
+                        //  );
+                        //LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_profit = besmalPriceFormulaManager.tinh_loi_nhuan_tam_tinh_sau_sale(
+                        //    " + Convert.ToDecimal(product.amount) + @"
+                        //    , " + Convert.ToDecimal(profit_value / 100) + @"
+                        //     , " + Convert.ToDecimal(profit_supplier_value / 100) + @"
+                        //     , " + Convert.ToDecimal(flashsale_percent / 100) + @"
+                        //     , " + cart.quanity + @"
+
+                        //    );: [" + order_detail_profit + "]");
+                        //LogHelper.InsertLogTelegram(@"[APP.CHECKOUT] MainServices - order_detail_final_profit = besmalPriceFormulaManager.tinh_loi_nhuan_rong_sau_sale_v2(
+                        //    " + Convert.ToDecimal(product.amount) + @"
+                        //    , " + Convert.ToDecimal(profit_value / 100) + @"
+                        //     , " + Convert.ToDecimal(profit_supplier_value / 100) + @"
+                        //     , " + Convert.ToDecimal(flashsale_percent / 100) + @"
+                        //     , " + cart.quanity + @"
+                        //    , " + (order.utm_medium != null && order.utm_medium.Trim() != "" ? Convert.ToDecimal(cart.product.profit_affliate / 100) : 0) + @"
+                        //    , " + (order.payment_type != null && order.payment_type == 3 ? Convert.ToDecimal(order.profit_vnpay / 100) : 0) + @"
+                        //     , " + Convert.ToDecimal(order_detail_shipping_voucher_total_discount) + @"
+                        //     , " + Convert.ToDecimal(order_detail_product_total_discount) + @"
+                        //     , " + 0 + @"
+                        //     , " + 0 + @"
+                        //     , " + Convert.ToDecimal(product_amount_after_sale) + @"
+                        //    );: [" + order_detail_final_profit + "]");
+                        //order_detail_profit = StringHelper.RoundUp(order_detail_profit);
+                        // order_detail_final_profit = StringHelper.RoundUp(order_detail_final_profit);
+                        var order_detail = new OrderDetail()
                         {
                             CreatedDate = time,
                             Discount = 0,
                             OrderDetailId = 0,
                             OrderId = 0,
-                            Price = product.price,
-                            Profit = Convert.ToDouble(order_detail_profit),
+                            Price = Convert.ToDouble(order_detail_price),
+                            Profit = Convert.ToDouble(order_detail_profit)/ cart.quanity,
                             Quantity = cart.quanity,
                             Amount = amount_per_unit,
                             ProductCode = cart.product.code,
                             ProductId = cart.product._id,
                             ProductLink = ConfigurationManager.AppSettings["Setting_Domain"] + "/san-pham/" + name_url + "--" + cart.product._id,
-                            TotalPrice = product.price * cart.quanity,
-                            TotalProfit = (amount_per_unit * profit_value / 100),
+                            TotalPrice = Convert.ToDouble(order_detail_price) * cart.quanity,
+                            TotalProfit = Convert.ToDouble(order_detail_profit),
                             TotalAmount = cart.total_amount,
                             TotalDiscount = 0,
                             UpdatedDate = time,
                             UserCreate = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                             UserUpdated = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                             ParentProductId = parent_product_id,
-                            FinalProfit=Convert.ToDouble(order_detail_final_profit)
-                        });
+                            FinalProfit = Convert.ToDouble(order_detail_final_profit)
+                        };
+                        result_item.order_detail.Add(order_detail);
                         total_product_quantity += cart.quanity;
-                        //cart.product.price = product.price;
-                        cart.total_profit= cart.total_amount * profit_value / 100;
+                        cart.total_price = Convert.ToDouble(order_detail_price) * cart.quanity;
+                        cart.total_profit = Convert.ToDouble(order_detail_final_profit);
                         cart.product.amount = amount_per_unit;
-                        total_profit += (cart.total_amount * profit_value / 100);
-                        total_price += product.price * cart.quanity;
+                        total_profit += Convert.ToDouble(order_detail_final_profit);
+                        total_price += Convert.ToDouble(order_detail_price) * cart.quanity;
                         total_amount += cart.total_amount;
                         if (!list_supplier.Contains(cart.product.supplier_id))
                         {
                             list_supplier.Add(cart.product.supplier_id);
                         }
                     }
-                   
+
                     order.total_price += total_price;
                     order.total_profit += total_profit;
-                    result_item.order = new Order()
+                    string order_no = (supplier_ids == null || supplier_ids.Count() <= 1  ? order.order_no : order.order_no + "-" + sub_order_id);
+                    double shipping_fee_supplier = 0;
+                    //--shipping fee
+                    if (order.delivery_order!=null && order.delivery_order.Count > 0)
                     {
-                        Amount = total_amount,
+                        var shipping_supplier = order.delivery_order.FirstOrDefault(x => x.SupplierId == supplier);
+                        if (shipping_supplier != null)
+                        {
+                            shipping_fee_supplier=shipping_supplier.shipping_fee==null?0:(double)shipping_supplier.shipping_fee;
+                        }
+                    }
+                    //LogHelper.InsertLogTelegram("result_item.order - ["+ total_amount + "]["+ shipping_fee_supplier + "]["+ voucher_total_discount + "]");
+
+                    result_item.order = new Entities.Models.Order()
+                    {
+                        Amount = total_amount+ shipping_fee_supplier - order_total_discount,
                         ClientId = (long)account_client.ClientId,
                         CreatedDate = DateTime.Now,
-                        Discount = 0,
+                        Discount = order_total_discount,
                         IsDelete = 0,
                         Note = "",
                         OrderId = 0,
-                        OrderNo = order.order_no+"-"+sub_order_id,
+                        OrderNo = order_no,
                         PaymentStatus = 0,
                         PaymentType = Convert.ToInt16(order.payment_type),
-                        Price = total_price,
+                        Price = total_amount,
                         Profit = total_profit,
                         OrderStatus = 0,
                         UpdateLast = time,
@@ -297,15 +440,16 @@ namespace APP_CHECKOUT.Repositories
                         Address = order.address,
                         ReceiverName = order.receivername,
                         Phone = order.phone,
-                        ShippingFee = order.shipping_fee,
+                        ShippingFee = shipping_fee_supplier,
                         CarrierId = order.delivery_detail.carrier_id,
                         ShippingCode = "",
                         ShippingType = order.delivery_detail.shipping_type,
                         ShippingStatus = 0,
                         PackageWeight = total_weight,
                         ShippingTypeCode = order.delivery_detail.shipping_service_code == null ? "" : order.delivery_detail.shipping_service_code,
-
+                        
                     };
+
                     List<Province> provinces = GetProvince();
                     List<District> districts = GetDistrict();
                     List<Ward> wards = GetWards();
@@ -342,9 +486,6 @@ namespace APP_CHECKOUT.Repositories
                         result_item.order.Phone = order.phone;
                         result_item.order.Address = order.address;
                     }
-
-                    result_item.order.VoucherId = order.voucher_id;
-                    result_item.order.Discount = order.total_discount;
                     //-- Shipping token
                     if (order.delivery_detail != null && order.delivery_detail.carrier_id > 0)
                     {
@@ -430,31 +571,6 @@ namespace APP_CHECKOUT.Repositories
                         
 
                     }
-                    if(order.delivery_order!=null && order.delivery_order.Count > 0)
-                    {
-                        var delivery_selected = order.delivery_order.FirstOrDefault(x => x.SupplierId == supplier);
-                        if (delivery_selected != null) {
-                            result_item.order.Amount += delivery_selected.shipping_fee;
-                           // result_item.order.Profit -= delivery_selected.shipping_fee;
-                            result_item.order.ShippingFee = delivery_selected.shipping_fee;
-                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder [" + supplier + "] order.delivery_order:" + result_item.order.ShippingFee);
-                        }
-
-                    }
-                    if (order.voucher_apply != null && order.voucher_apply.Count > 0)
-                    {
-                        var delivery_selected = order.voucher_apply.FirstOrDefault(x => x.SupplierId == supplier);
-                        if (delivery_selected != null)
-                        {
-                            result_item.order.Amount -= delivery_selected.TotalDiscount;
-                            //result_item.order.Profit -= delivery_selected.TotalDiscount;
-                            result_item.order.Discount = delivery_selected.TotalDiscount;
-                            result_item.order.VoucherId = delivery_selected.voucher_id;
-                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder [" + supplier + "] order.voucher_apply: [" + delivery_selected.voucher_id + "] ["+ delivery_selected.TotalDiscount + "]" );
-
-                        }
-
-                    }
                     result_item.order.SupplierId = supplier;
                     //--Payment Type:
                     if (result_item.order.PaymentType == 1)
@@ -477,7 +593,7 @@ namespace APP_CHECKOUT.Repositories
                     Amount = order.total_amount,
                     ClientId = (long)account_client.ClientId,
                     CreatedDate = DateTime.Now,
-                    Discount = 0,
+                    Discount = order_merge_total_discount,
                     IsDelete = 0,
                     Note = "",
                     Id = 0,
@@ -498,29 +614,53 @@ namespace APP_CHECKOUT.Repositories
                     Address = order.address,
                     ReceiverName = order.receivername,
                     Phone = order.phone,
-                   ShippingFee= (order.delivery_order != null && order.delivery_order.Count > 0)? order.delivery_order.Sum(x => x.shipping_fee) : 0
+                    ShippingFee= (order.delivery_order != null && order.delivery_order.Count > 0)? order.delivery_order.Sum(x => x.shipping_fee) : 0,
+                    ProfitAffiliate= profit_affiliate
                 };
+                if (result.detail.First().order.PaymentType == 1)
+                {
+                    result.order_merge.OrderStatus = 1;
+                }
+                if (result.detail.First().order.ProvinceId >0)
+                {
+                    result.order_merge.ProvinceId = result.detail.First().order.ProvinceId;
+                }
+                if (result.detail.First().order.DistrictId > 0)
+                {
+                    result.order_merge.DistrictId = result.detail.First().order.DistrictId;
+                }
+                if (result.detail.First().order.WardId > 0)
+                {
+                    result.order_merge.WardId = result.detail.First().order.WardId;
+                }
+                if (order.voucher_apply != null && order.voucher_apply.Count > 0)
+                {
+                    result.order_merge.VoucherId=string.Join(",", order.voucher_apply);
+                }
                 var order_merge_id = await orderMergeDAL.InsertOrderMerge(result.order_merge);
                 result.order_merge.Id = order_merge_id;
-                LogHelper.InsertLogTelegram("OrderMerge Created - " + result.order_merge.OrderNo + " - " + result.order_merge.Amount);
+                //LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder OrderMerge Created: [" + result.order_merge.UtmSource + "][" + result.order_merge.UtmMedium + "]");
+
+                //LogHelper.InsertLogTelegram("OrderMerge Created - ["+ order_merge_id + "] " + result.order_merge.OrderNo + " - " + result.order_merge.Amount);
                 workQueueClient.SyncES(order_merge_id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", Convert.ToInt16(ProjectType.HULOTOYS));
                 foreach(var result_item in result.detail)
                 {
                     result_item.order.OrderMergeId = order_merge_id;
                     var order_id = await orderDAL.CreateOrder(result_item.order);
-                    LogHelper.InsertLogTelegram("Order Created - " + order.order_no + " - " + result_item.order.Amount);
+                    // LogHelper.InsertLogTelegram("Order Created - [" + result_item.order.OrderNo + "][" + result_item.order.Profit + "][" + result_item.order.Amount + "] ");
+                   // LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder Order Created: [" + result_item.order.UtmSource + "][" + result_item.order.UtmMedium + "]");
+
                     workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
                     if (order_id > 0)
                     {
-                        order.order_id = order_id;
-                        order.order_no = result_item.order.OrderNo;
                         foreach (var detail in result_item.order_detail)
                         {
                             detail.OrderId = order_id;
                             detail.OrderMergeId = order_merge_id;
                             await orderDetailDAL.CreateOrderDetail(detail);
-                            Console.WriteLine("Created OrderDetail - " + detail.OrderId + ": " + detail.OrderDetailId);
-                            LogHelper.InsertLogTelegram("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
+                            Console.WriteLine("Created OrderDetail - [ " + detail.OrderDetailId + "]");
+                           // LogHelper.InsertLogTelegram("OrderDetail Created -  [" + detail.OrderDetailId+"] [" + detail.Profit + "] - [" + detail.FinalProfit+"]");
+
                         }
 
                     }
@@ -551,13 +691,104 @@ namespace APP_CHECKOUT.Repositories
                 }
                 order.order_id = order_merge_id;
                 await orderDetailMongoDbModel.Update(order);
+                if (order.voucher_apply != null && order.voucher_apply.Count > 0)
+                {
+                    string cache_name = "VOUCHER";
+                    _redisConn.clear(cache_name, Convert.ToInt32(ConfigurationManager.AppSettings["Redis_Database_db_search_result"]));
+                    foreach (var voucher in order.voucher_apply)
+                    {
+                        var exists_voucher = await voucherDAL.FindByVoucherId(voucher.voucher_id);
+                        if (exists_voucher != null && exists_voucher.Id>0) {
+                            exists_voucher.LimitUse--;
+                            if (exists_voucher.LimitUse <= 0)
+                            {
+                                exists_voucher.LimitUse = 0;
+                            }
+                            try
+                            {
+                                voucherDAL.UpdateVoucher(exists_voucher);
+                                if (exists_voucher.GroupUserPriority != null && exists_voucher.GroupUserPriority.Trim() != "")
+                                {
+                                    List<long> client_ids = JsonConvert.DeserializeObject<List<long>>(exists_voucher.GroupUserPriority);
+                                    if (client_ids != null && client_ids.Count > 0)
+                                    {
+                                        foreach (var client_id in client_ids)
+                                        {
+                                            cache_name = "VOUCHER" + client;
+                                            _redisConn.clear(cache_name, Convert.ToInt32(ConfigurationManager.AppSettings["Redis_Database_db_search_result"]));
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder - UpdateVoucher:" + ex);
 
+                            }
+                        }
+                    }
+                }
+                if (profit_affiliate > 0)
+                {
+                    long client_affiliate = GetAffiliateClient(utm_medium);
+                    if (client_affiliate != (long)account_client.ClientId)
+                    {
+                        // LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - client_affiliate [" + utm_medium + "][" + client_affiliate + "]:" + DateTime.Now.ToString());
+
+                        if (client_affiliate <= 0)
+                        {
+
+                        }
+                        else
+                        {
+                            var fund = allotmentFundDAL.GetByAccountClientId(client_affiliate);
+                            if (fund != null && fund.Id > 0)
+                            {
+                                //  LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Update Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
+
+                                //fund.AccountBalance += Math.Ceiling(profit_affiliate);
+                              //  fund.UpdateTime = DateTime.Now;
+                               // allotmentFundDAL.Update(fund);
+                            }
+                            else
+                            {
+                                fund = new HuloToys_Service.Models.Models.AllotmentFund()
+                                {
+                                    UpdateTime = DateTime.Now,
+                                   // AccountBalance = Math.Ceiling(profit_affiliate),
+                                    AccountBalance = 0,
+                                    AccountClientId = client_affiliate,
+                                    CreateDate = DateTime.Now,
+                                    FundType = 1,
+
+                                };
+                                fund.Id = allotmentFundDAL.Insert(fund);
+                                // LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - create Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
+
+
+                            }
+                            var fund_use = new HuloToys_Service.Models.Models.AllotmentUse()
+                            {
+                                AllotmentFundId = fund.Id,
+                                AccountClientId = client_affiliate,
+                                AmountUse = Math.Ceiling(profit_affiliate),
+                                ClientId = client.Id,
+                                CreateDate = DateTime.Now,
+                                DataId = order.order_id,
+                                ServiceType = 0,
+                                PaymentStatus = 0,
+                            };
+                            allotmentUseDAL.Insert(fund_use);
+                        }
+                    }
+                }
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder Done [" + result.order_merge.Id + "][" + result.order_merge.OrderNo + "]:" + DateTime.Now.ToString());
 
                 return result;
             }
             catch (Exception ex)
             {
-                string err = "CreateOrder with ["+ order_detail_id+"] error: " + ex.ToString();
+                string err = "CreateOrder with ["+ order_detail_id+"] error: " + ex.Message + "at "+ex.StackTrace;
                 Console.WriteLine(err);
                 LogHelper.InsertLogTelegram(err);
                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder:" + err);
@@ -613,28 +844,25 @@ namespace APP_CHECKOUT.Repositories
             }
             return wards;
         }
-        private double CalculateTotalProfitProduct(double amount, double profit, double price,int quantity,int payment_type, string utm_medium, double affiliate_percent, double vnpay_percent)
+        private long GetAffiliateClient(string utm_medium)
         {
-            var total_profit = profit * (quantity <= 0 ? 1 : quantity);
+            long client_id = -1;
             try
             {
-                double aff_fee = 0;
-                if (utm_medium!=null && utm_medium.Trim() != "")
-                {
-                    aff_fee = Math.Ceiling(total_profit * affiliate_percent / 100);
+                string decoded = CommonHelpers.Decode(utm_medium, "lmRI5gYANBix6AUX1STNNXhPIhJ2RVlvg6SrXASb3GoMDmbxdxAa");
+                if (decoded != null && decoded.Trim() != "" && decoded.ToLower().Contains("client_id")) {
+                    string client_id_value = decoded.Split(";")[0].Replace("client_id=","");
+                    if(client_id_value!=null && client_id_value.Trim() != "")
+                    {
+                        client_id=Convert.ToInt64(client_id_value);
+                    }
                 }
-                double vnpay_fee = 0;
-                if (payment_type == 3)
-                {
-                    vnpay_fee = Math.Ceiling(total_profit * vnpay_percent / 100);
-                }
-                total_profit = total_profit - aff_fee - vnpay_fee;
             }
             catch (Exception ex)
             {
 
             }
-            return total_profit;
+            return client_id;
         }
        
     }
