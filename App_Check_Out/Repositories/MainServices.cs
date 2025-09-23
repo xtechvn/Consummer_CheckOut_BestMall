@@ -731,9 +731,9 @@ namespace APP_CHECKOUT.Repositories
                 if (profit_affiliate > 0)
                 {
                     long client_affiliate = GetAffiliateClient(utm_medium);
-                    if(client_affiliate != (long)account_client.ClientId)
+                    if (client_affiliate != (long)account_client.ClientId)
                     {
-                       // LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - client_affiliate [" + utm_medium + "][" + client_affiliate + "]:" + DateTime.Now.ToString());
+                        // LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - client_affiliate [" + utm_medium + "][" + client_affiliate + "]:" + DateTime.Now.ToString());
 
                         if (client_affiliate <= 0)
                         {
@@ -744,25 +744,26 @@ namespace APP_CHECKOUT.Repositories
                             var fund = allotmentFundDAL.GetByAccountClientId(client_affiliate);
                             if (fund != null && fund.Id > 0)
                             {
-                              //  LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Update Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
+                                //  LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Update Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
 
-                                fund.AccountBalance += Math.Ceiling(profit_affiliate) ;
-                                fund.UpdateTime = DateTime.Now;
-                                allotmentFundDAL.Update(fund);
+                                //fund.AccountBalance += Math.Ceiling(profit_affiliate);
+                              //  fund.UpdateTime = DateTime.Now;
+                               // allotmentFundDAL.Update(fund);
                             }
                             else
                             {
                                 fund = new HuloToys_Service.Models.Models.AllotmentFund()
                                 {
                                     UpdateTime = DateTime.Now,
-                                    AccountBalance = Math.Ceiling(profit_affiliate),
+                                   // AccountBalance = Math.Ceiling(profit_affiliate),
+                                    AccountBalance = 0,
                                     AccountClientId = client_affiliate,
                                     CreateDate = DateTime.Now,
                                     FundType = 1,
 
                                 };
                                 fund.Id = allotmentFundDAL.Insert(fund);
-                               // LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - create Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
+                                // LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - create Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
 
 
                             }
