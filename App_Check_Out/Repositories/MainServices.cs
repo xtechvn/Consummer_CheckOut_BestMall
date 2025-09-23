@@ -782,7 +782,7 @@ namespace APP_CHECKOUT.Repositories
                 //        }
                 //    }
                 //}
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder Done [" + result.order_merge.Id + "][" + result.order_merge.OrderNo + "]:" + DateTime.Now.ToString());
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder Done [" + result.order_merge.Id + "][" + result.order_merge.OrderNo + "] [Skip AllotmentFund]: " + DateTime.Now.ToString());
 
                 return result;
             }
