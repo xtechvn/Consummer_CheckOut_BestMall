@@ -30,7 +30,19 @@ namespace Caching.Elasticsearch.FlashSale
 
             return response.Documents.FirstOrDefault();
         }
-       
+        public async Task<List<SupplierESModel>> GetByIds(IEnumerable<int> ids)
+        {
+            var response = await _client.SearchAsync<SupplierESModel>(s => s
+                .Query(q => q
+                    .Terms(t => t
+                        .Field(f => f.supplierid)
+                        .Terms(ids) 
+                    )
+                )
+            );
+
+            return response.Documents.ToList();
+        }
     }
 
 

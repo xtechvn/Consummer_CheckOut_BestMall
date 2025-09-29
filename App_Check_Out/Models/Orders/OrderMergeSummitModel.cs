@@ -1,4 +1,5 @@
 ﻿using Entities.Models;
+using Entities.ViewModels.ElasticSearch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace APP_CHECKOUT.Models.Orders
         public OrderMerge order_merge { get; set; }
         public List<OrderMergeSummitOrder> detail { get; set; }
         public OrderDetailMongoDbModelExtend data_mongo { get; set; }
+        public List<SupplierESModel> suppliers { get; set; }
     }
     public class OrderMergeSummitOrder
     {
