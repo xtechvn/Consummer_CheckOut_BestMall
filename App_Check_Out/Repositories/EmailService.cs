@@ -1,12 +1,15 @@
+using APP_CHECKOUT.Model.Orders;
 using APP_CHECKOUT.Models.Location;
 using APP_CHECKOUT.Models.Orders;
 using APP_CHECKOUT.Utilities.Lib;
 using Caching.Elasticsearch;
 using DAL;
+using Entities.ViewModels.ElasticSearch;
 using HuloToys_Service.Utilities.lib;
 using System.Configuration;
 using System.Net;
 using System.Net.Mail;
+using System.Threading.Tasks;
 
 namespace APP_CHECKOUT.Repositories
 {
@@ -20,6 +23,7 @@ namespace APP_CHECKOUT.Repositories
         private readonly string _bcc;
         private readonly string _domain;
         private const string EmailTemplatePath = "\\EmailTemplates\\OrderConfirmationEmail.html"; // Đường dẫn tới file template
+        private const string EmailSupplierTemplatePath = "\\EmailTemplates\\OrderSupplierConfirmationEmail.html"; // Đường dẫn tới file template
         private readonly ClientESService clientESService;
         private readonly AccountClientESService accountClientESService;
         private readonly LocationDAL locationDAL;
@@ -297,6 +301,229 @@ namespace APP_CHECKOUT.Repositories
             }
             return wards;
         }
+
+        public async Task<bool> SendOrderSupplierConfirmationEmail(OrderMergeSummitModel result)
+        {
+            try
+            {
+                using (SmtpClient client = new SmtpClient(_host, _port))
+                {
+                    client.EnableSsl = true;
+                    client.UseDefaultCredentials = false;
+                    client.Credentials = new NetworkCredential(_username, _password);
+                    client.DeliveryMethod = SmtpDeliveryMethod.Network;
+
+                    using (MailMessage mail = new MailMessage())
+                    {
+                       foreach(var order in result.detail)
+                       {
+                            var supplier =  result.suppliers.FirstOrDefault(x => x.supplierid == order.order.SupplierId);
+                            if (supplier == null ||supplier.supplierid<=0)
+                            {
+                                continue;
+                            }
+                            mail.From = new MailAddress(_username, "BestMall CSKH"); // Tên hiển thị là BestMall
+                            mail.To.Add(supplier.email);
+                            mail.Subject = $"Xác nhận đơn hàng từ BestMall - #{result.data_mongo.order_no}";
+                            mail.IsBodyHtml = true;
+
+                            if (!string.IsNullOrEmpty(_cc))
+                            {
+                                mail.CC.Add(_cc);
+                            }
+                            if (!string.IsNullOrEmpty(_bcc))
+                            {
+                                mail.Bcc.Add(_bcc);
+                            }
+                            List<CartItemMongoDbModel> carts_belongs = result.data_mongo.carts.Where(x => order.order_detail.Select(x => x.ProductId).Contains(x._id)).ToList();
+                            mail.Body = ReadSupplierEmailTemplateAndPopulate(carts_belongs, result.data_mongo, supplier);
+
+                            client.Send(mail);
+                       }
+                    }
+                    return true;
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending email: {ex.Message}");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail:" + ex.Message);
+                return false;
+            }
+        }
+        private string ReadSupplierEmailTemplateAndPopulate(List<CartItemMongoDbModel> carts_belongs, OrderDetailMongoDbModelExtend order, SupplierESModel supplier)
+        {
+            try
+            {
+                string templatePath = Environment.CurrentDirectory + EmailSupplierTemplatePath;
+                string htmlContent = "";
+                try
+                {
+                    htmlContent = File.ReadAllText(templatePath);
+                }
+                catch
+                {
+                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - ReadSupplierEmailTemplateAndPopulate: Không tìm thấy file template email tại:" + templatePath);
+                }
+                if (htmlContent == null || htmlContent.Trim() == "")
+                {
+                    htmlContent = GetTemplateSupplierInFunction();
+
+                }
+                var account_client = accountClientESService.GetById(order.account_client_id);
+                var client = clientESService.GetById((long)account_client.ClientId);
+
+                htmlContent = htmlContent.Replace("{clientname}", client.ClientName);
+                htmlContent = htmlContent.Replace("{suppliername}", supplier.fullname);
+                htmlContent = htmlContent.Replace("{clientcode}", client.ClientCode);
+                htmlContent = htmlContent.Replace("{orderno}", order.order_no);
+                htmlContent = htmlContent.Replace("{created_date}", StringHelper.GetCurrentTimeInUtcPlus7(order.created_date).ToString("dd/MM/yyyy HH:mm:ss"));
+                htmlContent = htmlContent.Replace("{receiver_name}", order.receivername);
+                htmlContent = htmlContent.Replace("{receiver_name}", order.receivername);
+                List<Province> provinces = GetProvince();
+                List<District> districts = GetDistrict();
+                List<Ward> wards = GetWards();
+                string full_address = "{address}, {wardid}, {district}, {province}";
+                if (order != null && order.provinceid != null && order.districtid != null && order.wardid != null)
+                {
+                    var province = provinces.FirstOrDefault(x => x.Id == Convert.ToInt32(order.provinceid));
+                    var district = districts.FirstOrDefault(x => x.Id == Convert.ToInt32(order.districtid));
+                    var ward = wards.FirstOrDefault(x => x.Id == Convert.ToInt32(order.wardid));
+                    full_address = order.address + ", " + (ward == null ? "" : ward.Name) + ", " + (district == null ? "" : district.Name) + ", " + (province == null ? "" : province.Name);
+                }
+                else
+                {
+                    full_address = order.address;
+                }
+                htmlContent = htmlContent.Replace("{address}", full_address);
+                htmlContent = htmlContent.Replace("{phone}", order.phone);
+
+                string template = @"
+                                            <tr>
+                                                <!-- Product Image -->
+                                                <td width=""50"" valign=""top"">
+                                                    <img src=""{image}"" width=""50"" height=""50""
+                                                         alt=""Product"" style=""border-radius:4px;"">
+                                                </td>
+
+                                                <!-- Product Info -->
+                                                <td valign=""top"" style=""padding-left:10px;"">
+                                                    <div style=""font-size:14px; font-weight:bold; color:#002b5b;"">
+                                                        {name}
+                                                    </div>
+                                                    <div style=""font-size:13px; color:#555;"">Mã sản phẩm: {code}</div>
+                                                    <div style=""font-size:13px; color:#555;"">Số lượng: {quanity}</div>
+                                                </td>
+
+                                                <!-- Price -->
+                                                <td align=""right"" valign=""top""
+                                                    style=""font-size:14px; font-weight:bold; color:#f22; white-space:nowrap;"">
+                                                    {amount} đ
+                                                </td>
+                                            </tr>
+
+
+                ";
+                string product_html = "";
+                foreach (var cart in carts_belongs)
+                {
+
+                    var amount_product = cart.product.amount;
+                    if (cart.product.flash_sale_todate >= StringHelper.GetCurrentTimeInUtcPlus7(order.created_date) && cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
+                    {
+                        amount_product = (double)cart.product.amount_after_flashsale;
+
+                    }
+                    var url_fixed = cart.product.avatar;
+                    if (!url_fixed.Contains(static_url)
+                    && !url_fixed.Contains("base64")
+                    && !url_fixed.Contains("data:video"))
+                    {
+                        url_fixed = static_url + cart.product.avatar;
+                    }
+                    product_html += template
+                        .Replace("{image}", url_fixed)
+                        .Replace("{name}", cart.product.name)
+                        .Replace("{quanity}", cart.quanity.ToString("N0"))
+                        .Replace("{amount}", (amount_product * cart.quanity).ToString("N0"))
+                        .Replace("{code}", cart.product.code);
+                }
+                htmlContent = htmlContent.Replace("{products}", product_html);
+                string payment_type = "Thanh toán khi nhận hàng";
+                switch (order.payment_type)
+                {
+                    default:
+                        {
+                        }
+                        break;
+                    case 2:
+                        {
+                            payment_type = "Chuyển khoản ngân hàng";
+                        }
+                        break;
+                    case 3:
+                        {
+                            payment_type = "Thanh toán qua VN-PAY";
+                        }
+                        break;
+                    case 4:
+                        {
+                            payment_type = "";
+                        }
+                        break;
+                    case 5:
+                        {
+                            payment_type = "";
+                        }
+                        break;
+                }
+                htmlContent = htmlContent.Replace("{payment_type}", payment_type);
+
+                string shipping_type = "Nhận hàng tại BestMall";
+                switch (order.delivery_detail.carrier_id)
+                {
+                    default:
+                        {
+                        }
+                        break;
+                    case 2:
+                        {
+                            shipping_type = "Ninja Van";
+                        }
+                        break;
+                    case 3:
+                        {
+                            shipping_type = "Viettel Post";
+                        }
+                        break;
+                }
+                htmlContent = htmlContent.Replace("{shipping_type}", shipping_type);
+                htmlContent = htmlContent.Replace("{shipping_type_code}", order.delivery_detail.shipping_service_code);
+                htmlContent = htmlContent.Replace("{amount}", order.carts.Sum(x => x.total_amount).ToString("N0"));
+                htmlContent = htmlContent.Replace("{shipping_fee}", (order.shipping_fee == null ? 0 : (double)order.shipping_fee).ToString("N0") + " đ");
+                htmlContent = htmlContent.Replace("{total_discount}", (order.total_discount == null ? "" : "- " + ((double)order.total_discount).ToString("N0") + " đ"));
+                htmlContent = htmlContent.Replace("{total_amount}", order.total_amount.ToString("N0"));
+
+                return htmlContent;
+            }
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine($"Lỗi: Không tìm thấy file template email tại: {EmailTemplatePath}. Hãy đảm bảo file đã được đặt trong thư mục đầu ra và thuộc tính 'Copy to Output Directory' đã được thiết lập.");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - ReadSupplierEmailTemplateAndPopulate: Không tìm thấy file template email tại:" + EmailTemplatePath);
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi khi đọc hoặc xử lý template email: {ex.Message}");
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - ReadSupplierEmailTemplateAndPopulate:" + ex.Message);
+
+                return null;
+            }
+        }
+
+
         private string GetTemplateInFunction()
         {
             return @"
@@ -519,6 +746,189 @@ namespace APP_CHECKOUT.Repositories
                                     <td colspan=""2"" align=""center""
                                         style=""background:#f3f7fc; padding:20px 15px; font-size:13px; color:#002b5b;"">
                                         Quý khách có thể phản hồi trực tiếp ở email này hoặc liên hệ với chúng tôi qua
+                                        hotline: <strong style=""color:#004ba0;"">0989.471.727</strong>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>";
+        }
+        private string GetTemplateSupplierInFunction()
+        {
+            return @"
+<!DOCTYPE html>
+<html lang=""vi"">
+
+<head>
+    <meta charset=""UTF-8"">
+    <title>Best Mall Email</title>
+</head>
+
+<body style=""margin:0; padding:0; background-color:#f2f2f2;"">
+    <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0""
+           style=""background-color:#f2f2f2; padding:20px 0; font-family:Arial, sans-serif;line-height: 1.4;"">
+        <tr>
+            <td align=""center"">
+                <table width=""600"" cellpadding=""0"" cellspacing=""0"" border=""0""
+                       style=""background-color:#ffffff; border:1px solid #dddddd; max-width:600px; width:100%;"">
+                    <tr>
+                        <td style=""padding:30px 20px 10px; text-align:center;"">
+                            <h1 style=""font-size:22px; margin:0; color:#002b5b;"">
+                                 Xin chào
+                                {suppliername}
+                            </h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:0 20px 30px; text-align:center;"">
+                            <h2 style=""font-size:20px; margin:0; color:#002b5b;"">
+                                Khách hàng {clientname} đã đặt hàng tại Bestmall!
+
+                            </h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style=""border-top:1px solid #E3EBF3;"">
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""text-align:center;"">
+                                <tr>
+                                    <td width=""33.33%"" style=""padding:15px 5px; border-right:1px solid #E3EBF3;"">
+                                        <div style=""font-size:15px; color:#002b5b; font-weight:600;  margin-bottom:5px;"">
+                                            Mã khách hàng
+                                        </div>
+                                        <div style=""font-size:16px; color:#9c27b0; "">
+                                            {clientcode}
+                                        </div>
+                                    </td>
+                                    <td width=""33.33%"" style=""padding:15px 5px; border-right:1px solid #E3EBF3;"">
+                                        <div style=""font-size:15px; color:#002b5b; font-weight:600;  margin-bottom:5px;"">
+                                            Mã đơn hàng
+                                        </div>
+                                        <div style=""font-size:16px; color:#9c27b0; "">
+                                            {orderno}
+                                        </div>
+                                    </td>
+                                    <td width=""33.33%"" style=""padding:15px 5px;"">
+                                        <div style=""font-size:15px; color:#002b5b; font-weight:600;  margin-bottom:5px;"">
+                                            Ngày đặt hàng
+                                        </div>
+                                        <div style=""font-size:16px; color:#9c27b0; "">
+                                            {created_date}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                   
+                    <tr>
+                        <td>
+                            <!-- Order Details -->
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0""
+                                   style=""max-width:600px; margin:0 auto; font-family:Arial, sans-serif; background:#fff; "">
+                                <tr>
+                                    <td colspan=""2"" align=""center""
+                                        style=""padding:20px 0 10px 0; font-size:16px; font-weight:600; color:#002b5b;"">
+                                        Chi tiết đơn hàng
+                                    </td>
+                                </tr>
+
+                                <!-- Product Row -->
+                                <tr>
+                                    <td colspan=""2"" style=""padding:15px 20px 10px;border-top:1px solid #e5e5e5;"">
+                                        <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                                           {products}
+                                        </table>
+                                    </td>
+                                </tr>
+
+                                <!-- Customer + Payment Info -->
+                                <tr>
+                                    <td colspan=""2"" style=""padding:10px 20px; border-top:1px solid #e5e5e5;"">
+                                        <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                                            <tr>
+                                                <!-- Customer Info -->
+                                                <td valign=""top"" style=""width:50%;"">
+                                                    <div style=""font-size:14px; font-weight:bold; color:#002b5b; padding-bottom:6px;"">
+                                                        {receiver_name}
+                                                    </div>
+                                                    <div style=""font-size:13px; color:#555;"">
+                                                        <strong>Địa chỉ:</strong>
+                                                        {address}
+                                                    </div>
+                                                    <div style=""font-size:13px; color:#555;"">
+                                                        <strong>
+                                                            Điện
+                                                            thoại:
+                                                        </strong> <span style=""color:#004ba0; font-weight:bold;"">{phone}</span>
+                                                    </div>
+                                                </td>
+
+                                                <!-- Payment Info -->
+                                                <td valign=""top"" style=""width:50%;"">
+                                                    <table cellpadding=""0"" cellspacing=""4"" border=""0""
+                                                           style=""font-size:13px; color:#002b5b; width:100%;"">
+                                                        <tr>
+                                                            <td align=""right"" style=""padding-bottom:2px;"">
+                                                                Hình thức
+                                                                thanh toán:
+                                                            </td>
+                                                            <td align=""right"" style=""font-weight:bold;"">{payment_type}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align=""right"" style=""padding-bottom:2px;"">
+                                                                Đơn vị
+                                                                vận chuyển:
+                                                            </td>
+                                                            <td align=""right"" style=""font-weight:bold;"">{shipping_type}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align=""right"" style=""padding-bottom:2px;"">
+                                                                Hình thức
+                                                                vận chuyển:
+                                                            </td>
+                                                            <td align=""right"" style=""font-weight:bold;"">{shipping_type_code}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align=""right"">Tiền hàng:</td>
+                                                            <td align=""right"" style=""font-weight:bold;"">{amount} đ</td>
+                                                        </tr>
+                                                          <tr>
+                                                            <td align=""right"" style=""padding-bottom:2px;"">
+                                                                Phí vận chuyển:
+                                                            </td>
+                                                            <td align=""right"" style=""padding-bottom:2px;"">{shipping_fee}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align=""right"" style="""">Giảm giá:</td>
+                                                            <td align=""right"" style=""color: #f22; "">{total_discount}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align=""right"" style=""font-weight:bold;"">Tổng tiền:</td>
+                                                            <td align=""right""
+                                                                style=""color:#f22; font-size:16px; font-weight:bold;"">
+                                                                {total_amount} đ
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+
+                                <!-- Hotline / Support -->
+                                <tr>
+                                    <td colspan=""2"" align=""center""
+                                        style=""background:#f3f7fc; padding:20px 15px; font-size:13px; color:#002b5b;"">
+                                        Mọi thông tin chi tiết vui lòng truy cập trang quản lý, phản hồi trực tiếp ở email này hoặc liên hệ với chúng tôi qua
                                         hotline: <strong style=""color:#004ba0;"">0989.471.727</strong>
                                     </td>
                                 </tr>

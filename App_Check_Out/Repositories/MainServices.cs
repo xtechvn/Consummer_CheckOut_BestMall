@@ -96,6 +96,7 @@ namespace APP_CHECKOUT.Repositories
                             {
                                 await notificationService.SendMessage((data.order_merge.UserId==null?0:(int)data.order_merge.UserId).ToString(),data.order_merge.ClientId.ToString(), "0", data.order_merge.OrderNo, "/Order/");
                                 emailService.SendOrderConfirmationEmail(data.data_mongo.email, data);
+                               // await emailService.SendOrderSupplierConfirmationEmail(data);
                             }
                         }break;
                     case (int)CheckoutEventID.UPDATE_ORDER:
@@ -129,7 +130,8 @@ namespace APP_CHECKOUT.Repositories
             {
                 data_mongo = new OrderDetailMongoDbModelExtend(),
                 detail = new List<OrderMergeSummitOrder>(),
-                order_merge = new OrderMerge()
+                order_merge = new OrderMerge(),
+                suppliers=new List<Entities.ViewModels.ElasticSearch.SupplierESModel>()
             };
             try
             {
@@ -156,7 +158,7 @@ namespace APP_CHECKOUT.Repositories
                 supplier_ids = supplier_ids.Distinct();
                 int sub_order_id = 0;
                 double order_merge_total_discount = 0;
-
+                result.suppliers = await _supplierESRepository.GetByIds(supplier_ids);
                 //-- voucher:
                 List<ProductVoucherCalculatorModel> shipper_voucher_calc = new List<ProductVoucherCalculatorModel>();
 
