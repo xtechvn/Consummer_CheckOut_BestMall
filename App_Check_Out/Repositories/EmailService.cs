@@ -323,7 +323,7 @@ namespace APP_CHECKOUT.Repositories
                             {
                                 continue;
                             }
-                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: supplier" + JsonConvert.SerializeObject(supplier));
+                            //LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: supplier" + JsonConvert.SerializeObject(supplier));
 
                             mail.From = new MailAddress(_username, "BestMall CSKH"); // Tên hiển thị là BestMall
                             mail.To.Add(supplier.email);
@@ -338,7 +338,7 @@ namespace APP_CHECKOUT.Repositories
                             {
                                 mail.Bcc.Add(_bcc);
                             }
-                            var product_belong = order.order_detail.Select(x => x.ProductId);
+                            var product_belong = order.order_detail.Select(x => x.ProductCode);
                             LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: product_belong {" + (product_belong == null ? "NULL" : JsonConvert.SerializeObject(product_belong))+"}");
 
                             List<CartItemMongoDbModel> carts_belongs = result.data_mongo.carts.Where(x => product_belong.Contains(x._id)).ToList();
