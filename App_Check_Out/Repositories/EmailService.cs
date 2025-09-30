@@ -338,11 +338,11 @@ namespace APP_CHECKOUT.Repositories
                             {
                                 mail.Bcc.Add(_bcc);
                             }
-                            var product_belong = order.order_detail.Select(x => x.ProductCode);
-                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: product_belong {" + (product_belong == null ? "NULL" : JsonConvert.SerializeObject(product_belong))+"}");
+                            var product_belong = order.order_detail.Select(x => x.ParentProductId);
+                            //LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: product_belong {" + (product_belong == null ? "NULL" : JsonConvert.SerializeObject(product_belong))+"}");
 
-                            List<CartItemMongoDbModel> carts_belongs = result.data_mongo.carts.Where(x => product_belong.Contains(x._id)).ToList();
-                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: carts_belongs ["+ (result.data_mongo.carts == null ? "NULL" :JsonConvert.SerializeObject(result.data_mongo.carts.Select(x => x._id))) + "]["+ (carts_belongs == null ? "NULL" : carts_belongs.Count) + "]");
+                            List<CartItemMongoDbModel> carts_belongs = result.data_mongo.carts.Where(x => product_belong.Contains((x.product.parent_product_id==null || x.product.parent_product_id.Trim() == "" ? x.product._id:x.product.parent_product_id))).ToList();
+                            //LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: carts_belongs ["+ (result.data_mongo.carts == null ? "NULL" :JsonConvert.SerializeObject(result.data_mongo.carts.Select(x => x._id))) + "]["+ (carts_belongs == null ? "NULL" : carts_belongs.Count) + "]");
 
                             mail.Body = ReadSupplierEmailTemplateAndPopulate(carts_belongs, result.data_mongo, supplier);
 
