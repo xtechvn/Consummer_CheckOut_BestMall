@@ -452,7 +452,7 @@ namespace APP_CHECKOUT.Repositories
                     {
                         url_fixed = static_url + cart.product.avatar;
                     }
-                    LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - ReadSupplierEmailTemplateAndPopulate: url_fixed " + url_fixed);
+                    //LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - ReadSupplierEmailTemplateAndPopulate: url_fixed " + url_fixed);
 
                     product_html += template
                         .Replace("{image}", url_fixed)
