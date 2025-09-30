@@ -339,10 +339,10 @@ namespace APP_CHECKOUT.Repositories
                                 mail.Bcc.Add(_bcc);
                             }
                             var product_belong = order.order_detail.Select(x => x.ProductId);
-                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: product_belong [" + product_belong == null ? "NULL" : JsonConvert.SerializeObject(product_belong) + "]");
+                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: product_belong {" + (product_belong == null ? "NULL" : JsonConvert.SerializeObject(product_belong))+"}");
 
                             List<CartItemMongoDbModel> carts_belongs = result.data_mongo.carts.Where(x => product_belong.Contains(x._id)).ToList();
-                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: carts_belongs ["+ carts_belongs==null?"NULL": carts_belongs.Count + "]");
+                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: carts_belongs ["+ (result.data_mongo.carts == null ? "NULL" :JsonConvert.SerializeObject(result.data_mongo.carts.Select(x => x._id))) + "]["+ (carts_belongs == null ? "NULL" : carts_belongs.Count) + "]");
 
                             mail.Body = ReadSupplierEmailTemplateAndPopulate(carts_belongs, result.data_mongo, supplier);
 
