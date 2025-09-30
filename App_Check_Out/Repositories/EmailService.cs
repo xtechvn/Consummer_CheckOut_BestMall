@@ -6,6 +6,7 @@ using Caching.Elasticsearch;
 using DAL;
 using Entities.ViewModels.ElasticSearch;
 using HuloToys_Service.Utilities.lib;
+using Newtonsoft.Json;
 using System.Configuration;
 using System.Net;
 using System.Net.Mail;
@@ -322,6 +323,8 @@ namespace APP_CHECKOUT.Repositories
                             {
                                 continue;
                             }
+                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: supplier" + JsonConvert.SerializeObject(supplier));
+
                             mail.From = new MailAddress(_username, "BestMall CSKH"); // Tên hiển thị là BestMall
                             mail.To.Add(supplier.email);
                             mail.Subject = $"Xác nhận đơn hàng từ BestMall - #{result.data_mongo.order_no}";
@@ -335,7 +338,12 @@ namespace APP_CHECKOUT.Repositories
                             {
                                 mail.Bcc.Add(_bcc);
                             }
-                            List<CartItemMongoDbModel> carts_belongs = result.data_mongo.carts.Where(x => order.order_detail.Select(x => x.ProductId).Contains(x._id)).ToList();
+                            var product_belong = order.order_detail.Select(x => x.ProductId);
+                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: product_belong [" + product_belong == null ? "NULL" : JsonConvert.SerializeObject(product_belong) + "]");
+
+                            List<CartItemMongoDbModel> carts_belongs = result.data_mongo.carts.Where(x => product_belong.Contains(x._id)).ToList();
+                            LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: carts_belongs ["+ carts_belongs==null?"NULL": carts_belongs.Count + "]");
+
                             mail.Body = ReadSupplierEmailTemplateAndPopulate(carts_belongs, result.data_mongo, supplier);
 
                             client.Send(mail);
