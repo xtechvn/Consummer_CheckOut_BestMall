@@ -4,6 +4,7 @@ using APP_CHECKOUT.Models.Orders;
 using APP_CHECKOUT.Utilities.Lib;
 using Caching.Elasticsearch;
 using DAL;
+using Entities.Models;
 using Entities.ViewModels.ElasticSearch;
 using HuloToys_Service.Utilities.lib;
 using Newtonsoft.Json;
@@ -344,7 +345,7 @@ namespace APP_CHECKOUT.Repositories
                             List<CartItemMongoDbModel> carts_belongs = result.data_mongo.carts.Where(x => product_belong.Contains((x.product.parent_product_id==null || x.product.parent_product_id.Trim() == "" ? x.product._id:x.product.parent_product_id))).ToList();
                             //LogHelper.InsertLogTelegram("[APP.CHECKOUT] EmailService - SendOrderSupplierConfirmationEmail: carts_belongs ["+ (result.data_mongo.carts == null ? "NULL" :JsonConvert.SerializeObject(result.data_mongo.carts.Select(x => x._id))) + "]["+ (carts_belongs == null ? "NULL" : carts_belongs.Count) + "]");
 
-                            mail.Body = ReadSupplierEmailTemplateAndPopulate(carts_belongs, result.data_mongo, supplier);
+                            mail.Body = ReadSupplierEmailTemplateAndPopulate(carts_belongs, result.data_mongo, supplier,order.order);
 
                             client.Send(mail);
                        }
@@ -360,7 +361,7 @@ namespace APP_CHECKOUT.Repositories
                 return false;
             }
         }
-        private string ReadSupplierEmailTemplateAndPopulate(List<CartItemMongoDbModel> carts_belongs, OrderDetailMongoDbModelExtend order, SupplierESModel supplier)
+        private string ReadSupplierEmailTemplateAndPopulate(List<CartItemMongoDbModel> carts_belongs, OrderDetailMongoDbModelExtend order, SupplierESModel supplier, Order order_detail)
         {
             try
             {
@@ -443,6 +444,7 @@ namespace APP_CHECKOUT.Repositories
                         amount_product = (double)cart.product.amount_after_flashsale;
 
                     }
+
                     var url_fixed = cart.product.avatar;
                     if (!url_fixed.Contains(static_url)
                     && !url_fixed.Contains("base64")
@@ -506,12 +508,13 @@ namespace APP_CHECKOUT.Repositories
                         }
                         break;
                 }
+
                 htmlContent = htmlContent.Replace("{shipping_type}", shipping_type);
                 htmlContent = htmlContent.Replace("{shipping_type_code}", order.delivery_detail.shipping_service_code);
-                htmlContent = htmlContent.Replace("{amount}", order.carts.Sum(x => x.total_amount).ToString("N0"));
-                htmlContent = htmlContent.Replace("{shipping_fee}", (order.shipping_fee == null ? 0 : (double)order.shipping_fee).ToString("N0") + " đ");
-                htmlContent = htmlContent.Replace("{total_discount}", (order.total_discount == null ? "" : "- " + ((double)order.total_discount).ToString("N0") + " đ"));
-                htmlContent = htmlContent.Replace("{total_amount}", order.total_amount.ToString("N0"));
+                htmlContent = htmlContent.Replace("{amount}", ((double)order_detail.Price).ToString("N0"));
+                htmlContent = htmlContent.Replace("{shipping_fee}", (order_detail.ShippingFee==null?0:(double)order_detail.ShippingFee).ToString("N0") + " đ");
+                htmlContent = htmlContent.Replace("{total_discount}", (order_detail.Discount == null ? 0 : (double)order_detail.Discount).ToString("N0") + " đ");
+                htmlContent = htmlContent.Replace("{total_amount}", ((double)order_detail.Amount).ToString("N0"));
 
                 return htmlContent;
             }
