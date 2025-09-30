@@ -79,6 +79,9 @@ namespace APP_CHECKOUT.Models.Client
         [PropertyName("ParentId")]
 
         public int? ParentId { get; set; }
+        [PropertyName("CitizenId")]
+
+        public string CitizenId { get; set; }
 
     }
 }

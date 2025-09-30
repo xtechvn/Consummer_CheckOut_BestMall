@@ -730,61 +730,61 @@ namespace APP_CHECKOUT.Repositories
                         }
                     }
                 }
-                if (profit_affiliate > 0)
-                {
-                    long client_affiliate = GetAffiliateClient(utm_medium);
-                    if (client_affiliate != (long)account_client.ClientId)
-                    {
-                        // LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - client_affiliate [" + utm_medium + "][" + client_affiliate + "]:" + DateTime.Now.ToString());
+                //if (profit_affiliate > 0)
+                //{
+                //    long client_affiliate = GetAffiliateClient(utm_medium);
+                //    if (client_affiliate != (long)account_client.ClientId)
+                //    {
+                //        // LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - client_affiliate [" + utm_medium + "][" + client_affiliate + "]:" + DateTime.Now.ToString());
 
-                        if (client_affiliate <= 0)
-                        {
+                //        if (client_affiliate <= 0)
+                //        {
 
-                        }
-                        else
-                        {
-                            var fund = allotmentFundDAL.GetByAccountClientId(client_affiliate);
-                            if (fund != null && fund.Id > 0)
-                            {
-                                //  LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Update Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
+                //        }
+                //        else
+                //        {
+                //            var fund = allotmentFundDAL.GetByAccountClientId(client_affiliate);
+                //            if (fund != null && fund.Id > 0)
+                //            {
+                //                //  LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - Update Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
 
-                                //fund.AccountBalance += Math.Ceiling(profit_affiliate);
-                              //  fund.UpdateTime = DateTime.Now;
-                               // allotmentFundDAL.Update(fund);
-                            }
-                            else
-                            {
-                                fund = new HuloToys_Service.Models.Models.AllotmentFund()
-                                {
-                                    UpdateTime = DateTime.Now,
-                                   // AccountBalance = Math.Ceiling(profit_affiliate),
-                                    AccountBalance = 0,
-                                    AccountClientId = client_affiliate,
-                                    CreateDate = DateTime.Now,
-                                    FundType = 1,
+                //                //fund.AccountBalance += Math.Ceiling(profit_affiliate);
+                //              //  fund.UpdateTime = DateTime.Now;
+                //               // allotmentFundDAL.Update(fund);
+                //            }
+                //            else
+                //            {
+                //                fund = new HuloToys_Service.Models.Models.AllotmentFund()
+                //                {
+                //                    UpdateTime = DateTime.Now,
+                //                   // AccountBalance = Math.Ceiling(profit_affiliate),
+                //                    AccountBalance = 0,
+                //                    AccountClientId = client_affiliate,
+                //                    CreateDate = DateTime.Now,
+                //                    FundType = 1,
 
-                                };
-                                fund.Id = allotmentFundDAL.Insert(fund);
-                                // LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - create Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
+                //                };
+                //                fund.Id = allotmentFundDAL.Insert(fund);
+                //                // LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - create Fund [" + JsonConvert.SerializeObject(fund) + "][" + profit_affiliate + "]:" + DateTime.Now.ToString());
 
 
-                            }
-                            var fund_use = new HuloToys_Service.Models.Models.AllotmentUse()
-                            {
-                                AllotmentFundId = fund.Id,
-                                AccountClientId = client_affiliate,
-                                AmountUse = Math.Ceiling(profit_affiliate),
-                                ClientId = client.Id,
-                                CreateDate = DateTime.Now,
-                                DataId = order.order_id,
-                                ServiceType = 0,
-                                PaymentStatus = 0,
-                            };
-                            allotmentUseDAL.Insert(fund_use);
-                        }
-                    }
-                }
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder Done [" + result.order_merge.Id + "][" + result.order_merge.OrderNo + "]:" + DateTime.Now.ToString());
+                //            }
+                //            var fund_use = new HuloToys_Service.Models.Models.AllotmentUse()
+                //            {
+                //                AllotmentFundId = fund.Id,
+                //                AccountClientId = client_affiliate,
+                //                AmountUse = Math.Ceiling(profit_affiliate),
+                //                ClientId = client.Id,
+                //                CreateDate = DateTime.Now,
+                //                DataId = order.order_id,
+                //                ServiceType = 0,
+                //                PaymentStatus = 0,
+                //            };
+                //            allotmentUseDAL.Insert(fund_use);
+                //        }
+                //    }
+                //}
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] MainServices - CreateOrder Done [" + result.order_merge.Id + "][" + result.order_merge.OrderNo + "] [Skip AllotmentFund]: " + DateTime.Now.ToString());
 
                 return result;
             }

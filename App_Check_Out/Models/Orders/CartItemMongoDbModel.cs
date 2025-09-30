@@ -20,7 +20,7 @@ namespace APP_CHECKOUT.Model.Orders
         public double? total_discount { get; set; }
         public double total_amount { get; set; }
         public DateTime created_date { get; set; }
-        public ProductMongoDbModelFEResponse product { get; set; }
+        public ProductMongoDbModel product { get; set; }
         //public IList<ProductMongoDbModel> products { get; set; }
         public AddressClientFEModel address { get; set; }
 

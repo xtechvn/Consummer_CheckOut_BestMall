@@ -205,7 +205,7 @@ namespace APP_CHECKOUT.Repositories
             }
             catch (Exception ex)
             {
-                string err = "PostToNhanhVN ->GetLocationByType with [" + type+"-"+parent_id + "] error: " + ex.ToString();
+                string err = "PostToNhanhVN ->GetLocationByType with [" + type+"-"+parent_id + "] error: " + ex;
                 Console.WriteLine(err);
                 LogHelper.InsertLogTelegram(err);
             }

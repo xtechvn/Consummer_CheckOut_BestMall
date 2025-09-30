@@ -177,11 +177,10 @@ namespace APP_CHECKOUT.Repositories
                         .Replace("{name}", cart.product.name)
                         .Replace("{quanity}", cart.quanity.ToString("N0"))
                         .Replace("{amount}", (amount_product * cart.quanity).ToString("N0"))
-                        .Replace("{code}", cart.product.code)
-                        ;
+                        .Replace("{code}", cart.product.code);
                 }
                 htmlContent = htmlContent.Replace("{products}", product_html);
-                string payment_type = "COD";
+                string payment_type = "Thanh toán khi nhận hàng";
                 switch (order.payment_type)
                 {
                     default:
@@ -195,17 +194,17 @@ namespace APP_CHECKOUT.Repositories
                         break;
                     case 3:
                         {
-                            payment_type = "Thẻ VISA/Master Card";
+                            payment_type = "Thanh toán qua VN-PAY";
                         }
                         break;
                     case 4:
                         {
-                            payment_type = "Thanh toán QR/PAY";
+                            payment_type = "";
                         }
                         break;
                     case 5:
                         {
-                            payment_type = "Thanh toán tại văn phòng";
+                            payment_type = "";
                         }
                         break;
                 }
@@ -230,7 +229,8 @@ namespace APP_CHECKOUT.Repositories
                         break;
                 }
                 htmlContent = htmlContent.Replace("{shipping_type}", shipping_type);
-                htmlContent = htmlContent.Replace("{amount}", (order.total_amount + (order.total_discount == null ? 0 : (double)order.total_discount)).ToString("N0"));
+                htmlContent = htmlContent.Replace("{shipping_type_code}", order.delivery_detail.shipping_service_code);
+                htmlContent = htmlContent.Replace("{amount}", order.carts.Sum(x=>x.total_amount).ToString("N0"));
                 htmlContent = htmlContent.Replace("{shipping_fee}", (order.shipping_fee == null ? 0 : (double)order.shipping_fee).ToString("N0") + " đ");
                 htmlContent = htmlContent.Replace("{total_discount}", (order.total_discount == null ? "" : "- " + ((double)order.total_discount).ToString("N0") + " đ"));
                 htmlContent = htmlContent.Replace("{total_amount}", order.total_amount.ToString("N0"));
@@ -697,15 +697,31 @@ namespace APP_CHECKOUT.Repositories
                                                                 Hình thức
                                                                 thanh toán:
                                                             </td>
-                                                            <td align=""right"" style=""font-weight:bold;"">COD</td>
+                                                            <td align=""right"" style=""font-weight:bold;"">{payment_type}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align=""right"" style=""padding-bottom:2px;"">
+                                                                Đơn vị
+                                                                vận chuyển:
+                                                            </td>
+                                                            <td align=""right"" style=""font-weight:bold;"">{shipping_type}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align=""right"" style=""padding-bottom:2px;"">
+                                                                Hình thức
+                                                                vận chuyển:
+                                                            </td>
+                                                            <td align=""right"" style=""font-weight:bold;"">{shipping_type_code}</td>
                                                         </tr>
                                                         <tr>
                                                             <td align=""right"">Tiền hàng:</td>
-                                                            <td align=""right"">{amount} đ</td>
+                                                            <td align=""right"" style=""font-weight:bold;"">{amount} đ</td>
                                                         </tr>
-                                                        <tr>
-                                                            <td align=""right"" style=""display:none;"">Phí vận chuyển:</td>
-                                                            <td align=""right"" style=""display:none;"">0 đ</td>
+                                                          <tr>
+                                                            <td align=""right"" style=""padding-bottom:2px;"">
+                                                                Phí vận chuyển:
+                                                            </td>
+                                                            <td align=""right"" style=""padding-bottom:2px;"">{shipping_fee}</td>
                                                         </tr>
                                                         <tr>
                                                             <td align=""right"" style="""">Giảm giá:</td>

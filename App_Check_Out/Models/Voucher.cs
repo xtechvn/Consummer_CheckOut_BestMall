@@ -7,7 +7,7 @@ public partial class Voucher
 {
     public int Id { get; set; }
 
-    public string Code { get; set; } = null!;
+    public string Code { get; set; }
 
     public DateTime? Cdate { get; set; }
 
@@ -15,7 +15,7 @@ public partial class Voucher
 
     public DateTime? EDate { get; set; }
 
-    public int LimitUse { get; set; }
+    public int? LimitUse { get; set; }
 
     public decimal? PriceSales { get; set; }
 
@@ -50,4 +50,7 @@ public partial class Voucher
 
     public int? CampaignId { get; set; }
 
+    public string? Name { get; set; }
+
 }
+

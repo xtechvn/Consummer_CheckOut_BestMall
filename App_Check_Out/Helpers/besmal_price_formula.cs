@@ -1,3 +1,4 @@
+using APP_CHECKOUT.Utilities.Lib;
 using System;
 
 /// <summary>
@@ -196,6 +197,8 @@ public class BesmalPriceFormulaManager
     {
         decimal loi_nhuan_tam_tinh_sale = tinh_loi_nhuan_tam_tinh_sau_sale(gia_niem_yet, ty_le_chiet_khau, ty_le_sncc, ty_le_sale_ncc, so_luong);
         decimal gia_khach_hang_thanh_toan_sale = tinh_gia_khach_hang_tra_co_sale(gia_niem_yet, ty_le_sale_ncc, so_luong, phi_van_chuyen, voucher_van_chuyen, ty_le_voucher_giam_gia, dieu_kien_voucher_ship, dieu_kien_voucher_giam_gia);
+       
+
         decimal tong_gia_ban_sale = tinh_tong_gia_ban_co_sale(gia_niem_yet, ty_le_sale_ncc, so_luong);
         decimal tong_gia_ban_goc = tinh_tong_gia_ban_chua_sale(gia_niem_yet, so_luong);
         
@@ -204,7 +207,27 @@ public class BesmalPriceFormulaManager
         
         decimal voucher_van_chuyen_ap_dung = kiem_tra_dieu_kien_voucher_ship(tong_gia_ban_sale, dieu_kien_voucher_ship) ? voucher_van_chuyen : 0;
         decimal ty_le_voucher_giam_gia_ap_dung = kiem_tra_dieu_kien_voucher_giam_gia(tong_gia_ban_goc, dieu_kien_voucher_giam_gia) ? ty_le_voucher_giam_gia : 0;
-        
-        return loi_nhuan_tam_tinh_sale - (gia_khach_hang_thanh_toan_sale * phi_affiliate) - (gia_khach_hang_thanh_toan_sale * phi_vnpay) - voucher_van_chuyen_ap_dung - (tong_gia_ban_sale * ty_le_voucher_giam_gia_ap_dung) - (gia_niem_yet * phan_tram_sale_best_mall);
+
+        return loi_nhuan_tam_tinh_sale - (gia_khach_hang_thanh_toan_sale * phi_affiliate) - (gia_khach_hang_thanh_toan_sale * phi_vnpay) - (phi_van_chuyen * voucher_van_chuyen_ap_dung) - (gia_khach_hang_thanh_toan_sale * so_luong * ty_le_voucher_giam_gia_ap_dung) - (gia_niem_yet * phan_tram_sale_best_mall);
+    }
+    public decimal tinh_loi_nhuan_rong_sau_sale_v2(decimal gia_niem_yet, decimal ty_le_chiet_khau, decimal ty_le_sncc,
+        decimal ty_le_sale_ncc, int so_luong, decimal phi_affiliate, decimal phi_vnpay,
+        decimal tong_giam_gia_voucher_van_chuyen, decimal tong_giam_gia_voucher_san_pham, decimal dieu_kien_voucher_ship, decimal dieu_kien_voucher_giam_gia
+        , decimal tong_tien_khach_hang_tra)
+    {
+        decimal loi_nhuan_tam_tinh_sale = tinh_loi_nhuan_tam_tinh_sau_sale(gia_niem_yet, ty_le_chiet_khau, ty_le_sncc, ty_le_sale_ncc, so_luong);
+        //decimal gia_khach_hang_thanh_toan_sale = tinh_gia_khach_hang_tra_co_sale(gia_niem_yet, ty_le_sale_ncc, so_luong, phi_van_chuyen, voucher_van_chuyen, ty_le_voucher_giam_gia, dieu_kien_voucher_ship, dieu_kien_voucher_giam_gia);
+
+
+        decimal tong_gia_ban_sale = tinh_tong_gia_ban_co_sale(gia_niem_yet, ty_le_sale_ncc, so_luong);
+        decimal tong_gia_ban_goc = tinh_tong_gia_ban_chua_sale(gia_niem_yet, so_luong);
+
+        // Tính SBM từ công thức 7
+        decimal phan_tram_sale_best_mall = tinh_phan_tram_sale_best_mall(ty_le_sale_ncc, ty_le_sncc);
+
+        decimal voucher_van_chuyen_ap_dung = kiem_tra_dieu_kien_voucher_ship(tong_gia_ban_sale, dieu_kien_voucher_ship) ? tong_giam_gia_voucher_van_chuyen : 0;
+        decimal ty_le_voucher_giam_gia_ap_dung = kiem_tra_dieu_kien_voucher_giam_gia(tong_gia_ban_goc, dieu_kien_voucher_giam_gia) ? tong_giam_gia_voucher_san_pham : 0;
+
+        return loi_nhuan_tam_tinh_sale - (tong_tien_khach_hang_tra * phi_affiliate) - phi_vnpay - tong_giam_gia_voucher_van_chuyen - tong_giam_gia_voucher_san_pham - (gia_niem_yet * phan_tram_sale_best_mall);
     }
 }

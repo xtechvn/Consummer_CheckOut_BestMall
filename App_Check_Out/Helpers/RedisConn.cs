@@ -44,10 +44,19 @@ namespace APP_CHECKOUT
         }
         public void Set(string key, string value, DateTime expires, int db_index)
         {
-            var db = _redis.GetDatabase(db_index);
-            var expiryTimeSpan = expires.Subtract(DateTime.Now);
+            try
+            {
+                var db = _redis.GetDatabase(db_index);
+                var expiryTimeSpan = expires.Subtract(DateTime.Now);
 
-            db.StringSet(key, value, expiryTimeSpan);
+                db.StringSet(key, value, expiryTimeSpan);
+            }
+            catch (RedisConnectionException err)
+            {
+
+                // throw err;
+            }
+           
         }
 
         public async Task<string> GetAsync(string key, int db_index)
@@ -57,8 +66,17 @@ namespace APP_CHECKOUT
         }
         public string Get(string key, int db_index)
         {
-            var db = _redis.GetDatabase(db_index);
-            return db.StringGet(key);
+            try
+            {
+                var db = _redis.GetDatabase(db_index);
+                return db.StringGet(key);
+            }
+            catch (RedisConnectionException err)
+            {
+
+                // throw err;
+            }
+            return "";
         }
 
         public string GetNoAsync(string key, int db_index)
@@ -69,8 +87,17 @@ namespace APP_CHECKOUT
 
         public async void clear(string key, int db_index)
         {
-            var db = _redis.GetDatabase(db_index);
-            await db.KeyDeleteAsync(key);
+            try
+            {
+                var db = _redis.GetDatabase(db_index);
+                await db.KeyDeleteAsync(key);
+            }
+            catch (RedisConnectionException err)
+            {
+
+                // throw err;
+            }
+            
         }
         public async void FlushDatabaseByIndex( int db_index)
         {

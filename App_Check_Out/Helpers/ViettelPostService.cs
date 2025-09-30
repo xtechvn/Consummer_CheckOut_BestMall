@@ -88,7 +88,7 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] GetTemporaryToken - ViettelPostService: error [" + (DOMAIN + API_LOGIN) + "] :" + ex.ToString());
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] GetTemporaryToken - ViettelPostService: error [" + (DOMAIN + API_LOGIN) + "] :" + ex);
             }
             return false;
         }
@@ -128,7 +128,7 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("[APP.CHECKOUT] GetOwnerConnectToken - ViettelPostService: error [" + (DOMAIN + API_OWNERCONNECT) + "] :" + ex.ToString());
+                LogHelper.InsertLogTelegram("[APP.CHECKOUT] GetOwnerConnectToken - ViettelPostService: error [" + (DOMAIN + API_OWNERCONNECT) + "] :" + ex);
             }
             return false;
         }

@@ -19,7 +19,7 @@ service_collection.AddSingleton<RedisConn>();
 service_collection.AddSingleton<ViettelPostService>();
 var service_provider = service_collection.BuildServiceProvider();
 var main_service = service_provider.GetService<IMainServices>();
-//log_service.InsertLogTelegramDirect("[APP CHECKOUT] Start at: " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
+LogHelper.InsertLogTelegram("[APP CHECKOUT] Start : " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
 
 try
 {
@@ -42,8 +42,6 @@ try
                                             arguments: null);
 
         channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
-        Console.WriteLine("[APP CHECKOUT] Service : " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
-        //log_service.InsertLogTelegramDirect("[APP CHECKOUT] Service Waiting: " + DateTime.Now.ToString("dd/MM/yy HH:mm:ss"));
 
         var consumer = new EventingBasicConsumer(channel);
         consumer.Received += async (sender, ea) =>
@@ -52,7 +50,6 @@ try
             {
                 var body = ea.Body.ToArray();
                  var message = Encoding.UTF8.GetString(body);
-
                   Console.WriteLine("[APP CHECKOUT] message: " + message);
                 
                 try
@@ -63,13 +60,13 @@ try
                     await main_service.Excute(request);
                 }
                  catch (Exception ex) { 
-                     Console.WriteLine("error ->[APP CHECKOUT] message: " + ex.ToString());
+                     Console.WriteLine("error ->[APP CHECKOUT] message: " + ex);
                 }
                 channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
             }
             catch (Exception ex)
             {
-                string err = "Program: " + ex.ToString();
+                string err = "Program: " + ex;
                 Console.WriteLine(err);
                 LogHelper.InsertLogTelegram("[APP.CHECKOUT] MAIN - excute: error:" + err);
 
@@ -84,7 +81,7 @@ try
 }
 catch (Exception ex)
 {
-    string err = "Main: " + ex.ToString();
+    string err = "Main: " + ex;
     Console.WriteLine(err);
     LogHelper.InsertLogTelegram("[APP.CHECKOUT] MAIN: error:" + err);
 

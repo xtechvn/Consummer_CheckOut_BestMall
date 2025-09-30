@@ -75,6 +75,20 @@ namespace APP_CHECKOUT.Helpers
 
             return builder.ToString();
         }
+        public static string Decode(string strString, string strKeyPhrase)
+        {
+            try
+            {
+                Byte[] byt = Convert.FromBase64String(strString);
+                strString = System.Text.Encoding.UTF8.GetString(byt);
+                strString = KeyED(strString, strKeyPhrase);
+                return strString;
+            }
+            catch (Exception ex)
+            {
 
+                return strString;
+            }
+        }
     }
 }

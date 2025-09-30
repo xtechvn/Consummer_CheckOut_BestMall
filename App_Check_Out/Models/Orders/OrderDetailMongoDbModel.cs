@@ -12,8 +12,6 @@ namespace APP_CHECKOUT.Models.Orders
         public DateTime created_date { get; set; }
 
     }
-
-
     public class OrderDetailMongoDbModel
     {
         [BsonElement("_id")]
@@ -37,6 +35,7 @@ namespace APP_CHECKOUT.Models.Orders
         public string utm_medium { get; set; }
         public int? voucher_id { get; set; }
         public string voucher_code { get; set; }
+
 
         public string receivername { get; set; }
 
@@ -69,7 +68,8 @@ namespace APP_CHECKOUT.Models.Orders
         public decimal? PriceSales { get; set; }
         public string? Unit { get; set; }
         public int? SupplierId { get; set; }
-
+        public double? LimitVoucherTotalDiscount { get; set; }
+        public bool? IsLimitVoucher { get; set; }
         public double TotalDiscount { get; set; }
     }
     public class OrderDetailMongoDbDelivery

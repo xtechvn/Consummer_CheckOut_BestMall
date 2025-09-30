@@ -37,9 +37,9 @@ namespace DAL
                 new SqlParameter("@Profit", model.Profit ?? (object)DBNull.Value),
                 new SqlParameter("@Discount", model.Discount ?? (object)DBNull.Value),
                 new SqlParameter("@Amount", model.Amount ?? (object)DBNull.Value),
-                new SqlParameter("@OrderStatus", model.OrderStatus <= 0 ? (object)DBNull.Value : model.OrderStatus),
-                new SqlParameter("@PaymentType", model.PaymentType <= 0 ? (object)DBNull.Value : model.PaymentType),
-                new SqlParameter("@PaymentStatus", model.PaymentStatus <= 0 ? (object)DBNull.Value : model.PaymentStatus),
+                new SqlParameter("@OrderStatus", model.OrderStatus <0 ? (object)DBNull.Value : model.OrderStatus),
+                new SqlParameter("@PaymentType", model.PaymentType < 0 ? (object)DBNull.Value : model.PaymentType),
+                new SqlParameter("@PaymentStatus", model.PaymentStatus < 0 ? (object)DBNull.Value : model.PaymentStatus),
                 new SqlParameter("@UtmSource", model.UtmSource ?? (object)DBNull.Value),
                 new SqlParameter("@UtmMedium", model.UtmMedium ?? (object)DBNull.Value),
                 new SqlParameter("@Note", model.Note ?? (object)DBNull.Value),
@@ -53,10 +53,11 @@ namespace DAL
                 new SqlParameter("@DistrictId", model.DistrictId <= 0 ? (object)DBNull.Value : model.DistrictId),
                 new SqlParameter("@WardId", model.WardId <= 0 ? (object)DBNull.Value : model.WardId),
                 new SqlParameter("@Address", model.Address ?? (object)DBNull.Value),
-                new SqlParameter("@RefundStatus", model.RefundStatus <= 0 ? (object)DBNull.Value : model.RefundStatus),
+                new SqlParameter("@RefundStatus", model.RefundStatus < 0 ? (object)DBNull.Value : model.RefundStatus),
                 new SqlParameter("@RefundReason", model.RefundReason ?? (object)DBNull.Value),
                 new SqlParameter("@RefundDate", model.RefundDate ?? (object)DBNull.Value),
-                new SqlParameter("@ShippingFee", model.ShippingFee ?? (object)DBNull.Value)
+                new SqlParameter("@ShippingFee", model.ShippingFee ?? (object)DBNull.Value),
+                new SqlParameter("@ProfitAffiliate", model.ProfitAffiliate ?? (object)DBNull.Value)
 
                 };
 
@@ -111,7 +112,9 @@ namespace DAL
                 new SqlParameter("@RefundStatus", model.RefundStatus <= 0 ? (object)DBNull.Value : model.RefundStatus),
                 new SqlParameter("@RefundReason", model.RefundReason ?? (object)DBNull.Value),
                 new SqlParameter("@RefundDate", model.RefundDate ?? (object)DBNull.Value),
-                new SqlParameter("@ShippingFee", model.ShippingFee ?? (object)DBNull.Value)
+                new SqlParameter("@ShippingFee", model.ShippingFee ?? (object)DBNull.Value),
+                new SqlParameter("@ProfitAffiliate", model.ProfitAffiliate ?? (object)DBNull.Value)
+
                 };
 
                 return _DbWorker.ExecuteNonQuery("sp_UpdateOrderMerge", objParam);
