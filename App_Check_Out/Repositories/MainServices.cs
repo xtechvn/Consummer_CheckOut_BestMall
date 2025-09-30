@@ -96,7 +96,7 @@ namespace APP_CHECKOUT.Repositories
                             {
                                 await notificationService.SendMessage((data.order_merge.UserId==null?0:(int)data.order_merge.UserId).ToString(),data.order_merge.ClientId.ToString(), "0", data.order_merge.OrderNo, "/Order/");
                                 emailService.SendOrderConfirmationEmail(data.data_mongo.email, data);
-                               // await emailService.SendOrderSupplierConfirmationEmail(data);
+                                await emailService.SendOrderSupplierConfirmationEmail(data);
                             }
                         }break;
                     case (int)CheckoutEventID.UPDATE_ORDER:
